@@ -20,7 +20,7 @@ export default function Layout() {
       {/* Desktop Sidebar (Hidden on mobile) */}
       <aside className="hidden md:flex w-64 bg-surface border-r border-[#1e293b] flex-col h-screen sticky top-0">
         <div className="p-6 pb-2 border-b border-[#1e293b]">
-          <h1 className="text-header font-bold text-xl text-aberration tracking-wide mb-2">Exam Partner</h1>
+          <h1 className="text-header font-bold text-xl text-aberration tracking-wide mb-2">Maxe</h1>
           <p className="text-xs text-body">Deep Midnight Theme</p>
         </div>
         
@@ -61,7 +61,7 @@ export default function Layout() {
               )}
             </div>
           </Link>
-          <h1 className="text-header font-bold text-lg text-aberration tracking-wide">Exam Partner</h1>
+          <h1 className="text-header font-bold text-lg text-aberration tracking-wide">Maxe</h1>
           <button onClick={() => setIsCalendarOpen(true)} className="p-1 text-header hover:text-primary transition">
             <Calendar className="w-6 h-6" />
           </button>

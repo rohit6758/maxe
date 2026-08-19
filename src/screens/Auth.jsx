@@ -38,7 +38,7 @@ export default function Auth() {
     <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-surface p-8 rounded-2xl border border-[#1e293b] shadow-2xl">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-header text-aberration mb-2">Exam Partner</h1>
+          <h1 className="text-3xl font-bold text-header text-aberration mb-2">Maxe</h1>
           <p className="text-body text-sm">Sign in with your College Email</p>
         </div>
 

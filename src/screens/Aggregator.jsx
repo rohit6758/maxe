@@ -166,9 +166,42 @@ export default function Aggregator() {
                 <FileText size={16} />
                 <h3 className="text-sm font-semibold uppercase tracking-wider">PDF Notes</h3>
               </div>
-              <button className="text-primary text-xs font-bold flex items-center gap-1 hover:underline">
+              <label className="text-primary text-xs font-bold flex items-center gap-1 hover:underline cursor-pointer">
                 <UploadCloud size={14} /> UPLOAD
-              </button>
+                <input 
+                  type="file" 
+                  accept="application/pdf" 
+                  className="hidden" 
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file || !activeSubject) return;
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Math.random()}.${fileExt}`;
+                    const filePath = `${session.user.id}/${fileName}`;
+                    
+                    const { error: uploadError } = await supabase.storage.from('uploads').upload(filePath, file);
+                    if (uploadError) {
+                      alert('Error uploading file: ' + uploadError.message);
+                      return;
+                    }
+                    
+                    const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
+                    
+                    const { data: inserted, error: insertError } = await supabase.from('resources').insert([{
+                      subject_id: activeSubject,
+                      title: file.name,
+                      url: data.publicUrl,
+                      type: 'pdf',
+                      size: (file.size / 1024 / 1024).toFixed(2) + ' MB'
+                    }]).select();
+                    
+                    if (inserted) {
+                      setResources([...resources, inserted[0]]);
+                    }
+                  }}
+                />
+              </label>
             </div>
             
             <div className="space-y-2">

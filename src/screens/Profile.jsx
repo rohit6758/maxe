@@ -41,6 +41,40 @@ export default function Profile() {
     setLoading(false);
   };
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setLoading(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${session.user.id}/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('uploads')
+        .upload(filePath, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
+      
+      const updates = {
+        id: session.user.id,
+        avatar_url: data.publicUrl
+      };
+
+      const { error: updateError } = await supabase.from('profiles').upsert(updates);
+      if (updateError) throw updateError;
+      
+      setUserProfile({ ...userProfile, avatar_url: data.publicUrl });
+    } catch (err) {
+      alert('Error uploading avatar: ' + err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="p-4 space-y-6 md:p-8">
       <div className="flex items-center gap-3 border-b border-[#1e293b] pb-4">
@@ -50,7 +84,7 @@ export default function Profile() {
 
       <div className="bg-surface p-6 rounded-2xl border border-[#1e293b] space-y-4">
         
-        {/* Avatar mock */}
+        {/* Avatar upload */}
         <div className="flex items-center gap-4">
            <div className="w-20 h-20 bg-[#080F1D] border-2 border-primary rounded-full flex items-center justify-center overflow-hidden">
              {userProfile?.avatar_url ? (
@@ -59,9 +93,11 @@ export default function Profile() {
                <User className="w-10 h-10 text-body" />
              )}
            </div>
-           <button className="flex items-center gap-2 text-sm text-primary font-medium bg-primary/10 px-4 py-2 rounded-lg hover:bg-primary/20 transition-colors">
-              <UploadCloud size={16} /> Upload Avatar
-           </button>
+           
+           <label className="flex items-center gap-2 text-sm text-primary font-medium bg-primary/10 px-4 py-2 rounded-lg hover:bg-primary/20 transition-colors cursor-pointer">
+              <UploadCloud size={16} /> {loading ? 'Uploading...' : 'Upload Avatar'}
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={loading} />
+           </label>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

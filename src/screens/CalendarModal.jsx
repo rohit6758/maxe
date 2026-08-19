@@ -2,12 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { X, Calendar as CalendarIcon, Plus, Bell } from 'lucide-react';
+import Calendar from 'react-calendar';
+import 'react-calendar/dist/Calendar.css';
 
 export default function CalendarModal({ onClose }) {
   const { session } = useAppContext();
   const [events, setEvents] = useState([]);
   const [title, setTitle] = useState('');
-  const [date, setDate] = useState('');
+  const [date, setDate] = useState(new Date());
   const [reminder, setReminder] = useState(7); // default 7 days
 
   useEffect(() => {
@@ -26,21 +28,39 @@ export default function CalendarModal({ onClose }) {
     e.preventDefault();
     if (!title || !date) return;
 
+    // Convert local Date to YYYY-MM-DD
+    const dateString = date.toISOString().split('T')[0];
+
     const { data, error } = await supabase
       .from('calendar_events')
-      .insert([{ user_id: session.user.id, title, event_date: date, reminder_days: reminder }])
+      .insert([{ user_id: session.user.id, title, event_date: dateString, reminder_days: reminder }])
       .select();
 
     if (data) {
       setEvents([...events, data[0]].sort((a, b) => new Date(a.event_date) - new Date(b.event_date)));
       setTitle('');
-      setDate('');
     }
+  };
+
+  // Helper to add badges to calendar days
+  const tileContent = ({ date, view }) => {
+    if (view === 'month') {
+      const dateString = date.toISOString().split('T')[0];
+      const dayEvents = events.filter(e => e.event_date === dateString);
+      if (dayEvents.length > 0) {
+        return (
+          <div className="flex justify-center mt-1">
+            <div className="w-1.5 h-1.5 bg-primary rounded-full"></div>
+          </div>
+        );
+      }
+    }
+    return null;
   };
 
   return (
     <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-      <div className="bg-surface w-full max-w-lg rounded-2xl border border-[#1e293b] shadow-2xl flex flex-col max-h-[90vh]">
+      <div className="bg-surface w-full max-w-lg rounded-2xl border border-[#1e293b] shadow-2xl flex flex-col max-h-[90vh] overflow-hidden">
         
         <div className="flex justify-between items-center p-4 border-b border-[#1e293b]">
           <div className="flex items-center gap-2 text-header">
@@ -52,10 +72,20 @@ export default function CalendarModal({ onClose }) {
           </button>
         </div>
 
-        <div className="p-4 overflow-y-auto flex-1 space-y-6">
+        <div className="p-4 overflow-y-auto flex-1 space-y-6 custom-calendar-wrapper">
           
+          {/* React Calendar */}
+          <div className="bg-[#080F1D] p-4 rounded-xl border border-[#1e293b] flex justify-center">
+            <Calendar 
+              onChange={setDate} 
+              value={date} 
+              tileContent={tileContent}
+              className="!bg-transparent !border-none !text-header !font-sans"
+            />
+          </div>
+
           <form onSubmit={addEvent} className="bg-[#080F1D] p-4 rounded-xl border border-[#1e293b] space-y-3">
-            <h3 className="text-sm font-semibold text-header">Mark an Exam Date</h3>
+            <h3 className="text-sm font-semibold text-header">Add Event for {date.toDateString()}</h3>
             <input 
               type="text" 
               placeholder="Exam Name (e.g. Midterm 2 - Algo)" 
@@ -63,16 +93,11 @@ export default function CalendarModal({ onClose }) {
               className="w-full bg-surface border border-[#1e293b] text-header rounded-lg p-2 text-sm"
               required
             />
-            <div className="flex gap-2">
-              <input 
-                type="date" 
-                value={date} onChange={e => setDate(e.target.value)}
-                className="flex-1 bg-surface border border-[#1e293b] text-header rounded-lg p-2 text-sm"
-                required
-              />
+            <div className="flex gap-2 items-center">
+              <span className="text-xs text-body">Reminder:</span>
               <select 
                 value={reminder} onChange={e => setReminder(Number(e.target.value))}
-                className="bg-surface border border-[#1e293b] text-header rounded-lg p-2 text-sm"
+                className="flex-1 bg-surface border border-[#1e293b] text-header rounded-lg p-2 text-sm"
               >
                 <option value={1}>1 Day before</option>
                 <option value={3}>3 Days before</option>
@@ -84,7 +109,7 @@ export default function CalendarModal({ onClose }) {
             </button>
           </form>
 
-          <div className="space-y-3">
+          <div className="space-y-3 pb-4">
             <h3 className="text-sm font-semibold text-header border-b border-[#1e293b] pb-2">Upcoming Events</h3>
             {events.length === 0 && <p className="text-body text-xs">No upcoming exams.</p>}
             {events.map(ev => {

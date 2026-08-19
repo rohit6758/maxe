@@ -151,10 +151,40 @@ export default function PostMortemLog() {
              </div>
            ))}
            
-           <button className="aspect-square rounded-xl border-2 border-dashed border-[#1e293b] bg-surface/50 flex flex-col items-center justify-center gap-2 hover:bg-surface transition-colors hover:border-primary/50">
+           <label className="aspect-square rounded-xl border-2 border-dashed border-[#1e293b] bg-surface/50 flex flex-col items-center justify-center gap-2 hover:bg-surface transition-colors hover:border-primary/50 cursor-pointer">
               <UploadCloud size={24} className="text-primary" />
-              <span className="text-sm font-semibold text-primary">Upload Paper</span>
-           </button>
+              <span className="text-sm font-semibold text-primary text-center leading-tight px-2">Upload Paper</span>
+              <input 
+                  type="file" 
+                  accept="image/*" 
+                  className="hidden" 
+                  onChange={async (e) => {
+                    const file = e.target.files[0];
+                    if (!file || !log) return;
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `${Math.random()}.${fileExt}`;
+                    const filePath = `${session.user.id}/${fileName}`;
+                    
+                    const { error: uploadError } = await supabase.storage.from('uploads').upload(filePath, file);
+                    if (uploadError) {
+                      alert('Error uploading file: ' + uploadError.message);
+                      return;
+                    }
+                    
+                    const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
+                    
+                    const { data: inserted } = await supabase.from('log_evidence').insert([{
+                      log_id: log.id,
+                      image_url: data.publicUrl
+                    }]).select();
+                    
+                    if (inserted) {
+                      setEvidence([...evidence, inserted[0]]);
+                    }
+                  }}
+              />
+           </label>
         </div>
       </section>
 
