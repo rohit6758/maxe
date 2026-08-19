@@ -1,0 +1,17 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer utilities {
+  .text-aberration {
+    text-shadow: 1px 0px 1px rgba(0, 255, 255, 0.4), -1px 0px 1px rgba(255, 0, 0, 0.4);
+  }
+}
+
+body {
+  @apply bg-background text-body font-sans;
+  margin: 0;
+  padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
