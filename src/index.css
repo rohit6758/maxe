@@ -1,16 +1,16 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #181A18;
-  --color-surface: #252825;
-  --color-primary: #4F5D53;
-  --color-header: #E0E0E0;
-  --color-body: #A0A0A0;
+  --color-background: #080F1D;
+  --color-surface: #111C35;
+  --color-primary: #4F86F7;
+  --color-header: #E2E8F0;
+  --color-body: #94A3B8;
 }
 
 @layer utilities {
   .text-aberration {
-    text-shadow: 1px 0px 1px rgba(0, 255, 255, 0.4), -1px 0px 1px rgba(255, 0, 0, 0.4);
+    text-shadow: 1px 0px 1px rgba(79, 134, 247, 0.4), -1px 0px 1px rgba(226, 232, 240, 0.4);
   }
 }
 
