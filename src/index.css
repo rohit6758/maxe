@@ -1,6 +1,12 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+@import "tailwindcss";
+
+@theme {
+  --color-background: #181A18;
+  --color-surface: #252825;
+  --color-primary: #4F5D53;
+  --color-header: #E0E0E0;
+  --color-body: #A0A0A0;
+}
 
 @layer utilities {
   .text-aberration {
@@ -9,7 +15,8 @@
 }
 
 body {
-  @apply bg-background text-body font-sans;
+  background-color: var(--color-background);
+  color: var(--color-body);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
