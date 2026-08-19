@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, FileText, Activity, Calendar, User, LogOut } from 'lucide-react';
+import { LayoutGrid, CheckSquare, FileText, Activity, Calendar, User, LogOut, Download } from 'lucide-react';
 import clsx from 'clsx';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
@@ -9,6 +9,26 @@ import CalendarModal from './screens/CalendarModal';
 export default function Layout() {
   const { userProfile } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+
+  const [installPrompt, setInstallPrompt] = useState(null);
+
+  useEffect(() => {
+    const handleBeforeInstallPrompt = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+  }, []);
+
+  const handleInstallClick = async () => {
+    if (!installPrompt) return;
+    installPrompt.prompt();
+    const { outcome } = await installPrompt.userChoice;
+    if (outcome === 'accepted') {
+      setInstallPrompt(null);
+    }
+  };
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
@@ -19,9 +39,12 @@ export default function Layout() {
       
       {/* Desktop Sidebar (Hidden on mobile) */}
       <aside className="hidden md:flex w-64 bg-surface border-r border-[#1e293b] flex-col h-screen sticky top-0">
-        <div className="p-6 pb-2 border-b border-[#1e293b]">
-          <h1 className="text-header font-bold text-xl text-aberration tracking-wide mb-2">Maxe</h1>
-          <p className="text-xs text-body">Deep Midnight Theme</p>
+        <div className="p-6 pb-2 border-b border-[#1e293b] flex justify-between items-center">
+          <div>
+            <h1 className="text-header font-bold text-xl text-aberration tracking-wide mb-2">Maxe</h1>
+            <p className="text-xs text-body">Deep Midnight Theme</p>
+          </div>
+          <img src="/logo.png" alt="Maxe Logo" className="w-10 h-10 rounded-full" />
         </div>
         
         <nav className="flex-1 p-4 space-y-2 mt-4">
@@ -32,6 +55,11 @@ export default function Layout() {
         </nav>
 
         <div className="p-4 border-t border-[#1e293b] space-y-2">
+          {installPrompt && (
+            <button onClick={handleInstallClick} className="flex items-center gap-3 p-3 w-full rounded-xl text-primary hover:bg-primary/10 transition-colors text-sm font-bold bg-primary/5">
+              <Download size={20} /> Install App
+            </button>
+          )}
           <button 
             onClick={() => setIsCalendarOpen(true)}
             className="flex items-center gap-3 p-3 w-full rounded-xl text-body hover:bg-primary/10 hover:text-primary transition-colors text-sm font-medium"
@@ -61,10 +89,20 @@ export default function Layout() {
               )}
             </div>
           </Link>
-          <h1 className="text-header font-bold text-lg text-aberration tracking-wide">Maxe</h1>
-          <button onClick={() => setIsCalendarOpen(true)} className="p-1 text-header hover:text-primary transition">
-            <Calendar className="w-6 h-6" />
-          </button>
+          <div className="flex items-center gap-2">
+            <img src="/logo.png" alt="Maxe Logo" className="w-6 h-6 rounded-full" />
+            <h1 className="text-header font-bold text-lg text-aberration tracking-wide">Maxe</h1>
+          </div>
+          <div className="flex items-center gap-2">
+            {installPrompt && (
+              <button onClick={handleInstallClick} className="p-1 text-primary hover:text-white transition">
+                <Download className="w-6 h-6" />
+              </button>
+            )}
+            <button onClick={() => setIsCalendarOpen(true)} className="p-1 text-header hover:text-primary transition">
+              <Calendar className="w-6 h-6" />
+            </button>
+          </div>
         </header>
 
         <main className="flex-1 overflow-y-auto pb-[80px] md:pb-8">
