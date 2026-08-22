@@ -30,7 +30,6 @@ export function AppProvider({ children }) {
   }, []);
 
   const fetchProfile = async (userId) => {
-    setLoading(true);
     const { data, error } = await supabase
       .from('profiles')
       .select('*')

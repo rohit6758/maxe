@@ -48,6 +48,19 @@ export default function PostMortemLog() {
     if (data) setLog(data);
   };
 
+  const handleAddItem = async (type) => {
+    const text = prompt(`Enter your ${type}:`);
+    if (!text || !log) return;
+    
+    const { data } = await supabase.from('log_items').insert([{
+      log_id: log.id,
+      type,
+      text
+    }]).select();
+    
+    if (data) setItems([...items, data[0]]);
+  };
+
   if (!activeSubject) {
     return (
       <div className="p-8 text-center bg-surface rounded-2xl m-4 border border-[#1e293b]">
@@ -97,9 +110,18 @@ export default function PostMortemLog() {
             <span className="text-sm text-body">{log.total_marks}</span>
           </div>
         </div>
-        <p className="text-xs text-primary mt-4 font-bold bg-primary/10 px-3 py-1 rounded-full border border-primary/20">
+        <button 
+          onClick={async () => {
+            const marks = prompt('Enter marks received:', log.marks_received);
+            if (marks !== null) {
+               const { data } = await supabase.from('logs').update({ marks_received: parseFloat(marks) }).eq('id', log.id).select().single();
+               if (data) setLog(data);
+            }
+          }}
+          className="text-xs text-primary mt-4 font-bold bg-primary/10 px-3 py-1 rounded-full border border-primary/20 hover:bg-primary/20 transition-colors cursor-pointer"
+        >
           Click to Edit Marks
-        </p>
+        </button>
       </div>
 
       {/* Component 2: Professor's Tips */}
@@ -116,7 +138,7 @@ export default function PostMortemLog() {
                {idx !== items.filter(i => i.type === 'tip').length - 1 && <Divider />}
              </div>
           ))}
-          <button className="text-primary text-xs font-bold">+ Add Tip</button>
+          <button onClick={() => handleAddItem('tip')} className="text-primary text-xs font-bold">+ Add Tip</button>
         </div>
       </section>
 
@@ -131,7 +153,7 @@ export default function PostMortemLog() {
           {items.filter(i => i.type === 'drawback').map(item => (
             <DrawbackItem key={item.id} text={item.text} />
           ))}
-          <button className="text-red-400 text-xs font-bold">+ Add Drawback</button>
+          <button onClick={() => handleAddItem('drawback')} className="text-red-400 text-xs font-bold">+ Add Drawback</button>
         </div>
       </section>
 

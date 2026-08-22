@@ -74,29 +74,59 @@ export default function Aggregator() {
     }
   };
 
+  const handleCreateSemester = async () => {
+    const name = prompt('Enter Semester Name (e.g., Semester 1):');
+    if (!name) return;
+    const { data } = await supabase.from('semesters').insert([{ user_id: session.user.id, name }]).select();
+    if (data) {
+      setSemesters([...semesters, data[0]]);
+      setActiveSemester(data[0].id);
+    }
+  };
+
+  const handleCreateSubject = async () => {
+    if (!activeSemester) {
+      alert('Please select a semester first.');
+      return;
+    }
+    const name = prompt('Enter Subject Name (e.g., Data Structures):');
+    if (!name) return;
+    const { data } = await supabase.from('subjects').insert([{ semester_id: activeSemester, name }]).select();
+    if (data) {
+      setSubjects([...subjects, data[0]]);
+      setActiveSubject(data[0].id);
+    }
+  };
+
   return (
     <div className="p-4 md:p-8 space-y-6 pb-24 md:pb-8 relative">
       
       {/* Context Selectors */}
-      <div className="flex gap-4">
-        <select 
-          className="bg-surface border border-[#1e293b] text-header rounded-xl p-2 text-sm focus:outline-none focus:border-primary flex-1"
-          value={activeSemester || ''}
-          onChange={e => setActiveSemester(e.target.value)}
-        >
-          <option value="" disabled>Select Semester</option>
-          {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex flex-1 gap-2">
+          <select 
+            className="bg-surface border border-[#1e293b] text-header rounded-xl p-2 text-sm focus:outline-none focus:border-primary flex-1"
+            value={activeSemester || ''}
+            onChange={e => setActiveSemester(e.target.value)}
+          >
+            <option value="" disabled>Select Semester</option>
+            {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          <button onClick={handleCreateSemester} className="bg-primary/20 text-primary border border-primary/50 px-3 rounded-xl text-sm font-bold hover:bg-primary/30">+</button>
+        </div>
         
-        <select 
-          className="bg-surface border border-[#1e293b] text-header rounded-xl p-2 text-sm focus:outline-none focus:border-primary flex-1"
-          value={activeSubject || ''}
-          onChange={e => setActiveSubject(e.target.value)}
-          disabled={!activeSemester}
-        >
-          <option value="" disabled>Select Subject</option>
-          {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
-        </select>
+        <div className="flex flex-1 gap-2">
+          <select 
+            className="bg-surface border border-[#1e293b] text-header rounded-xl p-2 text-sm focus:outline-none focus:border-primary flex-1"
+            value={activeSubject || ''}
+            onChange={e => setActiveSubject(e.target.value)}
+            disabled={!activeSemester}
+          >
+            <option value="" disabled>Select Subject</option>
+            {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+          </select>
+          <button onClick={handleCreateSubject} disabled={!activeSemester} className="bg-primary/20 text-primary border border-primary/50 px-3 rounded-xl text-sm font-bold hover:bg-primary/30 disabled:opacity-50">+</button>
+        </div>
       </div>
 
       {!activeSubject ? (
