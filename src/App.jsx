@@ -9,6 +9,30 @@ import Auth from './screens/Auth';
 import Profile from './screens/Profile';
 import { AppProvider, useAppContext } from './context/AppContext';
 
+class ErrorBoundary extends React.Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="min-h-screen bg-background text-red-400 p-8">
+          <h1 className="text-2xl font-bold mb-4">Something went wrong.</h1>
+          <pre className="text-xs bg-surface p-4 rounded-xl overflow-auto border border-[#1e293b]">
+            {this.state.error?.stack || this.state.error?.message}
+          </pre>
+          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg">Reload</button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
 // Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { session, loading } = useAppContext();
@@ -36,11 +60,13 @@ function AppRoutes() {
 
 function App() {
   return (
-    <AppProvider>
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -3,9 +3,12 @@ import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
+import { Eye, EyeOff } from 'lucide-react';
+
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState(null);
@@ -31,7 +34,6 @@ export default function Auth() {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         
-        // If email confirmation is disabled, data.session will be populated immediately
         if (data?.session) {
           navigate('/');
         } else {
@@ -51,7 +53,7 @@ export default function Auth() {
       <div className="w-full max-w-md bg-surface p-8 rounded-2xl border border-[#1e293b] shadow-2xl">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-header text-aberration mb-2">Maxe</h1>
-          <p className="text-body text-sm">Sign in with your College Email</p>
+          <p className="text-body text-sm">Welcome to your study hub</p>
         </div>
 
         {error && <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl mb-4 text-sm">{error}</div>}
@@ -63,21 +65,30 @@ export default function Auth() {
               type="email" 
               value={email}
               onChange={e => setEmail(e.target.value)}
-              placeholder="firstname.lastname@college.edu"
+              placeholder="you@example.com"
               className="w-full bg-[#080F1D] border border-[#1e293b] text-header rounded-xl p-3 focus:outline-none focus:border-primary transition-colors"
               required
             />
           </div>
           <div>
             <label className="block text-xs font-semibold text-body mb-1 uppercase tracking-wider">Password</label>
-            <input 
-              type="password" 
-              value={password}
-              onChange={e => setPassword(e.target.value)}
-              placeholder="••••••••"
-              className="w-full bg-[#080F1D] border border-[#1e293b] text-header rounded-xl p-3 focus:outline-none focus:border-primary transition-colors"
-              required
-            />
+            <div className="relative">
+              <input 
+                type={showPassword ? "text" : "password"}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-[#080F1D] border border-[#1e293b] text-header rounded-xl p-3 pr-10 focus:outline-none focus:border-primary transition-colors"
+                required
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-body hover:text-header transition-colors"
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
+            </div>
           </div>
           <button 
             type="submit" 
