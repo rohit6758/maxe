@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 
 export default function Auth() {
   const [email, setEmail] = useState('');
@@ -8,8 +9,14 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [error, setError] = useState(null);
-  
+  const { session } = useAppContext();
   const navigate = useNavigate();
+
+  React.useEffect(() => {
+    if (session) {
+      navigate('/');
+    }
+  }, [session, navigate]);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -20,12 +27,17 @@ export default function Auth() {
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
-        navigate('/');
       } else {
-        const { error } = await supabase.auth.signUp({ email, password });
+        const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        alert('Check your email for the login link or log in now if auto-confirmed!');
-        setIsLogin(true);
+        
+        // If email confirmation is disabled, data.session will be populated immediately
+        if (data?.session) {
+          navigate('/');
+        } else {
+          alert('Account created! Please log in (or check your email if confirmation is enabled).');
+          setIsLogin(true);
+        }
       }
     } catch (err) {
       setError(err.message);
