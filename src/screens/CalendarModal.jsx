@@ -21,19 +21,26 @@ export default function CalendarModal({ onClose }) {
 
   const save = async (e) => {
     e.preventDefault();
-    const { data } = await supabase.from('calendar_events').insert([{
+    const { data, error } = await supabase.from('calendar_events').insert([{
       user_id: session.user.id,
       title: form.title,
       type: form.type,
       marks: form.marks ? parseInt(form.marks) : null,
       event_date: selected.toISOString().split('T')[0]
     }]).select();
-    if (data) { setEvents(p => [...p, data[0]]); setForm({ title: '', type: 'exam', marks: '' }); setShowForm(false); }
+    if (error) {
+      alert('Failed to save event: ' + error.message);
+    } else if (data) {
+      setEvents(p => [...p, data[0]]);
+      setForm({ title: '', type: 'exam', marks: '' });
+      setShowForm(false);
+    }
   };
 
   const del = async (id) => {
-    await supabase.from('calendar_events').delete().eq('id', id);
-    setEvents(p => p.filter(e => e.id !== id));
+    const { error } = await supabase.from('calendar_events').delete().eq('id', id);
+    if (error) alert('Failed to delete event: ' + error.message);
+    else setEvents(p => p.filter(e => e.id !== id));
   };
 
   const selStr = selected.toISOString().split('T')[0];
