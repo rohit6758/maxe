@@ -50,13 +50,13 @@ export default function Profile() {
     setSaving(true);
     const { data, error } = await supabase
       .from('profiles')
-      .upsert({
-        id: session.user.id,
+      .update({
         name: name.trim(),
         bio: bio.trim(),
         branch,
         avatar_url: avatarUrl
-      }, { onConflict: 'id' })
+      })
+      .eq('id', session.user.id)
       .select()
       .single();
 
