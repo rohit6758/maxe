@@ -14,6 +14,8 @@ export default function Profile() {
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
 
+  const [isEditing, setIsEditing] = useState(false);
+
   useEffect(() => {
     if (userProfile) {
       setName(userProfile.name || '');
@@ -21,7 +23,7 @@ export default function Profile() {
       setBranch(userProfile.branch || '');
       setAvatarUrl(userProfile.avatar_url || null);
     }
-  }, [userProfile]);
+  }, [userProfile, isEditing]);
 
   const handleAvatarUpload = async (e) => {
     const file = e.target.files?.[0];
@@ -35,7 +37,6 @@ export default function Profile() {
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('uploads').getPublicUrl(path);
-      // Force cache bust
       const url = `${data.publicUrl}?t=${Date.now()}`;
       setAvatarUrl(url);
     } catch (err) {
@@ -65,7 +66,7 @@ export default function Profile() {
     } else if (data) {
       setUserProfile(data);
       setSaved(true);
-      setTimeout(() => setSaved(false), 2500);
+      setTimeout(() => { setSaved(false); setIsEditing(false); }, 1000);
     }
     setSaving(false);
   };
@@ -78,58 +79,84 @@ export default function Profile() {
         <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Profile</h2>
       </div>
 
-      {/* Avatar section */}
-      <div className="card p-6 flex flex-col items-center gap-3">
-        <div className="relative">
-          <div className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center"
-            style={{background:'rgba(107,168,152,0.12)', border:'2px solid rgba(107,168,152,0.3)'}}>
-            {avatarUrl
-              ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-              : <User size={36} style={{color:'#6BA898'}} />}
+      {!isEditing ? (
+        <div className="card p-6">
+          <div className="flex items-center gap-5">
+            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2"
+              style={{borderColor: 'rgba(107,168,152,0.3)', background: 'rgba(107,168,152,0.1)'}}>
+              {userProfile?.avatar_url
+                ? <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+                : <User size={40} style={{color:'#6BA898'}} />}
+            </div>
+            <div className="flex-1 min-w-0">
+              <h2 className="text-lg md:text-xl font-bold truncate" style={{color:'#2D4A3E'}}>{userProfile?.name || 'Your Name'}</h2>
+              <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.branch || 'No branch selected'}</p>
+            </div>
           </div>
-          <label className="absolute -bottom-2 -right-2 rounded-xl p-1.5 cursor-pointer shadow"
-            style={{background:'#6BA898', border:'2px solid #FFFFFF'}}>
-            {uploading
-              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-              : <Camera size={14} style={{color:'#FFFFFF'}} />}
-            <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-          </label>
+          
+          <div className="mt-5">
+            <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{color:'#5E7A6E'}}>
+              {userProfile?.bio || 'Add a bio...'}
+            </p>
+          </div>
+          
+          <button 
+            onClick={() => setIsEditing(true)}
+            className="w-full mt-6 py-2 rounded-xl text-sm font-bold transition-transform active:scale-95"
+            style={{background: '#EAF4EF', color: '#2D4A3E', border: '1px solid rgba(107,168,152,0.2)'}}>
+            Edit Profile
+          </button>
         </div>
-        <div className="text-center">
-          <p className="font-bold" style={{color:'#2D4A3E'}}>{name || 'Your Name'}</p>
-          <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{session?.user?.email}</p>
+      ) : (
+        <div className="card p-5 space-y-5">
+          <div className="flex items-center justify-between mb-2">
+            <h3 className="font-bold" style={{color:'#2D4A3E'}}>Edit Profile</h3>
+            <button onClick={() => setIsEditing(false)} className="text-xs font-bold" style={{color:'#DC6B6B'}}>Cancel</button>
+          </div>
+
+          <div className="flex flex-col items-center gap-3">
+            <div className="relative">
+              <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
+                style={{background:'rgba(107,168,152,0.12)', border:'2px solid rgba(107,168,152,0.3)'}}>
+                {avatarUrl
+                  ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+                  : <User size={36} style={{color:'#6BA898'}} />}
+              </div>
+              <label className="absolute -bottom-1 -right-1 rounded-xl p-2 cursor-pointer shadow"
+                style={{background:'#6BA898', border:'2px solid #FFFFFF'}}>
+                {uploading
+                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                  : <Camera size={14} style={{color:'#FFFFFF'}} />}
+                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
+              </label>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
+            <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
+            <select className="app-input" value={branch} onChange={e => setBranch(e.target.value)}>
+              <option value="">Select branch</option>
+              {['CSE','CSM','IT','CSC','EEE','MECH','CIVIL','ECE'].map(b => <option key={b} value={b}>{b}</option>)}
+            </select>
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Bio</label>
+            <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
+          </div>
+
+          <button onClick={handleSave} disabled={saving}
+            className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm mt-2">
+            <Save size={16} />
+            {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
+          </button>
         </div>
-      </div>
-
-      {/* Edit form */}
-      <div className="card p-5 space-y-4">
-        <h3 className="font-bold" style={{color:'#2D4A3E'}}>Edit Profile</h3>
-
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
-          <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
-          <select className="app-input" value={branch} onChange={e => setBranch(e.target.value)}>
-            <option value="">Select branch</option>
-            {['CSE','CSM','IT','CSC','EEE','MECH','CIVIL','ECE'].map(b => <option key={b} value={b}>{b}</option>)}
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Bio</label>
-          <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
-        </div>
-
-        <button onClick={handleSave} disabled={saving}
-          className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm">
-          <Save size={16} />
-          {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
-        </button>
-        {saved && <p className="text-center text-xs" style={{color:'#6BA898'}}>Profile saved to cloud ✓</p>}
-      </div>
+      )}
 
 
 
