@@ -123,6 +123,21 @@ export default function Layout() {
           </div>
         </header>
 
+        {/* Desktop Top Bar */}
+        <header className="hidden md:flex items-center justify-end px-6 py-4">
+          <Link to="/profile" className="flex items-center gap-3 hover:scale-[1.02] transition-transform">
+            <div className="text-right">
+              <p className="text-sm font-bold text-aberration" style={{color: '#2D4A3E'}}>{userProfile?.name || 'My Profile'}</p>
+              <p className="text-xs" style={{color: '#6BA898'}}>{userProfile?.branch || 'Student'}</p>
+            </div>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '2px solid rgba(107,168,152,0.3)'}}>
+              {userProfile?.avatar_url
+                ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
+                : <User size={20} style={{color: '#6BA898'}} />}
+            </div>
+          </Link>
+        </header>
+
         <main className="flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
           <Outlet />
         </main>
