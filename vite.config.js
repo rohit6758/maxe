@@ -12,8 +12,8 @@ export default defineConfig({
         name: 'Maxe',
         short_name: 'Maxe',
         description: 'Your Exam Partner & Study Hub',
-        theme_color: '#080F1D',
-        background_color: '#080F1D',
+        theme_color: '#EDF4F0',
+        background_color: '#EDF4F0',
         display: 'standalone',
         icons: [
           {

@@ -6,7 +6,7 @@ import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
 
 export default function Layout() {
-  const { userProfile, activeBranch } = useAppContext();
+  const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -16,6 +16,37 @@ export default function Layout() {
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
+
+  useEffect(() => {
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+
+    const checkReminders = async () => {
+      if (!session) return;
+      if (Notification.permission !== 'granted') return;
+      
+      const today = new Date().toISOString().split('T')[0];
+      const { data } = await supabase.from('calendar_events')
+        .select('*')
+        .eq('user_id', session.user.id)
+        .eq('event_date', today);
+        
+      if (data && data.length > 0) {
+        const notified = localStorage.getItem('notified_' + today);
+        if (!notified) {
+          data.forEach(ev => {
+            new Notification('Maxe Reminder 📅', {
+              body: `You have an event today: ${ev.title}`,
+              icon: '/logo.png'
+            });
+          });
+          localStorage.setItem('notified_' + today, 'true');
+        }
+      }
+    };
+    checkReminders();
+  }, [session]);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
