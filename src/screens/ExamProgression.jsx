@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { Check, Play, Flag, AlertTriangle, Edit2 } from 'lucide-react';
+import { Check, Play, Flag, AlertTriangle, Edit2, Calendar } from 'lucide-react';
 
 export default function ExamProgression() {
   const { session, activeSubject } = useAppContext();

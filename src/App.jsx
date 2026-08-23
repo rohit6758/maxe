@@ -17,15 +17,30 @@ class ErrorBoundary extends React.Component {
   static getDerivedStateFromError(error) {
     return { hasError: true, error };
   }
+  handleReload = () => {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for(let registration of registrations) {
+          registration.unregister();
+        }
+        window.location.reload(true);
+      }).catch(function() {
+        window.location.reload(true);
+      });
+    } else {
+      window.location.reload(true);
+    }
+  };
+
   render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-background text-red-400 p-8">
           <h1 className="text-2xl font-bold mb-4">Something went wrong.</h1>
-          <pre className="text-xs bg-surface p-4 rounded-xl overflow-auto border border-[#1e293b]">
+          <pre className="text-xs bg-surface p-4 rounded-xl overflow-auto border border-[#1e293b] whitespace-pre-wrap">
             {this.state.error?.stack || this.state.error?.message}
           </pre>
-          <button onClick={() => window.location.reload()} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg">Reload</button>
+          <button onClick={this.handleReload} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg">Hard Reload (Clear Cache)</button>
         </div>
       );
     }
