@@ -57,10 +57,17 @@ export default function Layout() {
 
   const handleLogout = async () => supabase.auth.signOut();
 
+  const NAV_ITEMS = [
+    { id: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
+    { id: 'todos', label: 'Goals', icon: <CheckSquare size={18} /> },
+    { id: 'aggregator', label: 'Hub', icon: <BookOpen size={18} /> },
+    { id: 'personals', label: 'Improvements', icon: <User size={18} /> },
+  ];
+
   const navLinks = [
     { to: '/', icon: <LayoutGrid size={18} />, label: 'Hub' },
     { to: '/todos', icon: <CheckSquare size={18} />, label: 'To-Do' },
-    { to: '/personals', icon: <BookOpen size={18} />, label: 'Personals' },
+    { to: '/personals', icon: <BookOpen size={18} />, label: 'Improvements' },
   ];
 
   const SidebarContent = () => (
@@ -178,7 +185,7 @@ export default function Layout() {
           {[
             { to: '/', icon: <LayoutGrid size={22} />, label: 'Hub' },
             { to: '/todos', icon: <CheckSquare size={22} />, label: 'To-Do' },
-            { to: '/personals', icon: <BookOpen size={22} />, label: 'Personals' },
+            { to: '/personals', icon: <BookOpen size={22} />, label: 'Improvements' },
             { to: '/profile', icon: <User size={22} />, label: 'Profile' },
           ].map(item => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) =>

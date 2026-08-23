@@ -6,7 +6,6 @@ import { CheckCircle2, AlertTriangle, UploadCloud, Plus, Trash2, FileText, Chevr
 const EXAMS = [
   { id: 'mid1',    label: 'Mid 1',    total: 40,  color: '#6BA898', lightBg: '#EAF4EF', emoji: '📘' },
   { id: 'mid2',    label: 'Mid 2',    total: 40,  color: '#7B9EC8', lightBg: '#EAF0FA', emoji: '📗' },
-  { id: 'semester',label: 'Semester', total: 100, color: '#9B7EC8', lightBg: '#F0EAF8', emoji: '📙' },
 ];
 
 export default function Personals() {
@@ -141,7 +140,7 @@ export default function Personals() {
 
       {/* Header */}
       <div className="card p-4">
-        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Personals</h2>
+        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Improvements</h2>
         <p className="text-sm mt-0.5" style={{color:'#6BA898'}}>Select a subject to view exam reflections</p>
       </div>
 
