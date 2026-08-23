@@ -76,7 +76,6 @@ export default function Profile() {
       {/* Header */}
       <div className="card p-4">
         <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Profile</h2>
-        <p className="text-sm mt-0.5" style={{color:'#6BA898'}}>Your account · data is saved in the cloud</p>
       </div>
 
       {/* Avatar section */}
