@@ -55,8 +55,7 @@ export default function Profile() {
         name: name.trim(),
         bio: bio.trim(),
         branch,
-        avatar_url: avatarUrl,
-        updated_at: new Date().toISOString(),
+        avatar_url: avatarUrl
       }, { onConflict: 'id' })
       .select()
       .single();
