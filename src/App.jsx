@@ -47,9 +47,9 @@ class ErrorBoundary extends React.Component {
 const ProtectedRoute = ({ children }) => {
   const { session, loading } = useAppContext();
   if (loading) return (
-    <div className="h-screen w-full flex flex-col items-center justify-center gap-4" style={{background: '#020c1b'}}>
-      <div className="w-16 h-16 rounded-full border-4 border-t-cyan-400 border-blue-900 animate-spin" />
-      <p className="text-cyan-300 font-medium tracking-widest text-sm uppercase">Loading Maxe...</p>
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 animate-pulse" style={{background: '#EDF4F0'}}>
+      <div className="w-16 h-16 rounded-full border-4 animate-spin" style={{borderColor: 'rgba(107,168,152,0.2)', borderTopColor: '#6BA898'}} />
+      <p className="font-bold tracking-widest text-sm uppercase" style={{color: '#6BA898'}}>Loading Maxe</p>
     </div>
   );
   if (!session) return <Navigate to="/auth" />;
