@@ -116,6 +116,13 @@ export default function Personals() {
     setUploading(false);
   };
 
+  const deleteEvidence = async (subjectId, examId, evId) => {
+    const key = cacheKey(subjectId, examId);
+    if (!confirm('Delete this uploaded file?')) return;
+    await supabase.from('log_evidence').delete().eq('id', evId);
+    setEvidenceCache(p => ({ ...p, [key]: (p[key] || []).filter(e => e.id !== evId) }));
+  };
+
   // ── No semester selected ──
   if (!activeSemester) {
     return (
@@ -295,13 +302,16 @@ export default function Personals() {
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                               {examEvidence.map(ev => (
-                                <a key={ev.id} href={ev.image_url} target="_blank" rel="noreferrer"
-                                  className="aspect-square rounded-xl overflow-hidden flex items-center justify-center"
-                                  style={{background:'#EAF4EF', border:`1px solid ${cfg.color}30`}}>
-                                  {ev.image_url.match(/\.pdf$/i)
-                                    ? <div className="flex flex-col items-center gap-1"><FileText size={20} style={{color:cfg.color}} /><span className="text-[9px] font-bold" style={{color:cfg.color}}>PDF</span></div>
-                                    : <img src={ev.image_url} alt="evidence" className="object-cover w-full h-full" />}
-                                </a>
+                                <div key={ev.id} className="relative group aspect-square rounded-xl overflow-hidden" style={{background:'#EAF4EF', border:`1px solid ${cfg.color}30`}}>
+                                  <a href={ev.image_url} target="_blank" rel="noreferrer" className="w-full h-full flex items-center justify-center">
+                                    {ev.image_url.match(/\.pdf$/i)
+                                      ? <div className="flex flex-col items-center gap-1"><FileText size={20} style={{color:cfg.color}} /><span className="text-[9px] font-bold" style={{color:cfg.color}}>PDF</span></div>
+                                      : <img src={ev.image_url} alt="evidence" className="object-cover w-full h-full" />}
+                                  </a>
+                                  <button onClick={() => deleteEvidence(subject.id, examId, ev.id)} className="absolute top-1 right-1 p-1 rounded-md opacity-0 group-hover:opacity-100 transition-opacity bg-white shadow-sm" style={{color:'#DC6B6B'}}>
+                                    <Trash2 size={12} />
+                                  </button>
+                                </div>
                               ))}
                               <label className="aspect-square rounded-xl border-2 border-dashed flex flex-col items-center justify-center gap-1 cursor-pointer hover:scale-[1.03] transition-transform"
                                 style={{borderColor:`${cfg.color}40`, background:`${cfg.lightBg}`}}>

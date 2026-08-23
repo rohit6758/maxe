@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { FileText, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList } from 'lucide-react';
+import { FileText, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2 } from 'lucide-react';
 
 const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
 
@@ -92,10 +92,24 @@ export default function Aggregator() {
   const handleSaveChat = async () => {
     const query = prompt('Your question to the AI:');
     if (!query) return;
-    const response = prompt('Paste the AI answer:');
+    const response = prompt('Paste the AI chat history:');
     if (!response) return;
     const { data } = await supabase.from('chat_history').insert([{ subject_id: activeSubject, query, response }]).select();
     if (data) setChats(p => [data[0], ...p]);
+  };
+
+  const handleDeleteResource = async (id, e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (!confirm('Delete this item?')) return;
+    await supabase.from('resources').delete().eq('id', id);
+    setResources(p => p.filter(r => r.id !== id));
+  };
+
+  const handleDeleteChat = async (id, e) => {
+    if (e) { e.preventDefault(); e.stopPropagation(); }
+    if (!confirm('Delete this chat history?')) return;
+    await supabase.from('chat_history').delete().eq('id', id);
+    setChats(p => p.filter(c => c.id !== id));
   };
 
   const subjectName = subjects.find(s => s.id === activeSubject)?.name || '';
@@ -224,15 +238,20 @@ export default function Aggregator() {
               <div className="space-y-2">
                 {resources.filter(r => r.type === 'link' || r.type === 'youtube').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No links added yet.</p>}
                 {resources.filter(r => r.type === 'link' || r.type === 'youtube').map(res => (
-                  <a key={res.id} href={res.url} target="_blank" rel="noreferrer" className="card-sm flex items-center gap-3 p-3 hover:scale-[1.01] transition-transform">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                      {res.type === 'youtube' ? <Video size={18} style={{color:'#E57373'}} /> : <LinkIcon size={18} style={{color:'#6BA898'}} />}
-                    </div>
-                    <div className="min-w-0">
-                      <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                      <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{res.url}</p>
-                    </div>
-                  </a>
+                  <div key={res.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
+                    <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
+                        {res.type === 'youtube' ? <Video size={18} style={{color:'#E57373'}} /> : <LinkIcon size={18} style={{color:'#6BA898'}} />}
+                      </div>
+                      <div className="min-w-0 pr-2">
+                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
+                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{res.url}</p>
+                      </div>
+                    </a>
+                    <button onClick={(e) => handleDeleteResource(res.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -251,16 +270,20 @@ export default function Aggregator() {
               <div className="space-y-2">
                 {resources.filter(r => r.type === 'pdf').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No PDFs uploaded yet.</p>}
                 {resources.filter(r => r.type === 'pdf').map(res => (
-                  <a key={res.id} href={res.url} target="_blank" rel="noreferrer" className="card-sm flex items-center gap-3 p-3">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                      <FileText size={18} style={{color:'#6BA898'}} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                      <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <span className="text-xs btn-outline px-2 py-1 rounded-lg">Open ↗</span>
-                  </a>
+                  <div key={res.id} className="card-sm flex items-center gap-2 p-2 pl-3">
+                    <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
+                        <FileText size={18} style={{color:'#6BA898'}} />
+                      </div>
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
+                        <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </a>
+                    <button onClick={(e) => handleDeleteResource(res.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -280,16 +303,20 @@ export default function Aggregator() {
               <div className="space-y-2">
                 {resources.filter(r => r.type === 'question_paper').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No question papers yet.</p>}
                 {resources.filter(r => r.type === 'question_paper').map(res => (
-                  <a key={res.id} href={res.url} target="_blank" rel="noreferrer" className="card-sm flex items-center gap-3 p-3">
-                    <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                      <ClipboardList size={18} style={{color:'#6BA898'}} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                      <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
-                    </div>
-                    <span className="text-xs btn-outline px-2 py-1 rounded-lg">Open ↗</span>
-                  </a>
+                  <div key={res.id} className="card-sm flex items-center gap-2 p-2 pl-3">
+                    <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
+                        <ClipboardList size={18} style={{color:'#6BA898'}} />
+                      </div>
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
+                        <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </a>
+                    <button onClick={(e) => handleDeleteResource(res.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                      <Trash2 size={16} />
+                    </button>
+                  </div>
                 ))}
               </div>
             </div>
@@ -307,8 +334,13 @@ export default function Aggregator() {
               <div className="space-y-3 max-h-[400px] overflow-y-auto">
                 {chats.length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Click + Save Chat to log one.</p>}
                 {chats.map(chat => (
-                  <div key={chat.id} className="card-sm p-3 space-y-2">
-                    <p className="font-semibold text-sm" style={{color:'#2D4A3E'}}>Q: {chat.query}</p>
+                  <div key={chat.id} className="card-sm p-3 space-y-2 relative group">
+                    <div className="flex items-start justify-between">
+                      <p className="font-semibold text-sm pr-6" style={{color:'#2D4A3E'}}>Q: {chat.query}</p>
+                      <button onClick={(e) => handleDeleteChat(chat.id, e)} className="p-1 shrink-0 opacity-40 hover:opacity-100 transition-opacity absolute right-2 top-2" style={{color:'#DC6B6B'}}>
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                     <div className="divider" />
                     <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{color:'#5E7A6E'}}>{chat.response}</p>
                     <p className="text-[10px]" style={{color:'#A8C5B8'}}>{new Date(chat.created_at).toLocaleDateString()}</p>
