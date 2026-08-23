@@ -132,17 +132,7 @@ export default function Profile() {
         {saved && <p className="text-center text-xs" style={{color:'#6BA898'}}>Profile saved to cloud ✓</p>}
       </div>
 
-      {/* Cloud persistence notice */}
-      <div className="card-sm p-4 flex gap-3 items-start">
-        <span className="text-xl">☁️</span>
-        <div>
-          <p className="text-sm font-semibold" style={{color:'#2D4A3E'}}>Data saved to cloud</p>
-          <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>
-            All your subjects, resources, notes and logs are stored securely in Supabase.
-            Log in with the same email on any device to access everything.
-          </p>
-        </div>
-      </div>
+
 
       {/* Account */}
       <div className="card p-4 space-y-3">
