@@ -8,7 +8,8 @@ export function AppProvider({ children }) {
   const [userProfile, setUserProfile] = useState(null);
   const [loading, setLoading] = useState(true);
   
-  // App state
+  // 3-step funnel state
+  const [activeBranch, setActiveBranch] = useState('');
   const [activeSemester, setActiveSemester] = useState(null);
   const [activeSubject, setActiveSubject] = useState(null);
 
@@ -19,7 +20,7 @@ export function AppProvider({ children }) {
       else setLoading(false);
     });
 
-    supabase.auth.onAuthStateChange((_event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setSession(session);
       if (session) fetchProfile(session.user.id);
       else {
@@ -27,10 +28,12 @@ export function AppProvider({ children }) {
         setLoading(false);
       }
     });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchProfile = async (userId) => {
-    const { data, error } = await supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -45,9 +48,11 @@ export function AppProvider({ children }) {
       session,
       userProfile,
       loading,
+      activeBranch, setActiveBranch,
       activeSemester, setActiveSemester,
       activeSubject, setActiveSubject,
-      setUserProfile
+      setUserProfile,
+      fetchProfile
     }}>
       {children}
     </AppContext.Provider>

@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-
 import { Eye, EyeOff } from 'lucide-react';
 
 export default function Auth() {
@@ -16,9 +15,7 @@ export default function Auth() {
   const navigate = useNavigate();
 
   React.useEffect(() => {
-    if (session) {
-      navigate('/');
-    }
+    if (session) navigate('/');
   }, [session, navigate]);
 
   const handleAuth = async (e) => {
@@ -33,11 +30,10 @@ export default function Auth() {
       } else {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
-        
         if (data?.session) {
           navigate('/');
         } else {
-          alert('Account created! Please log in (or check your email if confirmation is enabled).');
+          setError('Account created! Please sign in now.');
           setIsLogin(true);
         }
       }
@@ -49,63 +45,81 @@ export default function Auth() {
   };
 
   return (
-    <div className="min-h-screen bg-background flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md bg-surface p-8 rounded-2xl border border-[#1e293b] shadow-2xl">
+    <div className="min-h-screen flex items-center justify-center p-4" style={{background: '#020c1b', backgroundImage: 'radial-gradient(ellipse at 20% 30%, rgba(14,60,120,0.7) 0%, transparent 50%), radial-gradient(ellipse at 80% 70%, rgba(6,50,110,0.6) 0%, transparent 50%)'}}>
+      
+      {/* Glow orbs */}
+      <div className="fixed top-20 left-20 w-64 h-64 rounded-full blur-3xl pointer-events-none" style={{background: 'rgba(56,189,248,0.08)'}} />
+      <div className="fixed bottom-20 right-20 w-64 h-64 rounded-full blur-3xl pointer-events-none" style={{background: 'rgba(6,182,212,0.06)'}} />
+
+      <div className="w-full max-w-md relative z-10">
+        {/* Logo */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-header text-aberration mb-2">Maxe</h1>
-          <p className="text-body text-sm">Welcome to your study hub</p>
+          <div className="flex items-center justify-center gap-3 mb-2">
+            <img src="/logo.png" alt="Maxe" className="w-12 h-12 rounded-xl" style={{boxShadow: '0 0 24px rgba(56,189,248,0.5)'}} />
+            <h1 className="text-4xl font-bold text-header text-aberration">Maxe</h1>
+          </div>
+          <p className="text-body text-sm">Your academic study hub</p>
         </div>
 
-        {error && <div className="bg-red-500/10 border border-red-500/50 text-red-400 p-3 rounded-xl mb-4 text-sm">{error}</div>}
-
-        <form onSubmit={handleAuth} className="space-y-4">
-          <div>
-            <label className="block text-xs font-semibold text-body mb-1 uppercase tracking-wider">Email</label>
-            <input 
-              type="email" 
-              value={email}
-              onChange={e => setEmail(e.target.value)}
-              placeholder="you@example.com"
-              className="w-full bg-[#080F1D] border border-[#1e293b] text-header rounded-xl p-3 focus:outline-none focus:border-primary transition-colors"
-              required
-            />
+        <div className="glass-strong rounded-2xl p-6 space-y-5" style={{boxShadow: '0 20px 60px rgba(0,0,0,0.5), 0 0 40px rgba(56,189,248,0.1)'}}>
+          
+          {/* Tabs */}
+          <div className="flex glass rounded-xl p-1 gap-1">
+            <button
+              onClick={() => setIsLogin(true)}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${isLogin ? 'glass-btn-primary' : 'text-body hover:text-header'}`}
+            >
+              Sign In
+            </button>
+            <button
+              onClick={() => setIsLogin(false)}
+              className={`flex-1 py-2 rounded-lg text-sm font-bold transition-all ${!isLogin ? 'glass-btn-primary' : 'text-body hover:text-header'}`}
+            >
+              Create Account
+            </button>
           </div>
-          <div>
-            <label className="block text-xs font-semibold text-body mb-1 uppercase tracking-wider">Password</label>
-            <div className="relative">
-              <input 
-                type={showPassword ? "text" : "password"}
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-[#080F1D] border border-[#1e293b] text-header rounded-xl p-3 pr-10 focus:outline-none focus:border-primary transition-colors"
+
+          {error && (
+            <div className={`p-3 rounded-xl text-xs ${error.includes('created') ? 'text-emerald-400 border border-emerald-400/20' : 'text-red-400 border border-red-400/20'}`} style={{background: error.includes('created') ? 'rgba(52,211,153,0.1)' : 'rgba(239,68,68,0.1)'}}>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleAuth} className="space-y-4">
+            <div>
+              <label className="block text-xs font-bold text-body uppercase tracking-widest mb-1.5">Email</label>
+              <input
+                type="email" value={email} onChange={e => setEmail(e.target.value)}
+                placeholder="you@example.com"
+                className="glass-input w-full rounded-xl p-3 text-sm"
                 required
               />
-              <button 
-                type="button" 
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-body hover:text-header transition-colors"
-              >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-              </button>
             </div>
-          </div>
-          <button 
-            type="submit" 
-            disabled={loading}
-            className="w-full bg-primary text-white font-bold py-3 rounded-xl hover:bg-primary/90 transition-colors shadow-lg shadow-primary/20 disabled:opacity-50 mt-4"
-          >
-            {loading ? 'Processing...' : (isLogin ? 'Sign In' : 'Create Account')}
-          </button>
-        </form>
-
-        <div className="mt-6 text-center">
-          <button 
-            onClick={() => setIsLogin(!isLogin)}
-            className="text-primary text-sm font-medium hover:underline"
-          >
-            {isLogin ? "Don't have an account? Sign up" : "Already have an account? Sign in"}
-          </button>
+            <div>
+              <label className="block text-xs font-bold text-body uppercase tracking-widest mb-1.5">Password</label>
+              <div className="relative">
+                <input
+                  type={showPassword ? "text" : "password"}
+                  value={password} onChange={e => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="glass-input w-full rounded-xl p-3 pr-10 text-sm"
+                  required
+                />
+                <button
+                  type="button" onClick={() => setShowPassword(!showPassword)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-body hover:text-header transition-colors"
+                >
+                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit" disabled={loading}
+              className="glass-btn-primary w-full py-3 rounded-xl font-bold text-sm disabled:opacity-50 mt-2"
+            >
+              {loading ? 'Processing...' : (isLogin ? '→ Sign In' : '→ Create Account')}
+            </button>
+          </form>
         </div>
       </div>
     </div>

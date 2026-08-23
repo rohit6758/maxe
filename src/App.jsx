@@ -2,8 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './Layout';
 import Aggregator from './screens/Aggregator';
-import PostMortemLog from './screens/PostMortemLog';
-import ExamProgression from './screens/ExamProgression';
+import Personals from './screens/Personals';
 import Todos from './screens/Todos';
 import Auth from './screens/Auth';
 import Profile from './screens/Profile';
@@ -20,27 +19,24 @@ class ErrorBoundary extends React.Component {
   handleReload = () => {
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.getRegistrations().then(function(registrations) {
-        for(let registration of registrations) {
-          registration.unregister();
-        }
+        for(let registration of registrations) { registration.unregister(); }
         window.location.reload(true);
-      }).catch(function() {
-        window.location.reload(true);
-      });
+      }).catch(function() { window.location.reload(true); });
     } else {
       window.location.reload(true);
     }
   };
-
   render() {
     if (this.state.hasError) {
       return (
         <div className="min-h-screen bg-background text-red-400 p-8">
           <h1 className="text-2xl font-bold mb-4">Something went wrong.</h1>
-          <pre className="text-xs bg-surface p-4 rounded-xl overflow-auto border border-[#1e293b] whitespace-pre-wrap">
+          <pre className="text-xs p-4 rounded-xl overflow-auto border border-red-500/20 whitespace-pre-wrap" style={{background: 'rgba(8,25,65,0.5)'}}>
             {this.state.error?.stack || this.state.error?.message}
           </pre>
-          <button onClick={this.handleReload} className="mt-4 px-4 py-2 bg-primary text-white rounded-lg">Hard Reload (Clear Cache)</button>
+          <button onClick={this.handleReload} className="mt-4 px-4 py-2 text-white rounded-lg font-bold" style={{background: 'rgba(56,189,248,0.8)'}}>
+            Hard Reload (Clear Cache)
+          </button>
         </div>
       );
     }
@@ -48,13 +44,15 @@ class ErrorBoundary extends React.Component {
   }
 }
 
-// Protected Route Wrapper
 const ProtectedRoute = ({ children }) => {
   const { session, loading } = useAppContext();
-  
-  if (loading) return <div className="h-screen w-full flex items-center justify-center bg-background text-header">Loading...</div>;
+  if (loading) return (
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-4" style={{background: '#020c1b'}}>
+      <div className="w-16 h-16 rounded-full border-4 border-t-cyan-400 border-blue-900 animate-spin" />
+      <p className="text-cyan-300 font-medium tracking-widest text-sm uppercase">Loading Maxe...</p>
+    </div>
+  );
   if (!session) return <Navigate to="/auth" />;
-  
   return children;
 };
 
@@ -64,8 +62,7 @@ function AppRoutes() {
       <Route path="/auth" element={<Auth />} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Aggregator />} />
-        <Route path="logs" element={<PostMortemLog />} />
-        <Route path="timeline" element={<ExamProgression />} />
+        <Route path="personals" element={<Personals />} />
         <Route path="todos" element={<Todos />} />
         <Route path="profile" element={<Profile />} />
       </Route>
