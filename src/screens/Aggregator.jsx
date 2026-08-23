@@ -95,7 +95,12 @@ export default function Aggregator() {
 
   const handleAddChat = async (e) => {
     e.preventDefault();
-    const { data } = await supabase.from('chat_history').insert([{ subject_id: activeSubject, query: newChat.title, response: newChat.url }]).select();
+    if (!newChat.title || !newChat.url) return;
+    const { data, error } = await supabase.from('chat_history').insert([{ subject_id: activeSubject, query: newChat.title, response: newChat.url }]).select();
+    if (error) {
+      alert('Error saving chat: ' + error.message);
+      return;
+    }
     if (data) { setChats(p => [data[0], ...p]); setShowAddChat(false); setNewChat({ title: '', url: '' }); }
   };
 
@@ -161,7 +166,14 @@ export default function Aggregator() {
         {/* Semester */}
         {activeBranch && (
           <div>
-            <p className="text-xs font-semibold mb-2" style={{color: '#5E7A6E'}}>② Semester</p>
+            <div className="flex justify-between items-end mb-2">
+              <p className="text-xs font-semibold" style={{color: '#5E7A6E'}}>② Semester</p>
+              {activeSemester && (
+                <button onClick={() => handleDeleteSemester(activeSemester)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                  <Trash2 size={10} /> Delete
+                </button>
+              )}
+            </div>
             <div className="flex gap-2 items-center">
               <select className="app-input flex-1" value={activeSemester || ''}
                 onChange={e => { setActiveSemester(e.target.value); setActiveSubject(null); }}>
@@ -169,11 +181,6 @@ export default function Aggregator() {
                 {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <button onClick={handleCreateSemester} className="btn-outline px-3 py-2.5 text-lg font-bold">+</button>
-              {activeSemester && (
-                <button onClick={() => handleDeleteSemester(activeSemester)} className="p-2 hover:opacity-70 transition-opacity" style={{color:'#6BA898'}}>
-                  <X size={18} />
-                </button>
-              )}
             </div>
           </div>
         )}
@@ -181,7 +188,14 @@ export default function Aggregator() {
         {/* Subject */}
         {activeSemester && (
           <div>
-            <p className="text-xs font-semibold mb-2" style={{color: '#5E7A6E'}}>③ Subject</p>
+            <div className="flex justify-between items-end mb-2">
+              <p className="text-xs font-semibold" style={{color: '#5E7A6E'}}>③ Subject</p>
+              {activeSubject && (
+                <button onClick={() => handleDeleteSubject(activeSubject)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                  <Trash2 size={10} /> Delete
+                </button>
+              )}
+            </div>
             <div className="flex gap-2 items-center">
               <select className="app-input flex-1" value={activeSubject || ''}
                 onChange={e => setActiveSubject(e.target.value)}>
@@ -189,11 +203,6 @@ export default function Aggregator() {
                 {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
               <button onClick={handleCreateSubject} className="btn-outline px-3 py-2.5 text-lg font-bold">+</button>
-              {activeSubject && (
-                <button onClick={() => handleDeleteSubject(activeSubject)} className="p-2 hover:opacity-70 transition-opacity" style={{color:'#6BA898'}}>
-                  <X size={18} />
-                </button>
-              )}
             </div>
           </div>
         )}
@@ -360,7 +369,7 @@ export default function Aggregator() {
               {showAddChat && (
                 <form onSubmit={handleAddChat} className="space-y-2 p-3 rounded-xl" style={{background:'#F5FAF7', border:'1px solid rgba(107,168,152,0.2)'}}>
                   <input className="app-input" placeholder="Chat Title (e.g. Unit 1 Summary)" value={newChat.title} onChange={e => setNewChat({...newChat, title: e.target.value})} required />
-                  <input className="app-input" placeholder="https://chatgpt.com/share/..." type="url" value={newChat.url} onChange={e => setNewChat({...newChat, url: e.target.value})} required />
+                  <input className="app-input" placeholder="https://chatgpt.com/share/..." type="text" value={newChat.url} onChange={e => setNewChat({...newChat, url: e.target.value})} required />
                   <div className="flex gap-2">
                     <button type="submit" className="btn-primary flex-1 py-2 text-xs">Save</button>
                     <button type="button" onClick={() => setShowAddChat(false)} className="btn-outline flex-1 py-2 text-xs">Cancel</button>
