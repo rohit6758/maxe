@@ -11,16 +11,10 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [msg, setMsg] = useState(null);
-  const [showSplash, setShowSplash] = useState(true);
   const { session } = useAppContext();
   const navigate = useNavigate();
 
   React.useEffect(() => { if (session) navigate('/'); }, [session, navigate]);
-  
-  React.useEffect(() => {
-    const timer = setTimeout(() => setShowSplash(false), 1200);
-    return () => clearTimeout(timer);
-  }, []);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -42,15 +36,6 @@ export default function Auth() {
       setLoading(false);
     }
   };
-
-  if (showSplash) {
-    return (
-      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500" style={{background:'#EDF4F0'}}>
-        <img src="/logo.png" alt="Maxe" className="w-28 h-28 rounded-3xl shadow-2xl animate-bounce" style={{animationDuration: '2s'}} />
-        <h1 className="text-3xl font-black mt-6" style={{color:'#2D4A3E'}}>Maxe</h1>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in" style={{background:'#EDF4F0'}}>
