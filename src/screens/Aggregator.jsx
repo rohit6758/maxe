@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { FileText, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2 } from 'lucide-react';
+import { FileText, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
 
 const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
 
@@ -13,8 +13,12 @@ export default function Aggregator() {
   const [resources, setResources] = useState([]);
   const [chats, setChats] = useState([]);
   const [activeTab, setActiveTab] = useState('links');
+  
   const [showAddLink, setShowAddLink] = useState(false);
   const [newLink, setNewLink] = useState({ title: '', url: '' });
+  
+  const [showAddChat, setShowAddChat] = useState(false);
+  const [newChat, setNewChat] = useState({ title: '', url: '' });
 
   useEffect(() => {
     if (session && activeBranch) fetchSemesters();
@@ -89,13 +93,10 @@ export default function Aggregator() {
     if (data) { setResources(p => [data[0], ...p]); setShowAddLink(false); setNewLink({ title: '', url: '' }); }
   };
 
-  const handleSaveChat = async () => {
-    const query = prompt('Your question to the AI:');
-    if (!query) return;
-    const response = prompt('Paste the AI chat history:');
-    if (!response) return;
-    const { data } = await supabase.from('chat_history').insert([{ subject_id: activeSubject, query, response }]).select();
-    if (data) setChats(p => [data[0], ...p]);
+  const handleAddChat = async (e) => {
+    e.preventDefault();
+    const { data } = await supabase.from('chat_history').insert([{ subject_id: activeSubject, query: newChat.title, response: newChat.url }]).select();
+    if (data) { setChats(p => [data[0], ...p]); setShowAddChat(false); setNewChat({ title: '', url: '' }); }
   };
 
   const handleDeleteResource = async (id, e) => {
@@ -107,9 +108,24 @@ export default function Aggregator() {
 
   const handleDeleteChat = async (id, e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (!confirm('Delete this chat history?')) return;
+    if (!confirm('Delete this AI chat?')) return;
     await supabase.from('chat_history').delete().eq('id', id);
     setChats(p => p.filter(c => c.id !== id));
+  };
+
+  const handleDeleteSemester = async (id) => {
+    if (!confirm('Delete this semester and ALL its subjects/resources?')) return;
+    await supabase.from('semesters').delete().eq('id', id);
+    setSemesters(p => p.filter(s => s.id !== id));
+    setActiveSemester(null);
+    setActiveSubject(null);
+  };
+
+  const handleDeleteSubject = async (id) => {
+    if (!confirm('Delete this subject and ALL its resources?')) return;
+    await supabase.from('subjects').delete().eq('id', id);
+    setSubjects(p => p.filter(s => s.id !== id));
+    setActiveSubject(null);
   };
 
   const subjectName = subjects.find(s => s.id === activeSubject)?.name || '';
@@ -146,13 +162,18 @@ export default function Aggregator() {
         {activeBranch && (
           <div>
             <p className="text-xs font-semibold mb-2" style={{color: '#5E7A6E'}}>② Semester</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <select className="app-input flex-1" value={activeSemester || ''}
                 onChange={e => { setActiveSemester(e.target.value); setActiveSubject(null); }}>
                 <option value="" disabled>Select semester</option>
                 {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
-              <button onClick={handleCreateSemester} className="btn-outline px-3 text-lg font-bold">+</button>
+              <button onClick={handleCreateSemester} className="btn-outline px-3 py-2.5 text-lg font-bold">+</button>
+              {activeSemester && (
+                <button onClick={() => handleDeleteSemester(activeSemester)} className="p-2 hover:opacity-70 transition-opacity" style={{color:'#6BA898'}}>
+                  <X size={18} />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -161,13 +182,18 @@ export default function Aggregator() {
         {activeSemester && (
           <div>
             <p className="text-xs font-semibold mb-2" style={{color: '#5E7A6E'}}>③ Subject</p>
-            <div className="flex gap-2">
+            <div className="flex gap-2 items-center">
               <select className="app-input flex-1" value={activeSubject || ''}
                 onChange={e => setActiveSubject(e.target.value)}>
                 <option value="" disabled>Select subject</option>
                 {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
               </select>
-              <button onClick={handleCreateSubject} className="btn-outline px-3 text-lg font-bold">+</button>
+              <button onClick={handleCreateSubject} className="btn-outline px-3 py-2.5 text-lg font-bold">+</button>
+              {activeSubject && (
+                <button onClick={() => handleDeleteSubject(activeSubject)} className="p-2 hover:opacity-70 transition-opacity" style={{color:'#6BA898'}}>
+                  <X size={18} />
+                </button>
+              )}
             </div>
           </div>
         )}
@@ -327,23 +353,36 @@ export default function Aggregator() {
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
                 <h3 className="font-bold" style={{color:'#2D4A3E'}}>AI Chat History</h3>
-                <button onClick={handleSaveChat} className="btn-outline flex items-center gap-1 text-xs">
-                  <Plus size={12} /> Save Chat
+                <button onClick={() => setShowAddChat(!showAddChat)} className="btn-outline flex items-center gap-1 text-xs">
+                  <Plus size={12} /> Add Link
                 </button>
               </div>
-              <div className="space-y-3 max-h-[400px] overflow-y-auto">
-                {chats.length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Click + Save Chat to log one.</p>}
+              {showAddChat && (
+                <form onSubmit={handleAddChat} className="space-y-2 p-3 rounded-xl" style={{background:'#F5FAF7', border:'1px solid rgba(107,168,152,0.2)'}}>
+                  <input className="app-input" placeholder="Chat Title (e.g. Unit 1 Summary)" value={newChat.title} onChange={e => setNewChat({...newChat, title: e.target.value})} required />
+                  <input className="app-input" placeholder="https://chatgpt.com/share/..." type="url" value={newChat.url} onChange={e => setNewChat({...newChat, url: e.target.value})} required />
+                  <div className="flex gap-2">
+                    <button type="submit" className="btn-primary flex-1 py-2 text-xs">Save</button>
+                    <button type="button" onClick={() => setShowAddChat(false)} className="btn-outline flex-1 py-2 text-xs">Cancel</button>
+                  </div>
+                </form>
+              )}
+              <div className="space-y-2">
+                {chats.length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Add a shared link.</p>}
                 {chats.map(chat => (
-                  <div key={chat.id} className="card-sm p-3 space-y-2 relative group">
-                    <div className="flex items-start justify-between">
-                      <p className="font-semibold text-sm pr-6" style={{color:'#2D4A3E'}}>Q: {chat.query}</p>
-                      <button onClick={(e) => handleDeleteChat(chat.id, e)} className="p-1 shrink-0 opacity-40 hover:opacity-100 transition-opacity absolute right-2 top-2" style={{color:'#DC6B6B'}}>
-                        <Trash2 size={14} />
-                      </button>
-                    </div>
-                    <div className="divider" />
-                    <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{color:'#5E7A6E'}}>{chat.response}</p>
-                    <p className="text-[10px]" style={{color:'#A8C5B8'}}>{new Date(chat.created_at).toLocaleDateString()}</p>
+                  <div key={chat.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
+                    <a href={chat.response} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
+                        <MessageSquare size={18} style={{color:'#6BA898'}} />
+                      </div>
+                      <div className="min-w-0 pr-2">
+                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{chat.query}</p>
+                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{chat.response}</p>
+                      </div>
+                    </a>
+                    <button onClick={(e) => handleDeleteChat(chat.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                      <Trash2 size={16} />
+                    </button>
                   </div>
                 ))}
               </div>
