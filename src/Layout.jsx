@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, FileText, Calendar, User, LogOut, Download, BookOpen } from 'lucide-react';
-import clsx from 'clsx';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, X } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
@@ -10,155 +9,149 @@ export default function Layout() {
   const { userProfile, activeBranch } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
-    const handleBeforeInstallPrompt = (e) => {
-      e.preventDefault();
-      setInstallPrompt(e);
-    };
-    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
-    return () => window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt);
+    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    window.addEventListener('beforeinstallprompt', handler);
+    return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  const handleInstallClick = async () => {
+  const handleInstall = async () => {
     if (!installPrompt) return;
     installPrompt.prompt();
     const { outcome } = await installPrompt.userChoice;
     if (outcome === 'accepted') setInstallPrompt(null);
   };
 
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
+  const handleLogout = async () => supabase.auth.signOut();
+
+  const navLinks = [
+    { to: '/', icon: <LayoutGrid size={18} />, label: 'Hub' },
+    { to: '/todos', icon: <CheckSquare size={18} />, label: 'To-Do' },
+    { to: '/personals', icon: <BookOpen size={18} />, label: 'Personals' },
+  ];
+
+  const SidebarContent = () => (
+    <div className="flex flex-col h-full">
+      {/* Brand */}
+      <div className="p-6 pb-4 border-b border-sage-100" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
+        <h1 className="text-xl font-bold text-aberration" style={{color: '#2D4A3E'}}>Maxe</h1>
+        {activeBranch && (
+          <span className="text-xs font-semibold mt-1 inline-block tag">{activeBranch}</span>
+        )}
+      </div>
+
+      {/* Nav */}
+      <nav className="flex-1 p-4 space-y-1 mt-2">
+        {navLinks.map(link => (
+          <NavLink
+            key={link.to}
+            to={link.to}
+            end={link.to === '/'}
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) =>
+              `nav-item ${isActive ? 'nav-item-active' : ''}`
+            }
+          >
+            {link.icon}
+            <span>{link.label}</span>
+          </NavLink>
+        ))}
+      </nav>
+
+      {/* Bottom actions */}
+      <div className="p-4 space-y-1 border-t" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
+        {installPrompt && (
+          <button onClick={handleInstall} className="nav-item w-full font-semibold" style={{color:'#6BA898'}}>
+            <Download size={18} /> Install App
+          </button>
+        )}
+        <button onClick={() => { setIsCalendarOpen(true); setSidebarOpen(false); }} className="nav-item w-full">
+          <Calendar size={18} /> Calendar
+        </button>
+        <Link to="/profile" onClick={() => setSidebarOpen(false)} className="nav-item w-full flex">
+          <User size={18} />
+          <span>{userProfile?.name || 'Profile'}</span>
+        </Link>
+        <button onClick={handleLogout} className="nav-item w-full" style={{color: '#DC6B6B'}}>
+          <LogOut size={18} /> Sign Out
+        </button>
+      </div>
+    </div>
+  );
 
   return (
-    <div className="flex min-h-screen" style={{background: 'transparent'}}>
-      
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:flex w-64 flex-col h-screen sticky top-0 glass-strong">
-        <div className="p-6 pb-4 border-b border-cyan-400/10 flex items-center gap-3">
-          <img src="/logo.png" alt="Maxe" className="w-10 h-10 rounded-xl" style={{boxShadow: '0 0 16px rgba(56,189,248,0.4)'}} />
-          <div>
-            <h1 className="text-header font-bold text-xl text-aberration tracking-wide">Maxe</h1>
-            {activeBranch && <p className="text-xs text-cyan-400/70">{activeBranch}</p>}
-          </div>
-        </div>
-        
-        <nav className="flex-1 p-4 space-y-1 mt-2">
-          <SidebarItem to="/" icon={<LayoutGrid size={18} />} label="Hub" />
-          <SidebarItem to="/todos" icon={<CheckSquare size={18} />} label="To-Do List" />
-          <SidebarItem to="/personals" icon={<BookOpen size={18} />} label="Personals" />
-        </nav>
+    <div className="flex min-h-screen" style={{background: '#EDF4F0'}}>
 
-        <div className="p-4 border-t border-cyan-400/10 space-y-1">
-          {installPrompt && (
-            <button onClick={handleInstallClick} className="flex items-center gap-3 p-3 w-full rounded-xl text-cyan-400 hover:glass-card transition-all text-sm font-bold">
-              <Download size={18} /> Install App
-            </button>
-          )}
-          <button 
-            onClick={() => setIsCalendarOpen(true)}
-            className="flex items-center gap-3 p-3 w-full rounded-xl text-body hover:text-header hover:glass-card transition-all text-sm font-medium"
-          >
-            <Calendar size={18} /> Calendar
-          </button>
-          <Link to="/profile" className="flex items-center gap-3 p-3 w-full rounded-xl text-body hover:text-header hover:glass-card transition-all text-sm font-medium">
-            <User size={18} /> {userProfile?.name || 'Profile'}
-          </Link>
-          <button onClick={handleLogout} className="flex items-center gap-3 p-3 w-full rounded-xl text-red-400/70 hover:text-red-400 hover:bg-red-500/10 transition-all text-sm font-medium">
-            <LogOut size={18} /> Logout
-          </button>
-        </div>
+      {/* Desktop Sidebar */}
+      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{background: '#F7FBF9', borderRight: '1px solid rgba(107,168,152,0.18)'}}>
+        <SidebarContent />
       </aside>
 
-      {/* Main Content */}
-      <div className="flex-1 flex flex-col relative min-w-0 max-w-full md:max-w-4xl mx-auto min-h-screen">
-        
+      {/* Mobile Drawer Overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)} style={{background: 'rgba(45,74,62,0.3)', backdropFilter: 'blur(4px)'}}>
+          <aside
+            className="absolute left-0 top-0 bottom-0 w-64 h-full"
+            style={{background: '#F7FBF9'}}
+            onClick={e => e.stopPropagation()}
+          >
+            <SidebarContent />
+          </aside>
+        </div>
+      )}
+
+      {/* Main */}
+      <div className="flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
+
         {/* Mobile Top Bar */}
-        <header className="md:hidden flex justify-between items-center p-4 sticky top-0 z-20 glass">
-          <Link to="/profile">
-            <div className="w-9 h-9 rounded-full border border-cyan-400/40 flex items-center justify-center overflow-hidden" style={{background: 'rgba(56,189,248,0.1)'}}>
-              {userProfile?.avatar_url ? (
-                <img src={userProfile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-5 h-5 text-cyan-400" />
-              )}
-            </div>
-          </Link>
+        <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3" style={{background: '#F7FBF9', borderBottom: '1px solid rgba(107,168,152,0.15)'}}>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl" style={{color: '#5E7A6E'}}>
+            <Menu size={22} />
+          </button>
+          <h1 className="font-bold text-lg text-aberration" style={{color: '#2D4A3E'}}>Maxe</h1>
           <div className="flex items-center gap-2">
-            <img src="/logo.png" alt="Maxe" className="w-7 h-7 rounded-lg" />
-            <h1 className="text-header font-bold text-lg text-aberration tracking-wide">Maxe</h1>
-          </div>
-          <div className="flex items-center gap-2">
-            {installPrompt && (
-              <button onClick={handleInstallClick} className="p-1.5 text-cyan-400">
-                <Download className="w-5 h-5" />
-              </button>
-            )}
-            <button onClick={() => setIsCalendarOpen(true)} className="p-1.5 text-body hover:text-header transition">
-              <Calendar className="w-5 h-5" />
+            <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" style={{color: '#6BA898'}}>
+              <Calendar size={20} />
             </button>
+            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '1.5px solid rgba(107,168,152,0.3)'}}>
+              {userProfile?.avatar_url
+                ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
+                : <User size={16} style={{color: '#6BA898'}} />}
+            </Link>
           </div>
         </header>
 
-        <main className="flex-1 overflow-y-auto pb-[80px] md:pb-8 px-4 md:px-0">
+        <main className="flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
           <Outlet />
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 glass flex justify-around items-center h-[68px] px-2 z-20">
-          <MobileNavItem to="/" icon={<LayoutGrid size={22} />} label="Hub" />
-          <MobileNavItem to="/todos" icon={<CheckSquare size={22} />} label="To-Do" />
-          <MobileNavItem to="/personals" icon={<BookOpen size={22} />} label="Personals" />
-          <MobileNavItem to="/profile" icon={<User size={22} />} label="Profile" />
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-4 z-30" style={{background: '#F7FBF9', borderTop: '1px solid rgba(107,168,152,0.15)'}}>
+          {[
+            { to: '/', icon: <LayoutGrid size={22} />, label: 'Hub' },
+            { to: '/todos', icon: <CheckSquare size={22} />, label: 'To-Do' },
+            { to: '/personals', icon: <BookOpen size={22} />, label: 'Personals' },
+            { to: '/profile', icon: <User size={22} />, label: 'Profile' },
+          ].map(item => (
+            <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) =>
+              `flex flex-col items-center gap-0.5 transition-all ${isActive ? '' : 'opacity-50'}`
+            }>
+              {({ isActive }) => (
+                <>
+                  <div className="p-1.5 rounded-xl" style={isActive ? {background: 'rgba(107,168,152,0.15)'} : {}}>
+                    <span style={{color: isActive ? '#6BA898' : '#5E7A6E'}}>{item.icon}</span>
+                  </div>
+                  <span className="text-[10px] font-semibold" style={{color: isActive ? '#6BA898' : '#5E7A6E'}}>{item.label}</span>
+                </>
+              )}
+            </NavLink>
+          ))}
         </nav>
       </div>
 
       {isCalendarOpen && <CalendarModal onClose={() => setIsCalendarOpen(false)} />}
     </div>
-  );
-}
-
-function SidebarItem({ to, icon, label }) {
-  return (
-    <NavLink
-      to={to}
-      end={to === '/'}
-      className={({ isActive }) =>
-        clsx(
-          "flex items-center gap-3 p-3 rounded-xl transition-all text-sm font-medium",
-          isActive
-            ? "glass-card text-cyan-400 border-cyan-400/30"
-            : "text-body hover:text-header hover:glass-card"
-        )
-      }
-    >
-      {icon}
-      <span>{label}</span>
-    </NavLink>
-  );
-}
-
-function MobileNavItem({ to, icon, label }) {
-  return (
-    <NavLink
-      to={to}
-      end={to === '/'}
-      className={({ isActive }) =>
-        clsx(
-          "flex flex-col items-center justify-center w-16 h-full transition-all gap-0.5",
-          isActive ? "text-cyan-400" : "text-body hover:text-header"
-        )
-      }
-    >
-      {({ isActive }) => (
-        <>
-          <div className={clsx("p-1.5 rounded-xl transition-all", isActive ? "glass-card" : "")}>
-            {icon}
-          </div>
-          <span className="text-[10px] font-medium">{label}</span>
-        </>
-      )}
-    </NavLink>
   );
 }

@@ -1,112 +1,88 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Trash2, CheckSquare2, Square } from 'lucide-react';
+import { Plus, CheckSquare2, Square, Trash2 } from 'lucide-react';
 
 export default function Todos() {
   const { session } = useAppContext();
   const [todos, setTodos] = useState([]);
-  const [newTodo, setNewTodo] = useState('');
+  const [text, setText] = useState('');
 
-  useEffect(() => {
-    if (session) fetchTodos();
-  }, [session]);
+  useEffect(() => { if (session) load(); }, [session]);
 
-  const fetchTodos = async () => {
+  const load = async () => {
     const { data } = await supabase.from('todos').select('*').eq('user_id', session.user.id).order('created_at', { ascending: false });
     setTodos(data || []);
   };
 
-  const handleAdd = async (e) => {
+  const add = async (e) => {
     e.preventDefault();
-    if (!newTodo.trim()) return;
-    const { data } = await supabase.from('todos').insert([{ user_id: session.user.id, text: newTodo.trim(), done: false }]).select();
-    if (data) { setTodos([data[0], ...todos]); setNewTodo(''); }
+    if (!text.trim()) return;
+    const { data } = await supabase.from('todos').insert([{ user_id: session.user.id, text: text.trim(), done: false }]).select();
+    if (data) { setTodos(p => [data[0], ...p]); setText(''); }
   };
 
-  const toggleDone = async (todo) => {
+  const toggle = async (todo) => {
     const { data } = await supabase.from('todos').update({ done: !todo.done }).eq('id', todo.id).select().single();
-    if (data) setTodos(todos.map(t => t.id === todo.id ? data : t));
+    if (data) setTodos(p => p.map(t => t.id === todo.id ? data : t));
   };
 
-  const deleteTodo = async (id) => {
+  const del = async (id) => {
     await supabase.from('todos').delete().eq('id', id);
-    setTodos(todos.filter(t => t.id !== id));
+    setTodos(p => p.filter(t => t.id !== id));
   };
 
   const pending = todos.filter(t => !t.done);
   const done = todos.filter(t => t.done);
 
   return (
-    <div className="p-4 md:p-6 space-y-5 pb-24 md:pb-8">
-      
-      {/* Header */}
-      <div className="glass rounded-2xl p-5">
-        <h2 className="text-2xl font-bold text-header text-aberration flex items-center gap-2">
-          ✅ To-Do List
-        </h2>
-        <p className="text-body text-sm mt-1">Track your study tasks and assignments</p>
-        <div className="flex gap-4 mt-3 text-xs">
-          <span className="text-cyan-400 font-bold">{pending.length} pending</span>
-          <span className="text-body">{done.length} completed</span>
+    <div className="space-y-4 pb-24 md:pb-8">
+      <div className="card p-4">
+        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>To-Do List</h2>
+        <div className="flex gap-4 mt-1 text-xs font-semibold">
+          <span style={{color:'#6BA898'}}>{pending.length} pending</span>
+          <span style={{color:'#A8C5B8'}}>{done.length} done</span>
         </div>
       </div>
 
-      {/* Add Todo */}
-      <form onSubmit={handleAdd} className="glass rounded-2xl p-4 flex gap-3">
-        <input
-          type="text"
-          value={newTodo}
-          onChange={e => setNewTodo(e.target.value)}
-          placeholder="Add a new task..."
-          className="glass-input flex-1 rounded-xl p-3 text-sm"
-        />
-        <button type="submit" className="glass-btn-primary px-4 rounded-xl font-bold flex items-center gap-1">
-          <Plus size={16} />
+      <form onSubmit={add} className="card p-3 flex gap-2">
+        <input className="app-input flex-1" placeholder="Add a task..." value={text} onChange={e => setText(e.target.value)} />
+        <button type="submit" className="btn-primary px-4 py-2 flex items-center gap-1 text-sm whitespace-nowrap rounded-xl">
+          <Plus size={15} /> Add
         </button>
       </form>
 
-      {/* Pending Tasks */}
       {pending.length > 0 && (
-        <div className="glass rounded-2xl p-4 space-y-2">
-          <p className="text-xs text-body uppercase tracking-widest font-bold mb-3">Pending</p>
+        <div className="card p-4 space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'#6BA898'}}>Pending</p>
           {pending.map(todo => (
-            <div key={todo.id} className="glass-card rounded-xl p-3 flex items-center gap-3 group">
-              <button onClick={() => toggleDone(todo)} className="text-body hover:text-cyan-400 transition-colors shrink-0">
-                <Square size={18} />
-              </button>
-              <p className="text-header text-sm flex-1 leading-relaxed">{todo.text}</p>
-              <button onClick={() => deleteTodo(todo.id)} className="text-red-400/40 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                <Trash2 size={15} />
-              </button>
+            <div key={todo.id} className="card-sm flex items-center gap-3 p-3 group">
+              <button onClick={() => toggle(todo)} style={{color:'#A8C5B8', flexShrink:0}}><Square size={18} /></button>
+              <p className="flex-1 text-sm" style={{color:'#2D4A3E'}}>{todo.text}</p>
+              <button onClick={() => del(todo.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}><Trash2 size={14} /></button>
             </div>
           ))}
         </div>
       )}
 
-      {/* Completed Tasks */}
       {done.length > 0 && (
-        <div className="glass rounded-2xl p-4 space-y-2">
-          <p className="text-xs text-body uppercase tracking-widest font-bold mb-3">Completed</p>
+        <div className="card p-4 space-y-2">
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'#A8C5B8'}}>Completed</p>
           {done.map(todo => (
-            <div key={todo.id} className="glass-card rounded-xl p-3 flex items-center gap-3 group opacity-60">
-              <button onClick={() => toggleDone(todo)} className="text-cyan-400 shrink-0">
-                <CheckSquare2 size={18} />
-              </button>
-              <p className="text-body text-sm flex-1 leading-relaxed line-through">{todo.text}</p>
-              <button onClick={() => deleteTodo(todo.id)} className="text-red-400/40 hover:text-red-400 transition-colors opacity-0 group-hover:opacity-100">
-                <Trash2 size={15} />
-              </button>
+            <div key={todo.id} className="card-sm flex items-center gap-3 p-3 group opacity-60">
+              <button onClick={() => toggle(todo)} style={{color:'#6BA898', flexShrink:0}}><CheckSquare2 size={18} /></button>
+              <p className="flex-1 text-sm line-through" style={{color:'#5E7A6E'}}>{todo.text}</p>
+              <button onClick={() => del(todo.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}><Trash2 size={14} /></button>
             </div>
           ))}
         </div>
       )}
 
       {todos.length === 0 && (
-        <div className="glass rounded-2xl p-10 text-center">
-          <p className="text-4xl mb-3">📋</p>
-          <p className="text-header font-semibold">No tasks yet</p>
-          <p className="text-body text-sm mt-1">Add your first study task above!</p>
+        <div className="card p-10 text-center">
+          <p className="text-3xl mb-2">✅</p>
+          <p className="font-semibold" style={{color:'#2D4A3E'}}>All clear!</p>
+          <p className="text-sm mt-1" style={{color:'#6BA898'}}>Add your first study task above.</p>
         </div>
       )}
     </div>

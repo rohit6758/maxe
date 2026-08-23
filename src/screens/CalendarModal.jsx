@@ -8,156 +8,126 @@ import 'react-calendar/dist/Calendar.css';
 export default function CalendarModal({ onClose }) {
   const { session } = useAppContext();
   const [events, setEvents] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(new Date());
-  const [showAddForm, setShowAddForm] = useState(false);
-  const [newEvent, setNewEvent] = useState({ title: '', type: 'exam', marks: '' });
+  const [selected, setSelected] = useState(new Date());
+  const [showForm, setShowForm] = useState(false);
+  const [form, setForm] = useState({ title: '', type: 'exam', marks: '' });
 
-  useEffect(() => {
-    if (session) fetchEvents();
-  }, [session]);
+  useEffect(() => { if (session) load(); }, [session]);
 
-  const fetchEvents = async () => {
+  const load = async () => {
     const { data } = await supabase.from('calendar_events').select('*').eq('user_id', session.user.id).order('event_date');
     setEvents(data || []);
   };
 
-  const handleAddEvent = async (e) => {
+  const save = async (e) => {
     e.preventDefault();
     const { data } = await supabase.from('calendar_events').insert([{
       user_id: session.user.id,
-      title: newEvent.title,
-      type: newEvent.type,
-      marks: newEvent.marks ? parseInt(newEvent.marks) : null,
-      event_date: selectedDate.toISOString().split('T')[0]
+      title: form.title,
+      type: form.type,
+      marks: form.marks ? parseInt(form.marks) : null,
+      event_date: selected.toISOString().split('T')[0]
     }]).select();
-    if (data) {
-      setEvents([...events, data[0]]);
-      setNewEvent({ title: '', type: 'exam', marks: '' });
-      setShowAddForm(false);
-    }
+    if (data) { setEvents(p => [...p, data[0]]); setForm({ title: '', type: 'exam', marks: '' }); setShowForm(false); }
   };
 
-  const deleteEvent = async (id) => {
+  const del = async (id) => {
     await supabase.from('calendar_events').delete().eq('id', id);
-    setEvents(events.filter(e => e.id !== id));
+    setEvents(p => p.filter(e => e.id !== id));
   };
 
-  // Get events for the selected date
-  const selectedStr = selectedDate.toISOString().split('T')[0];
-  const dayEvents = events.filter(e => e.event_date === selectedStr);
-
-  // Dates that have events (for dot markers)
+  const selStr = selected.toISOString().split('T')[0];
+  const dayEvents = events.filter(e => e.event_date === selStr);
   const eventDates = new Set(events.map(e => e.event_date));
-
-  const tileContent = ({ date }) => {
-    const str = date.toISOString().split('T')[0];
-    if (eventDates.has(str)) {
-      return (
-        <div className="flex justify-center mt-0.5">
-          <div className="w-1.5 h-1.5 rounded-full" style={{background: '#38bdf8'}} />
-        </div>
-      );
-    }
-    return null;
-  };
+  const typeIcon = { exam:'📝', assignment:'📌', result:'📊', reminder:'🔔' };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background: 'rgba(2,12,27,0.8)', backdropFilter: 'blur(8px)'}}>
-      <div className="glass-strong rounded-2xl w-full max-w-lg shadow-2xl" style={{boxShadow: '0 0 60px rgba(56,189,248,0.15)'}}>
-        
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style={{background:'rgba(45,74,62,0.25)', backdropFilter:'blur(6px)'}}>
+      <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
+        style={{background:'#F7FBF9', maxHeight:'90vh', overflowY:'auto', border:'1px solid rgba(107,168,152,0.2)'}}>
+
         {/* Header */}
-        <div className="flex items-center justify-between p-5 border-b border-cyan-400/10">
-          <h2 className="text-header font-bold text-lg text-aberration">📅 Calendar</h2>
-          <button onClick={onClose} className="glass-btn p-2 rounded-xl">
-            <X size={18} />
-          </button>
+        <div className="flex items-center justify-between p-4 sticky top-0" style={{background:'#F7FBF9', borderBottom:'1px solid rgba(107,168,152,0.15)'}}>
+          <h2 className="font-bold text-lg" style={{color:'#2D4A3E'}}>📅 Calendar</h2>
+          <button onClick={onClose} className="btn-outline p-1.5 rounded-xl"><X size={16} /></button>
         </div>
 
-        <div className="p-5 space-y-4 max-h-[80vh] overflow-y-auto">
-          {/* Calendar */}
-          <div className="glass-card rounded-2xl p-3">
+        <div className="p-4 space-y-4">
+          {/* Calendar widget */}
+          <div className="card p-3">
             <Calendar
-              onChange={setSelectedDate}
-              value={selectedDate}
-              tileContent={tileContent}
+              onChange={setSelected}
+              value={selected}
+              tileContent={({ date }) => {
+                const s = date.toISOString().split('T')[0];
+                return eventDates.has(s)
+                  ? <div className="flex justify-center mt-0.5"><div className="w-1.5 h-1.5 rounded-full" style={{background:'#6BA898'}} /></div>
+                  : null;
+              }}
             />
           </div>
 
-          {/* Selected Day */}
-          <div className="glass-card rounded-2xl p-4 space-y-3">
+          {/* Day events */}
+          <div className="card p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="text-header font-bold text-sm">
-                {selectedDate.toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric' })}
+              <h3 className="font-bold text-sm" style={{color:'#2D4A3E'}}>
+                {selected.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </h3>
-              <button onClick={() => setShowAddForm(!showAddForm)} className="glass-btn px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1">
-                <Plus size={12} /> ADD
+              <button onClick={() => setShowForm(!showForm)} className="btn-outline text-xs flex items-center gap-1 py-1 px-2">
+                <Plus size={11} /> Add
               </button>
             </div>
 
-            {showAddForm && (
-              <form onSubmit={handleAddEvent} className="space-y-3 border-t border-cyan-400/10 pt-3">
-                <input
-                  type="text" placeholder="Event title (e.g. Data Structures Mid 1)"
-                  value={newEvent.title} onChange={e => setNewEvent({...newEvent, title: e.target.value})}
-                  className="glass-input w-full rounded-xl p-2.5 text-sm" required
-                />
+            {showForm && (
+              <form onSubmit={save} className="space-y-2 pt-2 border-t" style={{borderColor:'rgba(107,168,152,0.15)'}}>
+                <input className="app-input" placeholder="Event title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
                 <div className="flex gap-2">
-                  <select
-                    value={newEvent.type} onChange={e => setNewEvent({...newEvent, type: e.target.value})}
-                    className="glass-input flex-1 rounded-xl p-2.5 text-sm cursor-pointer"
-                  >
+                  <select className="app-input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
                     <option value="exam">Exam</option>
                     <option value="assignment">Assignment</option>
                     <option value="result">Result</option>
                     <option value="reminder">Reminder</option>
                   </select>
-                  {(newEvent.type === 'exam' || newEvent.type === 'result') && (
-                    <input
-                      type="number" placeholder="Marks" min="0"
-                      value={newEvent.marks} onChange={e => setNewEvent({...newEvent, marks: e.target.value})}
-                      className="glass-input w-24 rounded-xl p-2.5 text-sm"
-                    />
+                  {(form.type === 'exam' || form.type === 'result') && (
+                    <input type="number" className="app-input w-24" placeholder="Marks" value={form.marks} onChange={e => setForm({...form, marks: e.target.value})} />
                   )}
                 </div>
-                <button type="submit" className="glass-btn-primary w-full py-2 rounded-xl text-xs font-bold">Save Event</button>
+                <button type="submit" className="btn-primary w-full py-2 text-xs rounded-xl">Save Event</button>
               </form>
             )}
 
-            {dayEvents.length === 0 ? (
-              <p className="text-body text-xs">No events on this day. Click + ADD to log an exam or reminder.</p>
-            ) : (
-              <div className="space-y-2">
-                {dayEvents.map(ev => (
-                  <div key={ev.id} className="flex items-center gap-3 p-2.5 rounded-xl group" style={{background: 'rgba(56,189,248,0.08)'}}>
-                    <span className="text-sm">
-                      {ev.type === 'exam' ? '📝' : ev.type === 'result' ? '📊' : ev.type === 'assignment' ? '📌' : '🔔'}
-                    </span>
-                    <div className="flex-1">
-                      <p className="text-header text-xs font-semibold">{ev.title}</p>
-                      {ev.marks !== null && <p className="text-cyan-400 text-[10px]">Marks: {ev.marks}</p>}
-                    </div>
-                    <span className="text-[10px] text-body capitalize">{ev.type}</span>
-                    <button onClick={() => deleteEvent(ev.id)} className="text-red-400/40 hover:text-red-400 text-xs opacity-0 group-hover:opacity-100 transition-opacity">✕</button>
+            {dayEvents.length === 0
+              ? <p className="text-sm" style={{color:'#A8C5B8'}}>No events. Tap + Add to log an exam or reminder.</p>
+              : dayEvents.map(ev => (
+                <div key={ev.id} className="flex items-center gap-2 p-2 rounded-xl group" style={{background:'rgba(107,168,152,0.08)'}}>
+                  <span>{typeIcon[ev.type] || '📌'}</span>
+                  <div className="flex-1">
+                    <p className="text-sm font-semibold" style={{color:'#2D4A3E'}}>{ev.title}</p>
+                    {ev.marks !== null && <p className="text-xs" style={{color:'#6BA898'}}>Marks: {ev.marks}</p>}
                   </div>
-                ))}
-              </div>
-            )}
+                  <button onClick={() => del(ev.id)} className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}>✕</button>
+                </div>
+              ))
+            }
           </div>
 
-          {/* Upcoming Events */}
-          {events.length > 0 && (
-            <div className="glass-card rounded-2xl p-4 space-y-2">
-              <h3 className="text-header font-bold text-sm flex items-center gap-2"><Bell size={14} className="text-cyan-400" /> Upcoming</h3>
+          {/* Upcoming */}
+          {events.filter(e => e.event_date >= new Date().toISOString().split('T')[0]).length > 0 && (
+            <div className="card p-4 space-y-2">
+              <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style={{color:'#6BA898'}}>
+                <Bell size={12} /> Upcoming
+              </p>
               {events
                 .filter(e => e.event_date >= new Date().toISOString().split('T')[0])
                 .slice(0, 5)
                 .map(ev => (
-                  <div key={ev.id} className="flex items-center gap-3 p-2 rounded-lg" style={{background: 'rgba(56,189,248,0.05)'}}>
-                    <span className="text-xs">{ev.type === 'exam' ? '📝' : ev.type === 'result' ? '📊' : ev.type === 'assignment' ? '📌' : '🔔'}</span>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-header text-xs font-medium truncate">{ev.title}</p>
-                    </div>
-                    <p className="text-body text-[10px] shrink-0">{new Date(ev.event_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</p>
+                  <div key={ev.id} className="flex items-center gap-2 p-2 rounded-lg" style={{background:'rgba(107,168,152,0.06)'}}>
+                    <span className="text-sm">{typeIcon[ev.type] || '📌'}</span>
+                    <p className="flex-1 text-xs font-medium truncate" style={{color:'#2D4A3E'}}>{ev.title}</p>
+                    <p className="text-[10px] shrink-0" style={{color:'#A8C5B8'}}>
+                      {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+                    </p>
                   </div>
                 ))}
             </div>

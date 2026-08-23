@@ -1,17 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { User, Save, UploadCloud, LogOut } from 'lucide-react';
+import { User, Save, UploadCloud, LogOut, Camera } from 'lucide-react';
 
 export default function Profile() {
-  const { session, userProfile, fetchProfile } = useAppContext();
-  
+  const { session, userProfile, setUserProfile } = useAppContext();
+
   const [name, setName] = useState('');
   const [bio, setBio] = useState('');
   const [branch, setBranch] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(null);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     if (userProfile) {
@@ -22,125 +23,139 @@ export default function Profile() {
     }
   }, [userProfile]);
 
+  const handleAvatarUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !session) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split('.').pop();
+      const path = `avatars/${session.user.id}.${ext}`;
+      const { error: upErr } = await supabase.storage
+        .from('uploads')
+        .upload(path, file, { upsert: true, contentType: file.type });
+      if (upErr) throw upErr;
+      const { data } = supabase.storage.from('uploads').getPublicUrl(path);
+      // Force cache bust
+      const url = `${data.publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(url);
+    } catch (err) {
+      alert('Avatar upload failed: ' + err.message);
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const handleSave = async () => {
+    if (!session) return;
     setSaving(true);
-    const { error } = await supabase.from('profiles').upsert({
-      id: session.user.id,
-      name,
-      bio,
-      branch,
-      avatar_url: avatarUrl,
-      updated_at: new Date().toISOString()
-    });
-    if (!error && fetchProfile) await fetchProfile(session.user.id);
+    const { data, error } = await supabase
+      .from('profiles')
+      .upsert({
+        id: session.user.id,
+        name: name.trim(),
+        bio: bio.trim(),
+        branch,
+        avatar_url: avatarUrl,
+        updated_at: new Date().toISOString(),
+      }, { onConflict: 'id' })
+      .select()
+      .single();
+
+    if (error) {
+      alert('Save failed: ' + error.message);
+    } else if (data) {
+      setUserProfile(data);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2500);
+    }
     setSaving(false);
   };
 
-  const handleAvatarUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setUploading(true);
-    const filePath = `avatars/${session.user.id}-${Date.now()}.${file.name.split('.').pop()}`;
-    const { error } = await supabase.storage.from('uploads').upload(filePath, file, { upsert: true });
-    if (error) { alert('Upload failed: ' + error.message); setUploading(false); return; }
-    const { data } = supabase.storage.from('uploads').getPublicUrl(filePath);
-    setAvatarUrl(data.publicUrl);
-    setUploading(false);
-  };
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
-
   return (
-    <div className="p-4 md:p-6 space-y-5 pb-24 md:pb-8">
+    <div className="space-y-4 pb-24 md:pb-8">
 
       {/* Header */}
-      <div className="glass rounded-2xl p-5">
-        <h2 className="text-2xl font-bold text-header text-aberration">Profile</h2>
-        <p className="text-body text-sm mt-1">Manage your account and preferences</p>
+      <div className="card p-4">
+        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Profile</h2>
+        <p className="text-sm mt-0.5" style={{color:'#6BA898'}}>Your account · data is saved in the cloud</p>
       </div>
 
-      {/* Avatar */}
-      <div className="glass rounded-2xl p-5 flex flex-col items-center gap-4">
+      {/* Avatar section */}
+      <div className="card p-6 flex flex-col items-center gap-3">
         <div className="relative">
-          <div className="w-24 h-24 rounded-2xl overflow-hidden border-2 border-cyan-400/30 flex items-center justify-center" style={{background: 'rgba(56,189,248,0.1)'}}>
-            {avatarUrl ? (
-              <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-            ) : (
-              <User size={36} className="text-cyan-400" />
-            )}
+          <div className="w-24 h-24 rounded-2xl overflow-hidden flex items-center justify-center"
+            style={{background:'rgba(107,168,152,0.12)', border:'2px solid rgba(107,168,152,0.3)'}}>
+            {avatarUrl
+              ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
+              : <User size={36} style={{color:'#6BA898'}} />}
           </div>
-          <label className="absolute -bottom-2 -right-2 glass-btn p-2 rounded-xl cursor-pointer shadow-lg">
-            <UploadCloud size={14} />
+          <label className="absolute -bottom-2 -right-2 rounded-xl p-1.5 cursor-pointer shadow"
+            style={{background:'#6BA898', border:'2px solid #FFFFFF'}}>
+            {uploading
+              ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+              : <Camera size={14} style={{color:'#FFFFFF'}} />}
             <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
           </label>
         </div>
-        {uploading && <p className="text-cyan-400 text-xs animate-pulse">Uploading...</p>}
         <div className="text-center">
-          <p className="text-header font-bold">{name || 'Your Name'}</p>
-          <p className="text-body text-xs mt-0.5">{session?.user?.email}</p>
+          <p className="font-bold" style={{color:'#2D4A3E'}}>{name || 'Your Name'}</p>
+          <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{session?.user?.email}</p>
         </div>
       </div>
 
-      {/* Edit Form */}
-      <div className="glass rounded-2xl p-5 space-y-4">
-        <h3 className="text-header font-bold">Edit Profile</h3>
-        
+      {/* Edit form */}
+      <div className="card p-5 space-y-4">
+        <h3 className="font-bold" style={{color:'#2D4A3E'}}>Edit Profile</h3>
+
         <div>
-          <label className="block text-xs font-semibold text-body uppercase tracking-wider mb-1.5">Display Name</label>
-          <input
-            type="text" value={name} onChange={e => setName(e.target.value)}
-            placeholder="Your full name"
-            className="glass-input w-full rounded-xl p-3 text-sm"
-          />
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
+          <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-body uppercase tracking-wider mb-1.5">Branch</label>
-          <select
-            value={branch} onChange={e => setBranch(e.target.value)}
-            className="glass-input w-full rounded-xl p-3 text-sm cursor-pointer"
-          >
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
+          <select className="app-input" value={branch} onChange={e => setBranch(e.target.value)}>
             <option value="">Select branch</option>
-            {['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'].map(b => (
-              <option key={b} value={b}>{b}</option>
-            ))}
+            {['CSE','CSM','IT','CSC','EEE','MECH','CIVIL','ECE'].map(b => <option key={b} value={b}>{b}</option>)}
           </select>
         </div>
 
         <div>
-          <label className="block text-xs font-semibold text-body uppercase tracking-wider mb-1.5">Bio</label>
-          <textarea
-            value={bio} onChange={e => setBio(e.target.value)}
-            placeholder="About yourself..."
-            rows={3}
-            className="glass-input w-full rounded-xl p-3 text-sm resize-none"
-          />
+          <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Bio</label>
+          <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
         </div>
 
-        <button
-          onClick={handleSave}
-          disabled={saving}
-          className="glass-btn-primary w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 disabled:opacity-60"
-        >
+        <button onClick={handleSave} disabled={saving}
+          className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm">
           <Save size={16} />
-          {saving ? 'Saving...' : 'Save Changes'}
+          {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
         </button>
+        {saved && <p className="text-center text-xs" style={{color:'#6BA898'}}>Profile saved to cloud ✓</p>}
+      </div>
+
+      {/* Cloud persistence notice */}
+      <div className="card-sm p-4 flex gap-3 items-start">
+        <span className="text-xl">☁️</span>
+        <div>
+          <p className="text-sm font-semibold" style={{color:'#2D4A3E'}}>Data saved to cloud</p>
+          <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>
+            All your subjects, resources, notes and logs are stored securely in Supabase.
+            Log in with the same email on any device to access everything.
+          </p>
+        </div>
       </div>
 
       {/* Account */}
-      <div className="glass rounded-2xl p-5 space-y-3">
-        <h3 className="text-header font-bold">Account</h3>
-        <div className="glass-card rounded-xl p-3">
-          <p className="text-xs text-body uppercase tracking-wider">Email</p>
-          <p className="text-header text-sm mt-0.5">{session?.user?.email}</p>
+      <div className="card p-4 space-y-3">
+        <h3 className="font-bold" style={{color:'#2D4A3E'}}>Account</h3>
+        <div className="card-sm p-3">
+          <p className="text-xs font-semibold uppercase tracking-wider" style={{color:'#A8C5B8'}}>Email</p>
+          <p className="text-sm font-medium mt-0.5" style={{color:'#2D4A3E'}}>{session?.user?.email}</p>
         </div>
         <button
-          onClick={handleLogout}
-          className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center gap-2 text-red-400 hover:bg-red-500/10 transition-all border border-red-500/20"
-          style={{background: 'rgba(239,68,68,0.05)'}}
-        >
+          onClick={() => supabase.auth.signOut()}
+          className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
+          style={{background:'rgba(220,107,107,0.08)', border:'1.5px solid rgba(220,107,107,0.2)', color:'#DC6B6B'}}>
           <LogOut size={16} /> Sign Out
         </button>
       </div>

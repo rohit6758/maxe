@@ -1,155 +1,161 @@
 @import "tailwindcss";
 
 @theme {
-  /* Core */
-  --color-background: #02080f;
-  --color-surface: rgba(8, 20, 50, 0.55);
-  --color-primary: #00BFFF;
-  --color-accent: #6495ED;
-  --color-header: #F0F8FF;
-  --color-body: #91ABD0;
-
-  /* Full Blue Palette */
-  --alice: #F0F8FF;
-  --lavender: #E6E6FA;
-  --quartz: #D9D9F3;
-  --lavender-blue: #CCCCFF;
-  --pool: #BCEFFD;
-  --sky: #87CEFA;
-  --steel: #B0C4DE;
-  --deep-sky: #00BFFF;
-  --serenity: #91ABD0;
-  --cornflower: #6495ED;
-  --cool-gray: #8C92AC;
-  --starfleet: #0C98FF;
-  --blue-gray: #7393B3;
-  --dodger: #1E5DFF;
+  --color-background: #EDF4F0;
+  --color-surface: #FFFFFF;
+  --color-primary: #6BA898;
+  --color-accent: #A8C5B8;
+  --color-header: #2D4A3E;
+  --color-body: #5E7A6E;
 }
 
 @layer utilities {
   .text-aberration {
-    text-shadow: 1px 0px 2px rgba(0,191,255,0.5), -1px 0px 2px rgba(100,149,237,0.4);
+    text-shadow: 1px 0 2px rgba(107,168,152,0.35), -1px 0 2px rgba(168,197,184,0.25);
   }
-  .glass {
-    background: rgba(5, 15, 45, 0.5);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    border: 1px solid rgba(176, 196, 222, 0.12);
+
+  /* Main app card */
+  .card {
+    background: #FFFFFF;
+    border: 1px solid rgba(107,168,152,0.18);
+    border-radius: 16px;
+    box-shadow: 0 2px 12px rgba(45,74,62,0.06);
   }
-  .glass-strong {
-    background: rgba(3, 10, 35, 0.72);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border: 1px solid rgba(176, 196, 222, 0.18);
+  .card-sm {
+    background: #FFFFFF;
+    border: 1px solid rgba(107,168,152,0.15);
+    border-radius: 12px;
+    box-shadow: 0 1px 6px rgba(45,74,62,0.05);
   }
-  .glass-card {
-    background: rgba(8, 22, 60, 0.42);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(135, 206, 250, 0.1);
+  /* Soft mint surface */
+  .mint {
+    background: #EAF4EF;
+    border: 1px solid rgba(107,168,152,0.2);
+    border-radius: 16px;
+  }
+  /* Input style */
+  .app-input {
+    background: #F5FAF7;
+    border: 1.5px solid rgba(107,168,152,0.25);
+    border-radius: 12px;
+    color: #2D4A3E;
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 14px;
+    outline: none;
     transition: border-color 0.2s, box-shadow 0.2s;
   }
-  .glass-card:hover {
-    border-color: rgba(0, 191, 255, 0.28);
-    box-shadow: 0 4px 24px rgba(0, 191, 255, 0.07);
+  .app-input:focus {
+    border-color: #6BA898;
+    box-shadow: 0 0 0 3px rgba(107,168,152,0.12);
   }
-  /* Lavender-tinted glass for Personals */
-  .glass-lavender {
-    background: rgba(18, 15, 55, 0.48);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    border: 1px solid rgba(204, 204, 255, 0.15);
-  }
-  /* Cornflower-tinted glass */
-  .glass-cornflower {
-    background: rgba(10, 18, 60, 0.45);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(100, 149, 237, 0.2);
-  }
-  /* Sky-blue tinted glass */
-  .glass-sky {
-    background: rgba(5, 30, 65, 0.42);
-    backdrop-filter: blur(12px);
-    -webkit-backdrop-filter: blur(12px);
-    border: 1px solid rgba(135, 206, 250, 0.18);
-  }
-  .glass-input {
-    background: rgba(2, 8, 30, 0.65);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(100, 149, 237, 0.25);
-    color: #F0F8FF;
-  }
-  .glass-input:focus {
-    outline: none;
-    border-color: rgba(0, 191, 255, 0.6);
-    box-shadow: 0 0 0 3px rgba(0, 191, 255, 0.08);
-  }
-  .glass-btn {
-    background: rgba(100, 149, 237, 0.14);
-    border: 1px solid rgba(100, 149, 237, 0.3);
-    color: #87CEFA;
-    transition: all 0.2s;
-  }
-  .glass-btn:hover {
-    background: rgba(0, 191, 255, 0.22);
-    border-color: rgba(0, 191, 255, 0.45);
-    box-shadow: 0 0 16px rgba(0, 191, 255, 0.18);
-  }
-  .glass-btn-primary {
-    background: linear-gradient(135deg, rgba(0,191,255,0.85), rgba(12,152,255,0.85));
-    border: 1px solid rgba(0, 191, 255, 0.5);
-    color: #02080f;
+  /* Primary button */
+  .btn-primary {
+    background: linear-gradient(135deg, #6BA898, #5A9485);
+    color: #FFFFFF;
     font-weight: 700;
+    border-radius: 12px;
+    padding: 10px 20px;
+    transition: all 0.2s;
+    border: none;
+    box-shadow: 0 4px 14px rgba(107,168,152,0.3);
+  }
+  .btn-primary:hover {
+    background: linear-gradient(135deg, #5A9485, #4A8070);
+    box-shadow: 0 6px 20px rgba(107,168,152,0.4);
+    transform: translateY(-1px);
+  }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    transform: none;
+  }
+  /* Outline button */
+  .btn-outline {
+    background: transparent;
+    border: 1.5px solid rgba(107,168,152,0.4);
+    color: #6BA898;
+    font-weight: 600;
+    border-radius: 12px;
+    padding: 8px 16px;
+    font-size: 13px;
     transition: all 0.2s;
   }
-  .glass-btn-primary:hover {
-    background: linear-gradient(135deg, #00BFFF, #0C98FF);
-    box-shadow: 0 0 28px rgba(0, 191, 255, 0.45);
+  .btn-outline:hover {
+    background: rgba(107,168,152,0.08);
+    border-color: #6BA898;
   }
-  /* Mid 1 accent - Lavender Blue */
-  .accent-mid1 { border-color: rgba(204,204,255,0.35) !important; }
-  .accent-mid1 .accent-text { color: #CCCCFF; }
-  /* Mid 2 accent - Cornflower Blue */
-  .accent-mid2 { border-color: rgba(100,149,237,0.35) !important; }
-  .accent-mid2 .accent-text { color: #6495ED; }
-  /* Semester accent - Starfleet Blue */
-  .accent-sem { border-color: rgba(12,152,255,0.35) !important; }
-  .accent-sem .accent-text { color: #0C98FF; }
+  /* Tag pill */
+  .tag {
+    background: rgba(107,168,152,0.12);
+    color: #5A9485;
+    border: 1px solid rgba(107,168,152,0.2);
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+  .tag-active {
+    background: #6BA898;
+    color: #FFFFFF;
+    border: 1px solid #6BA898;
+    border-radius: 999px;
+    padding: 4px 12px;
+    font-size: 12px;
+    font-weight: 700;
+  }
+  /* Sidebar item */
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 14px;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 500;
+    color: #5E7A6E;
+    transition: all 0.15s;
+  }
+  .nav-item:hover {
+    background: rgba(107,168,152,0.1);
+    color: #2D4A3E;
+  }
+  .nav-item-active {
+    background: rgba(107,168,152,0.15);
+    color: #3D7A6A;
+    font-weight: 700;
+    border-left: 3px solid #6BA898;
+  }
+  /* Section divider */
+  .divider {
+    height: 1px;
+    background: linear-gradient(to right, transparent, rgba(107,168,152,0.2), transparent);
+  }
 }
 
-
-* {
-  box-sizing: border-box;
-}
+/* Base */
+* { box-sizing: border-box; }
 
 body {
-  background: #02080f;
-  background-image:
-    radial-gradient(ellipse at 15% 15%, rgba(30, 93, 255, 0.25) 0%, transparent 45%),
-    radial-gradient(ellipse at 85% 80%, rgba(100, 149, 237, 0.18) 0%, transparent 45%),
-    radial-gradient(ellipse at 50% 50%, rgba(12, 152, 255, 0.1) 0%, transparent 60%),
-    radial-gradient(ellipse at 75% 15%, rgba(204, 204, 255, 0.08) 0%, transparent 35%);
-  background-attachment: fixed;
-  color: #91ABD0;
+  background: #EDF4F0;
+  color: #5E7A6E;
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   min-height: 100vh;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
 select option {
-  background: #071430;
-  color: #f0f9ff;
+  background: #FFFFFF;
+  color: #2D4A3E;
 }
 
-/* Scrollbar */
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: rgba(2, 12, 27, 0.5); }
-::-webkit-scrollbar-thumb { background: rgba(56, 189, 248, 0.3); border-radius: 2px; }
+::-webkit-scrollbar-track { background: #EDF4F0; }
+::-webkit-scrollbar-thumb { background: rgba(107,168,152,0.3); border-radius: 2px; }
 
-/* React Calendar Glassmorphism Overrides */
+/* React Calendar overrides */
 .react-calendar {
   width: 100% !important;
   background: transparent !important;
@@ -157,39 +163,40 @@ select option {
   font-family: inherit !important;
 }
 .react-calendar__navigation button {
-  color: #f0f9ff !important;
+  color: #2D4A3E !important;
   border-radius: 8px;
+  font-weight: 600;
 }
-.react-calendar__navigation button:enabled:hover,
-.react-calendar__navigation button:enabled:focus {
-  background: rgba(56, 189, 248, 0.15) !important;
+.react-calendar__navigation button:enabled:hover {
+  background: rgba(107,168,152,0.12) !important;
   border-radius: 8px;
 }
 .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none;
-  color: #38bdf8;
-  font-weight: bold;
+  color: #6BA898;
+  font-weight: 700;
+  font-size: 11px;
 }
 .react-calendar__tile {
-  color: #f0f9ff;
+  color: #2D4A3E;
   border-radius: 8px;
+  font-size: 13px;
 }
-.react-calendar__tile:enabled:hover,
-.react-calendar__tile:enabled:focus {
-  background: rgba(56, 189, 248, 0.15) !important;
+.react-calendar__tile:enabled:hover {
+  background: rgba(107,168,152,0.12) !important;
   border-radius: 8px;
 }
 .react-calendar__tile--now {
-  background: rgba(56, 189, 248, 0.2) !important;
+  background: rgba(107,168,152,0.15) !important;
   border-radius: 8px;
+  font-weight: 700;
 }
 .react-calendar__tile--active {
-  background: linear-gradient(135deg, #38bdf8, #06b6d4) !important;
-  color: #020c1b !important;
+  background: #6BA898 !important;
+  color: #FFFFFF !important;
   border-radius: 8px;
-  font-weight: bold;
+  font-weight: 700;
 }
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #93c5fd !important;
-  opacity: 0.4;
+  color: #A8C5B8 !important;
 }
