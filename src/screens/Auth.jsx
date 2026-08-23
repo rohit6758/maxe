@@ -11,10 +11,16 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [msg, setMsg] = useState(null);
+  const [showSplash, setShowSplash] = useState(true);
   const { session } = useAppContext();
   const navigate = useNavigate();
 
   React.useEffect(() => { if (session) navigate('/'); }, [session, navigate]);
+  
+  React.useEffect(() => {
+    const timer = setTimeout(() => setShowSplash(false), 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleAuth = async (e) => {
     e.preventDefault();
@@ -37,8 +43,17 @@ export default function Auth() {
     }
   };
 
+  if (showSplash) {
+    return (
+      <div className="fixed inset-0 z-50 flex flex-col items-center justify-center transition-opacity duration-500" style={{background:'#EDF4F0'}}>
+        <img src="/logo.png" alt="Maxe" className="w-28 h-28 rounded-3xl shadow-2xl animate-bounce" style={{animationDuration: '2s'}} />
+        <h1 className="text-3xl font-black mt-6" style={{color:'#2D4A3E'}}>Maxe</h1>
+      </div>
+    );
+  }
+
   return (
-    <div className="min-h-screen flex items-center justify-center p-4" style={{background:'#EDF4F0'}}>
+    <div className="min-h-screen flex items-center justify-center p-4 animate-fade-in" style={{background:'#EDF4F0'}}>
       {/* Soft decorative bg circles */}
       <div className="fixed top-0 right-0 w-72 h-72 rounded-full pointer-events-none" style={{background:'rgba(107,168,152,0.08)', transform:'translate(30%,-30%)'}} />
       <div className="fixed bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none" style={{background:'rgba(168,197,184,0.1)', transform:'translate(-30%,30%)'}} />
@@ -46,9 +61,7 @@ export default function Auth() {
       <div className="w-full max-w-sm relative z-10">
         {/* Logo text */}
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl mx-auto mb-4 flex items-center justify-center shadow-lg" style={{background:'linear-gradient(135deg,#6BA898,#5A9485)'}}>
-            <span className="text-white text-2xl font-black">M</span>
-          </div>
+          <img src="/logo.png" alt="Maxe Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-md" />
           <h1 className="text-3xl font-black text-aberration" style={{color:'#2D4A3E'}}>Maxe</h1>
           <p className="text-sm mt-1" style={{color:'#6BA898'}}>Your academic study hub</p>
         </div>
