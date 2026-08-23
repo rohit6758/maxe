@@ -249,7 +249,6 @@ export default function Aggregator() {
               ))}
             </div>
           </section>
-
           {/* AI Chat History */}
           <section>
             <div className="bg-surface rounded-xl border border-[#1e293b] overflow-hidden">
@@ -258,13 +257,33 @@ export default function Aggregator() {
                   <MessageSquare size={18} className="text-primary" />
                   <h3>AI Chat History</h3>
                 </div>
+                <button 
+                  onClick={async () => {
+                    const query = prompt('What was your question to the AI?');
+                    if (!query) return;
+                    const response = prompt('What was the AI\'s answer? (You can paste it here)');
+                    if (!response) return;
+                    
+                    const { data } = await supabase.from('chats').insert([{
+                      subject_id: activeSubject,
+                      query,
+                      response
+                    }]).select();
+                    
+                    if (data) setChats([data[0], ...chats]);
+                  }}
+                  className="text-primary text-xs font-bold bg-primary/10 px-3 py-1.5 rounded-xl border border-primary/20 hover:bg-primary/20 transition-colors"
+                >
+                  + Save AI Chat
+                </button>
               </div>
-              <div className="p-4 space-y-4">
+              <div className="p-4 space-y-4 max-h-[400px] overflow-y-auto">
                 {chats.length === 0 && <p className="text-xs text-body">No chat history for this subject.</p>}
                 {chats.map(chat => (
-                  <div key={chat.id} className="space-y-1 bg-[#080F1D] p-3 rounded-lg border border-[#1e293b]">
-                    <p className="text-header text-sm leading-relaxed">"{chat.query}"</p>
-                    <p className="text-primary text-xs font-medium">{new Date(chat.created_at).toLocaleDateString()}</p>
+                  <div key={chat.id} className="space-y-2 bg-[#080F1D] p-3 rounded-lg border border-[#1e293b]">
+                    <p className="text-header text-sm font-semibold border-b border-[#1e293b] pb-2">"{chat.query}"</p>
+                    <p className="text-body text-xs leading-relaxed whitespace-pre-wrap">{chat.response || 'No response recorded.'}</p>
+                    <p className="text-primary text-[10px] font-medium pt-2">{new Date(chat.created_at).toLocaleDateString()}</p>
                   </div>
                 ))}
               </div>
