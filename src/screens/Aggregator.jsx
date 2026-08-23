@@ -11,7 +11,6 @@ export default function Aggregator() {
   const [semesters, setSemesters] = useState([]);
   const [subjects, setSubjects] = useState([]);
   const [resources, setResources] = useState([]);
-  const [chats, setChats] = useState([]);
   const [activeTab, setActiveTab] = useState('links');
   
   const [showAddLink, setShowAddLink] = useState(false);
@@ -31,8 +30,8 @@ export default function Aggregator() {
   }, [activeSemester]);
 
   useEffect(() => {
-    if (activeSubject) { fetchResources(); fetchChats(); }
-    else { setResources([]); setChats([]); }
+    if (activeSubject) { fetchResources(); }
+    else { setResources([]); }
   }, [activeSubject]);
 
   const fetchSemesters = async () => {
@@ -51,11 +50,6 @@ export default function Aggregator() {
   const fetchResources = async () => {
     const { data } = await supabase.from('resources').select('*').eq('subject_id', activeSubject).order('created_at', { ascending: false });
     setResources(data || []);
-  };
-
-  const fetchChats = async () => {
-    const { data } = await supabase.from('chat_history').select('*').eq('subject_id', activeSubject).order('created_at', { ascending: false });
-    setChats(data || []);
   };
 
   const handleCreateSemester = async () => {
@@ -96,12 +90,12 @@ export default function Aggregator() {
   const handleAddChat = async (e) => {
     e.preventDefault();
     if (!newChat.title || !newChat.url) return;
-    const { data, error } = await supabase.from('chat_history').insert([{ subject_id: activeSubject, query: newChat.title, response: newChat.url }]).select();
+    const { data, error } = await supabase.from('resources').insert([{ subject_id: activeSubject, title: newChat.title, url: newChat.url, type: 'ai' }]).select();
     if (error) {
       alert('Error saving chat: ' + error.message);
       return;
     }
-    if (data) { setChats(p => [data[0], ...p]); setShowAddChat(false); setNewChat({ title: '', url: '' }); }
+    if (data) { setResources(p => [data[0], ...p]); setShowAddChat(false); setNewChat({ title: '', url: '' }); }
   };
 
   const handleDeleteResource = async (id, e) => {
@@ -109,13 +103,6 @@ export default function Aggregator() {
     if (!confirm('Delete this item?')) return;
     await supabase.from('resources').delete().eq('id', id);
     setResources(p => p.filter(r => r.id !== id));
-  };
-
-  const handleDeleteChat = async (id, e) => {
-    if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (!confirm('Delete this AI chat?')) return;
-    await supabase.from('chat_history').delete().eq('id', id);
-    setChats(p => p.filter(c => c.id !== id));
   };
 
   const handleDeleteSemester = async (id) => {
@@ -169,7 +156,7 @@ export default function Aggregator() {
             <div className="flex justify-between items-end mb-2">
               <p className="text-xs font-semibold" style={{color: '#5E7A6E'}}>② Semester</p>
               {activeSemester && (
-                <button onClick={() => handleDeleteSemester(activeSemester)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                <button onClick={() => handleDeleteSemester(activeSemester)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#5E7A6E'}}>
                   <Trash2 size={10} /> Delete
                 </button>
               )}
@@ -191,7 +178,7 @@ export default function Aggregator() {
             <div className="flex justify-between items-end mb-2">
               <p className="text-xs font-semibold" style={{color: '#5E7A6E'}}>③ Subject</p>
               {activeSubject && (
-                <button onClick={() => handleDeleteSubject(activeSubject)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                <button onClick={() => handleDeleteSubject(activeSubject)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#5E7A6E'}}>
                   <Trash2 size={10} /> Delete
                 </button>
               )}
@@ -377,19 +364,19 @@ export default function Aggregator() {
                 </form>
               )}
               <div className="space-y-2">
-                {chats.length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Add a shared link.</p>}
-                {chats.map(chat => (
+                {resources.filter(r => r.type === 'ai').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Add a shared link.</p>}
+                {resources.filter(r => r.type === 'ai').map(chat => (
                   <div key={chat.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
-                    <a href={chat.response} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                    <a href={chat.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
                         <MessageSquare size={18} style={{color:'#6BA898'}} />
                       </div>
                       <div className="min-w-0 pr-2">
-                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{chat.query}</p>
-                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{chat.response}</p>
+                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{chat.title}</p>
+                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{chat.url}</p>
                       </div>
                     </a>
-                    <button onClick={(e) => handleDeleteChat(chat.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
+                    <button onClick={(e) => handleDeleteResource(chat.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
                       <Trash2 size={16} />
                     </button>
                   </div>
