@@ -19,12 +19,12 @@ export default function Layout() {
 
   useEffect(() => {
     if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission();
+      Notification.requestPermission().catch(() => {});
     }
 
     const checkReminders = async () => {
       if (!session) return;
-      if (Notification.permission !== 'granted') return;
+      if (!('Notification' in window) || Notification.permission !== 'granted') return;
       
       const today = new Date().toISOString().split('T')[0];
       const { data } = await supabase.from('calendar_events')
