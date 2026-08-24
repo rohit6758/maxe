@@ -11,7 +11,7 @@
 
 @layer utilities {
   .text-aberration {
-    text-shadow: 1px 0 2px rgba(107,168,152,0.35), -1px 0 2px rgba(168,197,184,0.25);
+    text-shadow: 0 0 8px rgba(107,168,152,0.4), 1px 0 2px rgba(107,168,152,0.35), -1px 0 2px rgba(168,197,184,0.25);
   }
 
   /* Main app card */
@@ -20,12 +20,22 @@
     border: 1px solid rgba(107,168,152,0.18);
     border-radius: 16px;
     box-shadow: 0 2px 12px rgba(45,74,62,0.06);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+  }
+  .card:hover {
+    box-shadow: 0 4px 24px rgba(107,168,152,0.18);
+    border-color: rgba(107,168,152,0.3);
   }
   .card-sm {
     background: #FFFFFF;
     border: 1px solid rgba(107,168,152,0.15);
     border-radius: 12px;
     box-shadow: 0 1px 6px rgba(45,74,62,0.05);
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+  }
+  .card-sm:hover {
+    box-shadow: 0 4px 16px rgba(107,168,152,0.22);
+    border-color: rgba(107,168,152,0.35);
   }
   /* Soft mint surface */
   .mint {
@@ -47,61 +57,68 @@
   }
   .app-input:focus {
     border-color: #6BA898;
-    box-shadow: 0 0 0 3px rgba(107,168,152,0.12);
+    box-shadow: 0 0 0 4px rgba(107,168,152,0.18);
   }
   /* Primary button */
   .btn-primary {
-    background: linear-gradient(135deg, #6BA898, #5A9485);
+    background: linear-gradient(135deg, #6BA898, #529683);
     color: #FFFFFF;
     font-weight: 700;
     border-radius: 12px;
     padding: 10px 20px;
-    transition: all 0.2s;
+    transition: all 0.3s ease;
     border: none;
-    box-shadow: 0 4px 14px rgba(107,168,152,0.3);
+    box-shadow: 0 4px 15px rgba(107,168,152,0.35);
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, #5A9485, #4A8070);
-    box-shadow: 0 6px 20px rgba(107,168,152,0.4);
-    transform: translateY(-1px);
+    background: linear-gradient(135deg, #7BB8A8, #60A592);
+    box-shadow: 0 6px 25px rgba(107,168,152,0.55);
+    transform: translateY(-2px);
   }
   .btn-primary:disabled {
     opacity: 0.55;
     transform: none;
+    box-shadow: none;
   }
   /* Outline button */
   .btn-outline {
     background: transparent;
     border: 1.5px solid rgba(107,168,152,0.4);
-    color: #6BA898;
+    color: #5A9485;
     font-weight: 600;
     border-radius: 12px;
     padding: 8px 16px;
     font-size: 13px;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
   }
   .btn-outline:hover {
     background: rgba(107,168,152,0.08);
     border-color: #6BA898;
+    box-shadow: 0 2px 10px rgba(107,168,152,0.15);
   }
   /* Tag pill */
   .tag {
-    background: rgba(107,168,152,0.12);
+    background: rgba(107,168,152,0.08);
     color: #5A9485;
-    border: 1px solid rgba(107,168,152,0.2);
+    border: 1px solid rgba(107,168,152,0.25);
     border-radius: 999px;
     padding: 4px 12px;
     font-size: 12px;
     font-weight: 600;
+    transition: all 0.2s;
+  }
+  .tag:hover {
+    background: rgba(107,168,152,0.15);
   }
   .tag-active {
-    background: #6BA898;
+    background: linear-gradient(135deg, #6BA898, #529683);
     color: #FFFFFF;
-    border: 1px solid #6BA898;
+    border: none;
     border-radius: 999px;
-    padding: 4px 12px;
+    padding: 5px 13px;
     font-size: 12px;
     font-weight: 700;
+    box-shadow: 0 3px 12px rgba(107,168,152,0.4);
   }
   /* Sidebar item */
   .nav-item {
@@ -113,22 +130,23 @@
     font-size: 14px;
     font-weight: 500;
     color: #5E7A6E;
-    transition: all 0.15s;
+    transition: all 0.2s ease;
   }
   .nav-item:hover {
-    background: rgba(107,168,152,0.1);
+    background: rgba(107,168,152,0.08);
     color: #2D4A3E;
   }
   .nav-item-active {
-    background: rgba(107,168,152,0.15);
+    background: linear-gradient(90deg, rgba(107,168,152,0.18), rgba(107,168,152,0.05));
     color: #3D7A6A;
     font-weight: 700;
     border-left: 3px solid #6BA898;
+    box-shadow: 2px 0 8px rgba(107,168,152,0.1) inset;
   }
   /* Section divider */
   .divider {
     height: 1px;
-    background: linear-gradient(to right, transparent, rgba(107,168,152,0.2), transparent);
+    background: linear-gradient(to right, transparent, rgba(107,168,152,0.3), transparent);
   }
 }
 
@@ -136,7 +154,7 @@
 * { box-sizing: border-box; }
 
 body {
-  background: #EDF4F0;
+  background: radial-gradient(circle at 50% 0%, #F5FAF7, #EDF4F0 70%);
   color: #5E7A6E;
   margin: 0;
   padding: 0;
