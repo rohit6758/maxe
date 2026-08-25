@@ -73,8 +73,8 @@ export default function Layout() {
   const SidebarContent = () => (
     <div className="flex flex-col h-full">
       {/* Brand */}
-      <div className="p-6 pb-4 border-b border-sage-100" style={{borderColor: 'rgba(79, 93, 83,0.15)'}}>
-        <h1 className="text-xl font-bold text-aberration" style={{color: 'var(--color-header)'}}>Maxe</h1>
+      <div className="p-6 pb-4 border-b border-sage-100" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
+        <h1 className="text-xl font-bold text-aberration" style={{color: '#2D4A3E'}}>Maxe</h1>
         {activeBranch && (
           <span className="text-xs font-semibold mt-1 inline-block tag">{activeBranch}</span>
         )}
@@ -99,9 +99,9 @@ export default function Layout() {
       </nav>
 
       {/* Bottom actions */}
-      <div className="p-4 space-y-1 border-t" style={{borderColor: 'rgba(79, 93, 83,0.15)'}}>
+      <div className="p-4 space-y-1 border-t" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
         {installPrompt && (
-          <button onClick={handleInstall} className="nav-item w-full font-semibold" style={{color:'var(--color-primary)'}}>
+          <button onClick={handleInstall} className="nav-item w-full font-semibold" style={{color:'#6BA898'}}>
             <Download size={18} /> Install App
           </button>
         )}
@@ -120,19 +120,19 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex min-h-screen" style={{background: 'var(--color-background)'}}>
+    <div className="flex min-h-screen" style={{background: '#EDF4F0'}}>
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{background: 'var(--color-surface)', borderRight: '1px solid rgba(79, 93, 83,0.18)'}}>
+      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{background: '#F7FBF9', borderRight: '1px solid rgba(107,168,152,0.18)'}}>
         <SidebarContent />
       </aside>
 
       {/* Mobile Drawer Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)} style={{background: 'rgba(42, 42, 42,0.3)', backdropFilter: 'blur(4px)'}}>
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)} style={{background: 'rgba(45,74,62,0.3)', backdropFilter: 'blur(4px)'}}>
           <aside
             className="absolute left-0 top-0 bottom-0 w-64 h-full"
-            style={{background: 'var(--color-surface)'}}
+            style={{background: '#F7FBF9'}}
             onClick={e => e.stopPropagation()}
           >
             <SidebarContent />
@@ -144,19 +144,19 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
 
         {/* Mobile Top Bar */}
-        <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3" style={{background: 'var(--color-surface)', borderBottom: '1px solid rgba(79, 93, 83,0.15)'}}>
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl" style={{color: 'var(--color-body)'}}>
+        <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3" style={{background: '#F7FBF9', borderBottom: '1px solid rgba(107,168,152,0.15)'}}>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl" style={{color: '#5E7A6E'}}>
             <Menu size={22} />
           </button>
-          <h1 className="font-bold text-lg text-aberration" style={{color: 'var(--color-header)'}}>Maxe</h1>
+          <h1 className="font-bold text-lg text-aberration" style={{color: '#2D4A3E'}}>Maxe</h1>
           <div className="flex items-center gap-2">
-            <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" style={{color: 'var(--color-primary)'}}>
+            <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" style={{color: '#6BA898'}}>
               <Calendar size={20} />
             </button>
-            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(79, 93, 83,0.15)', border: '1.5px solid rgba(79, 93, 83,0.3)'}}>
+            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '1.5px solid rgba(107,168,152,0.3)'}}>
               {userProfile?.avatar_url
                 ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
-                : <User size={16} style={{color: 'var(--color-primary)'}} />}
+                : <User size={16} style={{color: '#6BA898'}} />}
             </Link>
           </div>
         </header>
@@ -165,13 +165,13 @@ export default function Layout() {
         <header className="hidden md:flex items-center justify-end px-6 py-4">
           <Link to="/profile" className="flex items-center gap-3 hover:scale-[1.02] transition-transform">
             <div className="text-right">
-              <p className="text-sm font-bold text-aberration" style={{color: 'var(--color-header)'}}>{userProfile?.name || 'My Profile'}</p>
-              <p className="text-xs" style={{color: 'var(--color-primary)'}}>{userProfile?.branch || 'Student'}</p>
+              <p className="text-sm font-bold text-aberration" style={{color: '#2D4A3E'}}>{userProfile?.name || 'My Profile'}</p>
+              <p className="text-xs" style={{color: '#6BA898'}}>{userProfile?.branch || 'Student'}</p>
             </div>
-            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(79, 93, 83,0.15)', border: '2px solid rgba(79, 93, 83,0.3)'}}>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '2px solid rgba(107,168,152,0.3)'}}>
               {userProfile?.avatar_url
                 ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
-                : <User size={20} style={{color: 'var(--color-primary)'}} />}
+                : <User size={20} style={{color: '#6BA898'}} />}
             </div>
           </Link>
         </header>
@@ -181,7 +181,7 @@ export default function Layout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-4 z-30" style={{background: 'var(--color-surface)', borderTop: '1px solid rgba(79, 93, 83,0.15)'}}>
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-4 z-30" style={{background: '#F7FBF9', borderTop: '1px solid rgba(107,168,152,0.15)'}}>
           {[
             { to: '/', icon: <LayoutGrid size={22} />, label: 'Hub' },
             { to: '/todos', icon: <CheckSquare size={22} />, label: 'To-Do' },
@@ -193,10 +193,10 @@ export default function Layout() {
             }>
               {({ isActive }) => (
                 <>
-                  <div className="p-1.5 rounded-xl" style={isActive ? {background: 'rgba(79, 93, 83,0.15)'} : {}}>
-                    <span style={{color: isActive ? 'var(--color-primary)' : 'var(--color-body)'}}>{item.icon}</span>
+                  <div className="p-1.5 rounded-xl" style={isActive ? {background: 'rgba(107,168,152,0.15)'} : {}}>
+                    <span style={{color: isActive ? '#6BA898' : '#5E7A6E'}}>{item.icon}</span>
                   </div>
-                  <span className="text-[10px] font-semibold" style={{color: isActive ? 'var(--color-primary)' : 'var(--color-body)'}}>{item.label}</span>
+                  <span className="text-[10px] font-semibold" style={{color: isActive ? '#6BA898' : '#5E7A6E'}}>{item.label}</span>
                 </>
               )}
             </NavLink>

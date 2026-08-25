@@ -41,10 +41,10 @@ export default function Todos() {
   return (
     <div className="space-y-4 pb-24 md:pb-8">
       <div className="card p-4">
-        <h2 className="text-xl font-bold text-aberration" style={{color:'var(--color-header)'}}>To-Do List</h2>
+        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>To-Do List</h2>
         <div className="flex gap-4 mt-1 text-xs font-semibold">
-          <span style={{color:'var(--color-primary)'}}>{pending.length} pending</span>
-          <span style={{color:'var(--color-accent)'}}>{done.length} done</span>
+          <span style={{color:'#6BA898'}}>{pending.length} pending</span>
+          <span style={{color:'#A8C5B8'}}>{done.length} done</span>
         </div>
       </div>
 
@@ -57,11 +57,11 @@ export default function Todos() {
 
       {pending.length > 0 && (
         <div className="card p-4 space-y-2">
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'var(--color-primary)'}}>Pending</p>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'#6BA898'}}>Pending</p>
           {pending.map(todo => (
             <div key={todo.id} className="card-sm flex items-center gap-3 p-3 group">
-              <button onClick={() => toggle(todo)} style={{color:'var(--color-accent)', flexShrink:0}}><Square size={18} /></button>
-              <p className="flex-1 text-sm" style={{color:'var(--color-header)'}}>{todo.text}</p>
+              <button onClick={() => toggle(todo)} style={{color:'#A8C5B8', flexShrink:0}}><Square size={18} /></button>
+              <p className="flex-1 text-sm" style={{color:'#2D4A3E'}}>{todo.text}</p>
               <button onClick={() => del(todo.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}><Trash2 size={14} /></button>
             </div>
           ))}
@@ -70,11 +70,11 @@ export default function Todos() {
 
       {done.length > 0 && (
         <div className="card p-4 space-y-2">
-          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'var(--color-accent)'}}>Completed</p>
+          <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'#A8C5B8'}}>Completed</p>
           {done.map(todo => (
             <div key={todo.id} className="card-sm flex items-center gap-3 p-3 group opacity-60">
-              <button onClick={() => toggle(todo)} style={{color:'var(--color-primary)', flexShrink:0}}><CheckSquare2 size={18} /></button>
-              <p className="flex-1 text-sm line-through" style={{color:'var(--color-body)'}}>{todo.text}</p>
+              <button onClick={() => toggle(todo)} style={{color:'#6BA898', flexShrink:0}}><CheckSquare2 size={18} /></button>
+              <p className="flex-1 text-sm line-through" style={{color:'#5E7A6E'}}>{todo.text}</p>
               <button onClick={() => del(todo.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}><Trash2 size={14} /></button>
             </div>
           ))}
@@ -84,8 +84,8 @@ export default function Todos() {
       {todos.length === 0 && (
         <div className="card p-10 text-center">
           <p className="text-3xl mb-2">✅</p>
-          <p className="font-semibold" style={{color:'var(--color-header)'}}>All clear!</p>
-          <p className="text-sm mt-1" style={{color:'var(--color-primary)'}}>Add your first study task above.</p>
+          <p className="font-semibold" style={{color:'#2D4A3E'}}>All clear!</p>
+          <p className="text-sm mt-1" style={{color:'#6BA898'}}>Add your first study task above.</p>
         </div>
       )}
     </div>
