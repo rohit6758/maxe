@@ -223,7 +223,7 @@ export default function Aggregator() {
               </div>
               <div className="text-right text-xs" style={{color:'#6BA898'}}>
                 <p>{resources.length} files</p>
-                <p className="mt-0.5">{chats.length} AI chats</p>
+                <p className="mt-0.5">{resources.filter(r => r.type === 'ai').length} AI chats</p>
               </div>
             </div>
           </div>
