@@ -5,12 +5,6 @@ import { FileText, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, Cl
 
 const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
 
-// Workaround for Supabase DB check constraint which doesn't allow type='ai'
-const AI_PREFIX = 'ai:::';
-const encodeAiUrl = (url) => AI_PREFIX + url;
-const decodeAiUrl = (url) => url?.startsWith(AI_PREFIX) ? url.slice(AI_PREFIX.length) : url;
-const isAiChat    = (r) => r.type === 'ai' || r.url?.startsWith(AI_PREFIX);
-
 export default function Aggregator() {
   const { session, activeBranch, setActiveBranch, activeSemester, setActiveSemester, activeSubject, setActiveSubject } = useAppContext();
 
@@ -96,14 +90,7 @@ export default function Aggregator() {
   const handleAddChat = async (e) => {
     e.preventDefault();
     if (!newChat.title || !newChat.url) return;
-    // We use type 'link' to bypass DB constraint, but prefix URL with ai:::
-    const { data, error } = await supabase.from('resources').insert([{ 
-      subject_id: activeSubject, 
-      title: newChat.title, 
-      url: encodeAiUrl(newChat.url), 
-      type: 'link' 
-    }]).select();
-    
+    const { data, error } = await supabase.from('resources').insert([{ subject_id: activeSubject, title: newChat.title, url: newChat.url, type: 'chat' }]).select();
     if (error) {
       alert('Error saving chat: ' + error.message);
       return;
@@ -135,8 +122,6 @@ export default function Aggregator() {
 
   const subjectName = subjects.find(s => s.id === activeSubject)?.name || '';
   const semName = semesters.find(s => s.id === activeSemester)?.name || '';
-  
-  const aiChats = resources.filter(isAiChat);
 
   const TABS = [
     { id: 'links', label: 'Links & Videos', icon: <LinkIcon size={13} /> },
@@ -237,8 +222,8 @@ export default function Aggregator() {
                 <h2 className="text-xl font-bold mt-0.5" style={{color:'#2D4A3E'}}>{subjectName}</h2>
               </div>
               <div className="text-right text-xs" style={{color:'#6BA898'}}>
-                <p>{resources.filter(r => !isAiChat(r)).length} files</p>
-                <p className="mt-0.5">{aiChats.length} AI chats</p>
+                <p>{resources.length} files</p>
+                <p className="mt-0.5">{resources.filter(r => r.type === 'chat').length} AI chats</p>
               </div>
             </div>
           </div>
@@ -273,8 +258,8 @@ export default function Aggregator() {
                 </form>
               )}
               <div className="space-y-2">
-                {resources.filter(r => (r.type === 'link' || r.type === 'youtube') && !isAiChat(r)).length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No links added yet.</p>}
-                {resources.filter(r => (r.type === 'link' || r.type === 'youtube') && !isAiChat(r)).map(res => (
+                {resources.filter(r => r.type === 'link' || r.type === 'youtube').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No links added yet.</p>}
+                {resources.filter(r => r.type === 'link' || r.type === 'youtube').map(res => (
                   <div key={res.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
                     <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
@@ -379,16 +364,16 @@ export default function Aggregator() {
                 </form>
               )}
               <div className="space-y-2">
-                {aiChats.length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Add a shared link.</p>}
-                {aiChats.map(chat => (
+                {resources.filter(r => r.type === 'chat').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Add a shared link.</p>}
+                {resources.filter(r => r.type === 'chat').map(chat => (
                   <div key={chat.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
-                    <a href={decodeAiUrl(chat.url)} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                    <a href={chat.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
                         <MessageSquare size={18} style={{color:'#6BA898'}} />
                       </div>
                       <div className="min-w-0 pr-2">
                         <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{chat.title}</p>
-                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{decodeAiUrl(chat.url)}</p>
+                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{chat.url}</p>
                       </div>
                     </a>
                     <button onClick={(e) => handleDeleteResource(chat.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
