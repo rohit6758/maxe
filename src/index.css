@@ -1,54 +1,60 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #EDF4F0;
-  --color-surface: #FFFFFF;
-  --color-primary: #6BA898;
-  --color-accent: #A8C5B8;
-  --color-header: #2D4A3E;
-  --color-body: #5E7A6E;
+  --color-background: #F4F5F4;
+  --color-surface: rgba(255, 255, 255, 0.75);
+  --color-primary: #4F5D53;
+  --color-primary-hover: #7E9687;
+  --color-accent: #B0BCB4;
+  --color-header: #2A2A2A;
+  --color-body: #444444;
+  --color-divider: #333333;
 }
 
 @layer utilities {
   .text-aberration {
-    text-shadow: 0 0 8px rgba(107,168,152,0.4), 1px 0 2px rgba(107,168,152,0.35), -1px 0 2px rgba(168,197,184,0.25);
+    text-shadow: 0 0 8px rgba(79, 93, 83, 0.25), 1px 0 2px rgba(79, 93, 83, 0.2), -1px 0 2px rgba(176, 188, 180, 0.15);
   }
 
   /* Main app card */
   .card {
-    background: #FFFFFF;
-    border: 1px solid rgba(107,168,152,0.18);
+    background: var(--color-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 51, 51, 0.15); /* Sharp high-contrast dark gray lines for dividers/borders */
     border-radius: 16px;
-    box-shadow: 0 2px 12px rgba(45,74,62,0.06);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
     transition: box-shadow 0.3s ease, border-color 0.3s ease;
   }
   .card:hover {
-    box-shadow: 0 4px 24px rgba(107,168,152,0.18);
-    border-color: rgba(107,168,152,0.3);
+    box-shadow: 0 6px 24px rgba(0, 0, 0, 0.06);
+    border-color: rgba(51, 51, 51, 0.25);
   }
   .card-sm {
-    background: #FFFFFF;
-    border: 1px solid rgba(107,168,152,0.15);
+    background: var(--color-surface);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border: 1px solid rgba(51, 51, 51, 0.15);
     border-radius: 12px;
-    box-shadow: 0 1px 6px rgba(45,74,62,0.05);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
     transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
   }
   .card-sm:hover {
-    box-shadow: 0 4px 16px rgba(107,168,152,0.22);
-    border-color: rgba(107,168,152,0.35);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-color: rgba(51, 51, 51, 0.25);
   }
   /* Soft mint surface */
   .mint {
-    background: #EAF4EF;
-    border: 1px solid rgba(107,168,152,0.2);
+    background: rgba(126, 150, 135, 0.1);
+    border: 1px solid rgba(51, 51, 51, 0.15);
     border-radius: 16px;
   }
   /* Input style */
   .app-input {
-    background: #F5FAF7;
-    border: 1.5px solid rgba(107,168,152,0.25);
+    background: rgba(255, 255, 255, 0.85);
+    border: 1.5px solid rgba(51, 51, 51, 0.2);
     border-radius: 12px;
-    color: #2D4A3E;
+    color: var(--color-header);
     width: 100%;
     padding: 10px 14px;
     font-size: 14px;
@@ -56,23 +62,23 @@
     transition: border-color 0.2s, box-shadow 0.2s;
   }
   .app-input:focus {
-    border-color: #6BA898;
-    box-shadow: 0 0 0 4px rgba(107,168,152,0.18);
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 4px rgba(79, 93, 83, 0.15);
   }
   /* Primary button */
   .btn-primary {
-    background: linear-gradient(135deg, #6BA898, #529683);
+    background: var(--color-primary);
     color: #FFFFFF;
     font-weight: 700;
     border-radius: 12px;
     padding: 10px 20px;
     transition: all 0.3s ease;
     border: none;
-    box-shadow: 0 4px 15px rgba(107,168,152,0.35);
+    box-shadow: 0 4px 15px rgba(79, 93, 83, 0.25);
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, #7BB8A8, #60A592);
-    box-shadow: 0 6px 25px rgba(107,168,152,0.55);
+    background: var(--color-primary-hover);
+    box-shadow: 0 6px 20px rgba(79, 93, 83, 0.35);
     transform: translateY(-2px);
   }
   .btn-primary:disabled {
@@ -83,8 +89,8 @@
   /* Outline button */
   .btn-outline {
     background: transparent;
-    border: 1.5px solid rgba(107,168,152,0.4);
-    color: #5A9485;
+    border: 1.5px solid var(--color-primary);
+    color: var(--color-primary);
     font-weight: 600;
     border-radius: 12px;
     padding: 8px 16px;
@@ -92,15 +98,15 @@
     transition: all 0.2s ease;
   }
   .btn-outline:hover {
-    background: rgba(107,168,152,0.08);
-    border-color: #6BA898;
-    box-shadow: 0 2px 10px rgba(107,168,152,0.15);
+    background: rgba(79, 93, 83, 0.08);
+    border-color: var(--color-primary-hover);
+    color: var(--color-primary-hover);
   }
   /* Tag pill */
   .tag {
-    background: rgba(107,168,152,0.08);
-    color: #5A9485;
-    border: 1px solid rgba(107,168,152,0.25);
+    background: rgba(79, 93, 83, 0.08);
+    color: var(--color-primary);
+    border: 1px solid rgba(79, 93, 83, 0.25);
     border-radius: 999px;
     padding: 4px 12px;
     font-size: 12px;
@@ -108,17 +114,17 @@
     transition: all 0.2s;
   }
   .tag:hover {
-    background: rgba(107,168,152,0.15);
+    background: rgba(79, 93, 83, 0.15);
   }
   .tag-active {
-    background: linear-gradient(135deg, #6BA898, #529683);
+    background: var(--color-primary);
     color: #FFFFFF;
     border: none;
     border-radius: 999px;
     padding: 5px 13px;
     font-size: 12px;
     font-weight: 700;
-    box-shadow: 0 3px 12px rgba(107,168,152,0.4);
+    box-shadow: 0 3px 12px rgba(79, 93, 83, 0.3);
   }
   /* Sidebar item */
   .nav-item {
@@ -129,24 +135,23 @@
     border-radius: 12px;
     font-size: 14px;
     font-weight: 500;
-    color: #5E7A6E;
+    color: var(--color-body);
     transition: all 0.2s ease;
   }
   .nav-item:hover {
-    background: rgba(107,168,152,0.08);
-    color: #2D4A3E;
+    background: rgba(79, 93, 83, 0.08);
+    color: var(--color-header);
   }
   .nav-item-active {
-    background: linear-gradient(90deg, rgba(107,168,152,0.18), rgba(107,168,152,0.05));
-    color: #3D7A6A;
+    background: rgba(79, 93, 83, 0.12);
+    color: var(--color-primary);
     font-weight: 700;
-    border-left: 3px solid #6BA898;
-    box-shadow: 2px 0 8px rgba(107,168,152,0.1) inset;
+    border-left: 3px solid var(--color-primary);
   }
   /* Section divider */
   .divider {
     height: 1px;
-    background: linear-gradient(to right, transparent, rgba(107,168,152,0.3), transparent);
+    background: #444444; /* Sharp dark gray lines */
   }
 }
 
@@ -154,8 +159,8 @@
 * { box-sizing: border-box; }
 
 body {
-  background: radial-gradient(circle at 50% 0%, #F5FAF7, #EDF4F0 70%);
-  color: #5E7A6E;
+  background: var(--color-background);
+  color: var(--color-body);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
@@ -166,12 +171,12 @@ body {
 
 select option {
   background: #FFFFFF;
-  color: #2D4A3E;
+  color: var(--color-header);
 }
 
 ::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #EDF4F0; }
-::-webkit-scrollbar-thumb { background: rgba(107,168,152,0.3); border-radius: 2px; }
+::-webkit-scrollbar-track { background: var(--color-background); }
+::-webkit-scrollbar-thumb { background: rgba(79, 93, 83, 0.3); border-radius: 2px; }
 
 /* React Calendar overrides */
 .react-calendar {
@@ -181,40 +186,40 @@ select option {
   font-family: inherit !important;
 }
 .react-calendar__navigation button {
-  color: #2D4A3E !important;
+  color: var(--color-header) !important;
   border-radius: 8px;
   font-weight: 600;
 }
 .react-calendar__navigation button:enabled:hover {
-  background: rgba(107,168,152,0.12) !important;
+  background: rgba(79, 93, 83, 0.12) !important;
   border-radius: 8px;
 }
 .react-calendar__month-view__weekdays__weekday abbr {
   text-decoration: none;
-  color: #6BA898;
+  color: var(--color-primary);
   font-weight: 700;
   font-size: 11px;
 }
 .react-calendar__tile {
-  color: #2D4A3E;
+  color: var(--color-body);
   border-radius: 8px;
   font-size: 13px;
 }
 .react-calendar__tile:enabled:hover {
-  background: rgba(107,168,152,0.12) !important;
+  background: rgba(79, 93, 83, 0.12) !important;
   border-radius: 8px;
 }
 .react-calendar__tile--now {
-  background: rgba(107,168,152,0.15) !important;
+  background: rgba(79, 93, 83, 0.15) !important;
   border-radius: 8px;
   font-weight: 700;
 }
 .react-calendar__tile--active {
-  background: #6BA898 !important;
+  background: var(--color-primary) !important;
   color: #FFFFFF !important;
   border-radius: 8px;
   font-weight: 700;
 }
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #A8C5B8 !important;
+  color: rgba(68, 68, 68, 0.4) !important;
 }

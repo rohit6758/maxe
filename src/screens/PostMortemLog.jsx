@@ -63,7 +63,7 @@ export default function PostMortemLog() {
 
   if (!activeSubject) {
     return (
-      <div className="p-8 text-center bg-surface rounded-2xl m-4 border border-[#1e293b]">
+      <div className="p-8 text-center bg-surface rounded-2xl m-4 border border-[var(--color-divider)]">
         <p className="text-body text-sm">Please select a Subject in the Hub first.</p>
       </div>
     );
@@ -71,7 +71,7 @@ export default function PostMortemLog() {
 
   if (!log) {
     return (
-      <div className="p-8 text-center bg-surface rounded-2xl m-4 border border-[#1e293b] space-y-4">
+      <div className="p-8 text-center bg-surface rounded-2xl m-4 border border-[var(--color-divider)] space-y-4">
         <p className="text-body text-sm">No Post-Mortem Log exists for this subject yet.</p>
         <button onClick={createLog} className="bg-primary px-4 py-2 rounded-xl text-white font-bold text-sm">Start New Reflection</button>
       </div>
@@ -94,7 +94,7 @@ export default function PostMortemLog() {
       </div>
 
       {/* Component 1: Marks Received */}
-      <div className="flex flex-col items-center bg-surface p-6 rounded-2xl border border-[#1e293b]">
+      <div className="flex flex-col items-center bg-surface p-6 rounded-2xl border border-[var(--color-divider)]">
         <p className="text-xs text-body font-semibold tracking-widest uppercase mb-4">Marks Received</p>
         <div className="relative w-32 h-32 flex items-center justify-center">
           <svg className="absolute inset-0 w-full h-full transform -rotate-90" viewBox="0 0 100 100">
@@ -106,7 +106,7 @@ export default function PostMortemLog() {
           </svg>
           <div className="text-center">
             <span className="text-3xl font-bold text-primary">{log.marks_received}</span>
-            <div className="w-8 h-[1px] bg-[#1e293b] mx-auto my-1"></div>
+            <div className="w-8 h-[1px] bg-[var(--color-divider)] mx-auto my-1"></div>
             <span className="text-sm text-body">{log.total_marks}</span>
           </div>
         </div>
@@ -130,7 +130,7 @@ export default function PostMortemLog() {
           <CheckCircle2 className="text-primary" size={20} />
           <h3>Actionable Feedback / Tips</h3>
         </div>
-        <div className="bg-surface p-4 rounded-2xl border border-[#1e293b] space-y-4">
+        <div className="bg-surface p-4 rounded-2xl border border-[var(--color-divider)] space-y-4">
           {items.filter(i => i.type === 'tip').length === 0 && <p className="text-body text-xs">No tips added.</p>}
           {items.filter(i => i.type === 'tip').map((tip, idx) => (
              <div key={tip.id}>
@@ -148,7 +148,7 @@ export default function PostMortemLog() {
           <AlertTriangle className="text-red-400" size={20} />
           <h3>My Drawbacks</h3>
         </div>
-        <div className="bg-surface p-4 rounded-2xl border border-[#1e293b] space-y-4">
+        <div className="bg-surface p-4 rounded-2xl border border-[var(--color-divider)] space-y-4">
           {items.filter(i => i.type === 'drawback').length === 0 && <p className="text-body text-xs">No drawbacks added.</p>}
           {items.filter(i => i.type === 'drawback').map(item => (
             <DrawbackItem key={item.id} text={item.text} />
@@ -168,12 +168,12 @@ export default function PostMortemLog() {
         
         <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
            {evidence.map(ev => (
-             <div key={ev.id} className="aspect-square bg-[#080F1D] rounded-xl border border-[#1e293b] relative overflow-hidden flex items-center justify-center">
+             <div key={ev.id} className="aspect-square bg-[var(--color-background)] rounded-xl border border-[var(--color-divider)] relative overflow-hidden flex items-center justify-center">
                 <img src={ev.image_url} alt="Evidence" className="object-cover w-full h-full opacity-80" />
              </div>
            ))}
            
-           <label className="aspect-square rounded-xl border-2 border-dashed border-[#1e293b] bg-surface/50 flex flex-col items-center justify-center gap-2 hover:bg-surface transition-colors hover:border-primary/50 cursor-pointer">
+           <label className="aspect-square rounded-xl border-2 border-dashed border-[var(--color-divider)] bg-surface/50 flex flex-col items-center justify-center gap-2 hover:bg-surface transition-colors hover:border-primary/50 cursor-pointer">
               <UploadCloud size={24} className="text-primary" />
               <span className="text-sm font-semibold text-primary text-center leading-tight px-2">Upload Paper</span>
               <input 

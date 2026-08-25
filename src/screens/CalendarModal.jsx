@@ -50,13 +50,13 @@ export default function CalendarModal({ onClose }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
-      style={{background:'rgba(45,74,62,0.25)', backdropFilter:'blur(6px)'}}>
+      style={{background:'rgba(42, 42, 42,0.25)', backdropFilter:'blur(6px)'}}>
       <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
-        style={{background:'#F7FBF9', maxHeight:'90vh', overflowY:'auto', border:'1px solid rgba(107,168,152,0.2)'}}>
+        style={{background:'var(--color-surface)', maxHeight:'90vh', overflowY:'auto', border:'1px solid rgba(79, 93, 83,0.2)'}}>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sticky top-0" style={{background:'#F7FBF9', borderBottom:'1px solid rgba(107,168,152,0.15)'}}>
-          <h2 className="font-bold text-lg" style={{color:'#2D4A3E'}}>📅 Calendar</h2>
+        <div className="flex items-center justify-between p-4 sticky top-0" style={{background:'var(--color-surface)', borderBottom:'1px solid rgba(79, 93, 83,0.15)'}}>
+          <h2 className="font-bold text-lg" style={{color:'var(--color-header)'}}>📅 Calendar</h2>
           <button onClick={onClose} className="btn-outline p-1.5 rounded-xl"><X size={16} /></button>
         </div>
 
@@ -69,7 +69,7 @@ export default function CalendarModal({ onClose }) {
               tileContent={({ date }) => {
                 const s = date.toISOString().split('T')[0];
                 return eventDates.has(s)
-                  ? <div className="flex justify-center mt-0.5"><div className="w-1.5 h-1.5 rounded-full" style={{background:'#6BA898'}} /></div>
+                  ? <div className="flex justify-center mt-0.5"><div className="w-1.5 h-1.5 rounded-full" style={{background:'var(--color-primary)'}} /></div>
                   : null;
               }}
             />
@@ -78,7 +78,7 @@ export default function CalendarModal({ onClose }) {
           {/* Day events */}
           <div className="card p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm" style={{color:'#2D4A3E'}}>
+              <h3 className="font-bold text-sm" style={{color:'var(--color-header)'}}>
                 {selected.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </h3>
               <button onClick={() => setShowForm(!showForm)} className="btn-outline text-xs flex items-center gap-1 py-1 px-2">
@@ -87,7 +87,7 @@ export default function CalendarModal({ onClose }) {
             </div>
 
             {showForm && (
-              <form onSubmit={save} className="space-y-2 pt-2 border-t" style={{borderColor:'rgba(107,168,152,0.15)'}}>
+              <form onSubmit={save} className="space-y-2 pt-2 border-t" style={{borderColor:'rgba(79, 93, 83,0.15)'}}>
                 <input className="app-input" placeholder="Event title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
                 <div className="flex gap-2">
                   <select className="app-input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
@@ -105,13 +105,13 @@ export default function CalendarModal({ onClose }) {
             )}
 
             {dayEvents.length === 0
-              ? <p className="text-sm" style={{color:'#A8C5B8'}}>No events. Tap + Add to log an exam or reminder.</p>
+              ? <p className="text-sm" style={{color:'var(--color-accent)'}}>No events. Tap + Add to log an exam or reminder.</p>
               : dayEvents.map(ev => (
-                <div key={ev.id} className="flex items-center gap-2 p-2 rounded-xl group" style={{background:'rgba(107,168,152,0.08)'}}>
+                <div key={ev.id} className="flex items-center gap-2 p-2 rounded-xl group" style={{background:'rgba(79, 93, 83,0.08)'}}>
                   <span>{typeIcon[ev.type] || '📌'}</span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold" style={{color:'#2D4A3E'}}>{ev.title}</p>
-                    {ev.marks !== null && <p className="text-xs" style={{color:'#6BA898'}}>Marks: {ev.marks}</p>}
+                    <p className="text-sm font-semibold" style={{color:'var(--color-header)'}}>{ev.title}</p>
+                    {ev.marks !== null && <p className="text-xs" style={{color:'var(--color-primary)'}}>Marks: {ev.marks}</p>}
                   </div>
                   <button onClick={() => del(ev.id)} className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}>✕</button>
                 </div>
@@ -122,17 +122,17 @@ export default function CalendarModal({ onClose }) {
           {/* Upcoming */}
           {events.filter(e => e.event_date >= new Date().toISOString().split('T')[0]).length > 0 && (
             <div className="card p-4 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style={{color:'#6BA898'}}>
+              <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style={{color:'var(--color-primary)'}}>
                 <Bell size={12} /> Upcoming
               </p>
               {events
                 .filter(e => e.event_date >= new Date().toISOString().split('T')[0])
                 .slice(0, 5)
                 .map(ev => (
-                  <div key={ev.id} className="flex items-center gap-2 p-2 rounded-lg" style={{background:'rgba(107,168,152,0.06)'}}>
+                  <div key={ev.id} className="flex items-center gap-2 p-2 rounded-lg" style={{background:'rgba(79, 93, 83,0.06)'}}>
                     <span className="text-sm">{typeIcon[ev.type] || '📌'}</span>
-                    <p className="flex-1 text-xs font-medium truncate" style={{color:'#2D4A3E'}}>{ev.title}</p>
-                    <p className="text-[10px] shrink-0" style={{color:'#A8C5B8'}}>
+                    <p className="flex-1 text-xs font-medium truncate" style={{color:'var(--color-header)'}}>{ev.title}</p>
+                    <p className="text-[10px] shrink-0" style={{color:'var(--color-accent)'}}>
                       {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </p>
                   </div>

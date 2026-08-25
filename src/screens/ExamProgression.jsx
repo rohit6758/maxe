@@ -46,7 +46,7 @@ export default function ExamProgression() {
             <Check size={14} className="text-white" />
           </div>
           
-          <div className="bg-surface rounded-xl p-5 border border-[#1e293b]">
+          <div className="bg-surface rounded-xl p-5 border border-[var(--color-divider)]">
             <div className="flex justify-between items-start mb-4">
                <div>
                  <span className="text-[10px] font-bold tracking-widest uppercase text-body mb-1 block flex items-center gap-1">
@@ -60,7 +60,7 @@ export default function ExamProgression() {
               Foundational concepts and primary modules.
             </p>
             
-            <div className="text-xs text-body border-t border-[#1e293b] pt-3">
+            <div className="text-xs text-body border-t border-[var(--color-divider)] pt-3">
               Finished on Oct 15, 2023
             </div>
           </div>
@@ -83,12 +83,12 @@ export default function ExamProgression() {
             </div>
             <p className="text-sm text-body mb-4">Deep dive into advanced algorithms and data structures.</p>
             
-            <div className="mb-4 bg-[#080F1D] p-3 rounded-lg border border-[#1e293b]">
+            <div className="mb-4 bg-[var(--color-background)] p-3 rounded-lg border border-[var(--color-divider)]">
               <div className="flex justify-between text-xs font-semibold mb-2">
                 <span className="text-body">Phase Completion</span>
                 <span className="text-primary">{progressPercent}%</span>
               </div>
-              <div className="w-full bg-[#1e293b] rounded-full h-1.5">
+              <div className="w-full bg-[var(--color-divider)] rounded-full h-1.5">
                 <div className="bg-primary h-1.5 rounded-full transition-all duration-500" style={{ width: `${progressPercent}%` }}></div>
               </div>
             </div>
@@ -105,11 +105,11 @@ export default function ExamProgression() {
 
         {/* Node 3: Planned */}
         <div className="relative">
-          <div className="absolute -left-[27px] top-1 w-6 h-6 rounded-full bg-surface border-2 border-[#1e293b] flex items-center justify-center ring-4 ring-background z-10">
+          <div className="absolute -left-[27px] top-1 w-6 h-6 rounded-full bg-surface border-2 border-[var(--color-divider)] flex items-center justify-center ring-4 ring-background z-10">
             <Flag size={12} className="text-body" />
           </div>
           
-          <div className="bg-transparent border border-[#1e293b] rounded-xl p-5">
+          <div className="bg-transparent border border-[var(--color-divider)] rounded-xl p-5">
             <div className="flex justify-between items-start mb-3">
                <div>
                  <span className="text-[10px] font-bold tracking-widest uppercase text-body mb-1 block">UPCOMING TARGET</span>
@@ -119,7 +119,7 @@ export default function ExamProgression() {
             <p className="text-sm text-body leading-relaxed mb-3">
               Comprehensive review and final assessments.
             </p>
-            <div className="text-xs text-body border-t border-[#1e293b] pt-3 flex items-center gap-2">
+            <div className="text-xs text-body border-t border-[var(--color-divider)] pt-3 flex items-center gap-2">
               <Calendar size={14} className="text-primary" /> Scheduled for Dec 05, 2023
             </div>
           </div>
@@ -133,8 +133,8 @@ export default function ExamProgression() {
 
 // Subcomponent
 const CheckboxItem = ({ label, checked }) => (
-  <label className="flex items-start gap-3 p-2 rounded-lg transition-colors hover:bg-[#080F1D]">
-    <div className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${checked ? 'bg-primary border-primary' : 'border border-[#475569] bg-[#080F1D]'}`}>
+  <label className="flex items-start gap-3 p-2 rounded-lg transition-colors hover:bg-[var(--color-background)]">
+    <div className={`mt-0.5 w-4 h-4 rounded flex items-center justify-center flex-shrink-0 ${checked ? 'bg-primary border-primary' : 'border border-[var(--color-divider)] bg-[var(--color-background)]'}`}>
       {checked && <Check size={12} className="text-white" strokeWidth={3} />}
     </div>
     <span className={`text-sm ${checked ? 'text-body line-through opacity-60' : 'text-header font-medium'}`}>
