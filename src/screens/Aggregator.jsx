@@ -63,7 +63,8 @@ export default function Aggregator() {
     if (!activeSemester) { alert('Select a semester first.'); return; }
     const name = prompt('Enter subject name:');
     if (!name) return;
-    const { data } = await supabase.from('subjects').insert([{ semester_id: activeSemester, name }]).select();
+    const semName = semesters.find(s => s.id === activeSemester)?.name || '';
+    const { data } = await supabase.from('subjects').insert([{ semester_id: activeSemester, name, user_id: session.user.id, branch: activeBranch, semester: semName, is_public: true }]).select();
     if (data) { setSubjects(p => [...p, data[0]]); setActiveSubject(data[0].id); }
   };
 
