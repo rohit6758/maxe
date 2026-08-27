@@ -5,7 +5,7 @@ import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Link 
 
 export default function Explore() {
   const { session, userProfile } = useAppContext();
-  const isAdmin = session?.user?.email === 'rohit2906a@gmail.com';
+  const isAdmin = session?.user?.email === 'rohitnxtgengw@gmail.com';
 
   const [communities, setCommunities] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
