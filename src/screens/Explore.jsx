@@ -34,6 +34,7 @@ export default function Explore() {
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
   const [memberSearchResults, setMemberSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
 
 
   useEffect(() => {
@@ -206,6 +207,9 @@ export default function Explore() {
   // --- Members Management ---
   const openMembersModal = async () => {
     setShowMembersModal(true);
+    setMemberSearch('');
+    setHasSearched(false);
+    setMemberSearchResults([]);
     const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, username, avatar_url)').eq('community_id', selectedCommunity.id);
     setCommunityMembers(membersData || []);
 
@@ -222,9 +226,14 @@ export default function Explore() {
 
   const handleMemberSearch = async (e) => {
     e.preventDefault();
-    if (!memberSearch.trim()) return;
+    if (!memberSearch.trim()) {
+      setHasSearched(false);
+      setMemberSearchResults([]);
+      return;
+    }
     const { data } = await supabase.from('profiles').select('*').or(`name.ilike.%${memberSearch}%,username.ilike.%${memberSearch}%`).neq('id', session.user.id).limit(10);
     setMemberSearchResults(data || []);
+    setHasSearched(true);
   };
   const addMemberToGroup = async (userId) => {
     setIsAddingMember(true);
@@ -460,12 +469,16 @@ export default function Explore() {
                   <p className="text-xs font-bold uppercase text-primary">Add People</p>
                 </div>
                 <form onSubmit={handleMemberSearch} className="flex gap-2 mb-3">
-                  <input className="app-input flex-1 text-xs" placeholder="Search by name or @username..." value={memberSearch} onChange={e => setMemberSearch(e.target.value)} />
+                  <input className="app-input flex-1 text-xs" placeholder="Search by name or @username..." value={memberSearch} onChange={e => {
+                    setMemberSearch(e.target.value);
+                    if (!e.target.value.trim()) { setHasSearched(false); setMemberSearchResults([]); }
+                  }} />
                   <button type="submit" className="btn-primary p-2 rounded-xl"><Search size={14}/></button>
                 </form>
 
                 <div className="space-y-2">
-                  {(memberSearchResults.length > 0 ? memberSearchResults : myFollowers).map(follower => {
+                  {(hasSearched ? memberSearchResults : myFollowers).length === 0 && <p className="text-xs text-body italic text-center py-2">No people found.</p>}
+                  {(hasSearched ? memberSearchResults : myFollowers).map(follower => {
                       const isAlreadyMember = communityMembers.some(m => m.user_id === follower.id);
                       return (
                         <div key={follower.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">

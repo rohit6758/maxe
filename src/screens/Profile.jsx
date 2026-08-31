@@ -35,12 +35,15 @@ export default function Profile() {
     setNetworkType(type);
     setShowNetwork(true);
     setNetworkList([]);
-    if (type === 'followers') {
-      const { data } = await supabase.from('follows').select('follower_id, profiles!follower_id(id, name, username, avatar_url, branch)').eq('following_id', session.user.id);
-      setNetworkList(data ? data.map(d => d.profiles) : []);
-    } else {
-      const { data } = await supabase.from('follows').select('following_id, profiles!following_id(id, name, username, avatar_url, branch)').eq('follower_id', session.user.id);
-      setNetworkList(data ? data.map(d => d.profiles) : []);
+    const column = type === 'followers' ? 'following_id' : 'follower_id';
+    const selectCol = type === 'followers' ? 'follower_id' : 'following_id';
+    
+    const { data, error } = await supabase.from('follows').select(selectCol).eq(column, session.user.id);
+    if (error) { alert('Error loading network'); return; }
+    if (data && data.length > 0) {
+      const ids = data.map(d => d[selectCol]);
+      const { data: profiles } = await supabase.from('profiles').select('id, name, username, avatar_url, branch').in('id', ids);
+      setNetworkList(profiles || []);
     }
   };
 const loadFollowStats = async () => {
