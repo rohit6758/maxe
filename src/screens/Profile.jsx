@@ -15,6 +15,21 @@ export default function Profile() {
   const [saved, setSaved] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
+  const [followerCount, setFollowerCount] = useState(0);
+  const [followingCount, setFollowingCount] = useState(0);
+
+  useEffect(() => {
+    if (session) {
+      loadFollowStats();
+    }
+  }, [session]);
+
+  const loadFollowStats = async () => {
+    const { count: followers } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', session.user.id);
+    const { count: following } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', session.user.id);
+    setFollowerCount(followers || 0);
+    setFollowingCount(following || 0);
+  };
 
   useEffect(() => {
     if (userProfile) {
@@ -91,6 +106,17 @@ export default function Profile() {
             <div className="flex-1 min-w-0">
               <h2 className="text-lg md:text-xl font-bold truncate" style={{color:'#2D4A3E'}}>{userProfile?.name || 'Your Name'}</h2>
               <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.branch || 'No branch selected'}</p>
+              
+              <div className="flex gap-4 mt-2">
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-sm" style={{color:'#2D4A3E'}}>{followerCount}</span>
+                  <span className="text-[10px] uppercase font-bold" style={{color:'#6BA898'}}>Followers</span>
+                </div>
+                <div className="flex flex-col items-start">
+                  <span className="font-bold text-sm" style={{color:'#2D4A3E'}}>{followingCount}</span>
+                  <span className="text-[10px] uppercase font-bold" style={{color:'#6BA898'}}>Following</span>
+                </div>
+              </div>
             </div>
           </div>
           
@@ -177,3 +203,4 @@ export default function Profile() {
     </div>
   );
 }
+

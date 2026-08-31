@@ -225,11 +225,23 @@ export default function Explore() {
       }]);
       if (error) throw error;
       const { data: profile } = await supabase.from('profiles').select('name, avatar_url').eq('id', userId).single();
-      setCommunityMembers([...communityMembers, { user_id: userId, profiles: profile }]);
+      setCommunityMembers([...communityMembers, { user_id: userId, role: 'member', profiles: profile }]);
     } catch (err) {
       alert('Could not add member: ' + err.message);
     }
     setIsAddingMember(false);
+  };
+
+  const removeMember = async (userId) => {
+    if (!window.confirm("Remove this member from the community?")) return;
+    const { error } = await supabase.from('community_members').delete().match({ community_id: selectedCommunity.id, user_id: userId });
+    if (!error) setCommunityMembers(communityMembers.filter(m => m.user_id !== userId));
+  };
+
+  const promoteToAdmin = async (userId) => {
+    if (!window.confirm("Make this member an admin?")) return;
+    const { error } = await supabase.from('community_members').update({ role: 'admin' }).match({ community_id: selectedCommunity.id, user_id: userId });
+    if (!error) setCommunityMembers(communityMembers.map(m => m.user_id === userId ? { ...m, role: 'admin' } : m));
   };
 
   const getIcon = (type) => {
@@ -239,6 +251,7 @@ export default function Explore() {
   };
 
   const isCurrentMember = selectedCommunity ? (myMemberships[selectedCommunity.id] || isAdmin) : false;
+  const isCommunityAdmin = selectedCommunity ? (selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) : false;
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-[#333]">
@@ -317,7 +330,7 @@ export default function Explore() {
                 </div>
                 
                 {/* Admin/Creator Tools */}
-                {(selectedCommunity.created_by === session?.user?.id || isAdmin) && (
+                {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && (
                   <button onClick={openMembersModal} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
                     <Users size={14} /> <span className="hidden sm:inline">Members</span>
                   </button>
@@ -408,12 +421,20 @@ export default function Explore() {
                 <p className="text-xs font-bold uppercase text-primary mb-2">Current Members ({communityMembers.length})</p>
                 <div className="space-y-2">
                   {communityMembers.map(m => (
-                    <div key={m.user_id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
+                    <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-surface border border-[#333]">
                       <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
                         {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                       </div>
-                      <span className="text-sm font-semibold text-header flex-1">{m.profiles?.name || 'Unknown'}</span>
-                      {m.role === 'admin' && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase">Admin</span>}
+                      <span className="text-sm font-semibold text-header flex-1 truncate">{m.profiles?.name || 'Unknown'}</span>
+                      {m.role === 'admin' && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase shrink-0">Admin</span>}
+                      {isCommunityAdmin && m.user_id !== session?.user?.id && (
+                        <div className="flex gap-1 shrink-0">
+                          {m.role !== 'admin' && (
+                            <button onClick={() => promoteToAdmin(m.user_id)} className="px-2 py-1 text-[10px] bg-black/5 rounded hover:bg-black/10 font-bold text-header">Admin +</button>
+                          )}
+                          <button onClick={() => removeMember(m.user_id)} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 font-bold">Remove</button>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
