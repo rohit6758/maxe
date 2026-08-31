@@ -4,12 +4,26 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Maxe</title>
-    <meta name="theme-color" content="#080F1D" />
-    <link rel="apple-touch-icon" href="/logo.png" />
+    <title>Maxe - Study Hub</title>
+    <meta name="theme-color" content="#2D4A3E" />
+    <meta name="description" content="Your college study hub for PDFs, Notes, Question Papers, AI Chats, Communities and more." />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Maxe" />
+    <!-- Explicit SW registration for PWABuilder detection -->
+    <script>
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function() {
+          navigator.serviceWorker.register('/sw.js').then(function(reg) {
+            console.log('SW registered:', reg.scope);
+          }).catch(function(err) {
+            console.log('SW registration failed:', err);
+          });
+        });
+      }
+    </script>
   </head>
   <body>
     <div id="root"></div>

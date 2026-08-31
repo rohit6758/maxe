@@ -7,14 +7,14 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      devOptions: { enabled: false },
-      injectRegister: 'auto',
+      injectRegister: 'inline',
       includeAssets: ['icon-*.png', 'pwa-192x192.png', 'pwa-512x512.png', 'apple-touch-icon.png', 'screenshot1.png', 'screenshot-wide.png'],
       workbox: {
         globPatterns: ['**/*.{js,css,html,ico,png,svg,webmanifest}'],
         cleanupOutdatedCaches: true,
         skipWaiting: true,
-        clientsClaim: true
+        clientsClaim: true,
+        navigateFallback: '/index.html'
       },
       manifest: {
         id: '/',
@@ -24,7 +24,7 @@ export default defineConfig({
         theme_color: '#2D4A3E',
         background_color: '#EDF4F0',
         display: 'standalone',
-        display_override: ['standalone', 'minimal-ui'],
+        display_override: ['standalone', 'minimal-ui', 'window-controls-overlay'],
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
@@ -45,6 +45,35 @@ export default defineConfig({
             url: 'url'
           }
         },
+        file_handlers: [
+          {
+            action: '/',
+            accept: {
+              'application/pdf': ['.pdf'],
+              'image/png': ['.png'],
+              'image/jpeg': ['.jpg', '.jpeg']
+            }
+          }
+        ],
+        protocol_handlers: [
+          {
+            protocol: 'web+maxe',
+            url: '/?protocol=%s'
+          }
+        ],
+        related_applications: [
+          {
+            platform: 'play',
+            url: 'https://play.google.com/store/apps/details?id=com.maxe.studyhub',
+            id: 'com.maxe.studyhub'
+          }
+        ],
+        edge_side_panel: {
+          preferred_width: 400
+        },
+        scope_extensions: [
+          { origin: 'https://rohit6758-maxe-n51bhadsj-rohit6758s-projects.vercel.app' }
+        ],
         icons: [
           { src: 'icon-72x72.png',   sizes: '72x72',   type: 'image/png' },
           { src: 'icon-96x96.png',   sizes: '96x96',   type: 'image/png' },
@@ -63,14 +92,14 @@ export default defineConfig({
             sizes: '512x512',
             type: 'image/png',
             form_factor: 'narrow',
-            label: 'Maxe Study Hub'
+            label: 'Maxe Study Hub Home Screen'
           },
           {
             src: 'screenshot-wide.png',
             sizes: '1024x512',
             type: 'image/png',
             form_factor: 'wide',
-            label: 'Maxe Study Hub - Desktop'
+            label: 'Maxe Study Hub Desktop View'
           }
         ],
         shortcuts: [
