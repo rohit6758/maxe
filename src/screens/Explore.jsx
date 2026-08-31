@@ -142,6 +142,17 @@ export default function Explore() {
     else setPosts(posts.filter(p => p.id !== postId));
   };
 
+  const handleDeleteCommunity = async (communityId, e) => {
+    e.stopPropagation();
+    if (!window.confirm('WARNING: Delete this entire community group and all its posts?')) return;
+    const { error } = await supabase.from('communities').delete().eq('id', communityId);
+    if (error) alert(error.message);
+    else {
+      setCommunities(communities.filter(c => c.id !== communityId));
+      if (selectedCommunity?.id === communityId) setSelectedCommunity(null);
+    }
+  };
+
   const initiateImport = (post) => {
     setImportingPost(post);
     setShowImportModal(true);
@@ -203,6 +214,11 @@ export default function Explore() {
                     <h3 className="font-bold text-header text-base">{comm.name}</h3>
                     <p className="text-xs text-body line-clamp-1">Tap to view shared resources</p>
                   </div>
+                  {isAdmin && (
+                    <button onClick={(e) => handleDeleteCommunity(comm.id, e)} className="ml-auto text-red-400 hover:text-red-600 p-2">
+                      <Trash2 size={16} />
+                    </button>
+                  )}
                 </button>
               ))
             )}
