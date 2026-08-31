@@ -3,7 +3,6 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './Layout';
 import Aggregator from './screens/Aggregator';
 import Personals from './screens/Personals';
-import Todos from './screens/Todos';
 import Auth from './screens/Auth';
 import Profile from './screens/Profile';
 import Explore from './screens/Explore';
