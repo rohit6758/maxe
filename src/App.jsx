@@ -6,6 +6,7 @@ import Personals from './screens/Personals';
 import Auth from './screens/Auth';
 import Profile from './screens/Profile';
 import Explore from './screens/Explore';
+import UserSearch from './screens/UserSearch';
 import { AppProvider, useAppContext } from './context/AppContext';
 
 class ErrorBoundary extends React.Component {
@@ -63,6 +64,7 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Aggregator />} />
         <Route path="personals" element={<Personals />} />
+        <Route path="search" element={<UserSearch />} />
         <Route path="explore" element={<Explore />} />
         <Route path="profile" element={<Profile />} />
       </Route>

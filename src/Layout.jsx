@@ -70,6 +70,7 @@ export default function Layout() {
     { to: '/', icon: <LayoutGrid size={18} />, label: 'Hub' },
     { to: '/personals', icon: <BookOpen size={18} />, label: 'Improvements' },
     { to: '/explore', icon: <Users size={18} />, label: 'Community' },
+    { to: '/search', icon: <Search size={18} />, label: 'Find' },
   ];
 
   const SidebarContent = () => (

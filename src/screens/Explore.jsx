@@ -1,15 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { Plus, Search, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X } from 'lucide-react';
+import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock } from 'lucide-react';
 
 export default function Explore() {
-  const { session, userProfile } = useAppContext();
+  const { session } = useAppContext();
   const isAdmin = session?.user?.email === 'rohitnxtgengw@gmail.com';
 
   const [communities, setCommunities] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [myMemberships, setMyMemberships] = useState({});
 
   // Modals / Forms
   const [showCreateCommunity, setShowCreateCommunity] = useState(false);
@@ -31,12 +32,6 @@ export default function Explore() {
   const [myFollowers, setMyFollowers] = useState([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
 
-  // User Search Modal
-  const [showUserSearch, setShowUserSearch] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-  const [searchResults, setSearchResults] = useState([]);
-  const [followingMap, setFollowingMap] = useState({});
-
   useEffect(() => {
     if (session) {
       loadCommunities();
@@ -46,20 +41,23 @@ export default function Explore() {
 
   useEffect(() => {
     if (selectedCommunity) {
-      loadPosts(selectedCommunity.id);
-      
-      const channel = supabase.channel('community_posts')
-        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
-          fetchSinglePost(payload.new.id);
-        })
-        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_posts' }, payload => {
-          setPosts(prev => prev.filter(p => p.id !== payload.old.id));
-        })
-        .subscribe();
+      const isMember = myMemberships[selectedCommunity.id] || isAdmin;
+      if (isMember) {
+        loadPosts(selectedCommunity.id);
         
-      return () => { supabase.removeChannel(channel); };
+        const channel = supabase.channel('community_posts')
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
+            fetchSinglePost(payload.new.id);
+          })
+          .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_posts' }, payload => {
+            setPosts(prev => prev.filter(p => p.id !== payload.old.id));
+          })
+          .subscribe();
+          
+        return () => { supabase.removeChannel(channel); };
+      }
     }
-  }, [selectedCommunity]);
+  }, [selectedCommunity, myMemberships, isAdmin]);
 
   const fetchSinglePost = async (id) => {
     const { data } = await supabase.from('community_posts').select('*, profiles(name, avatar_url)').eq('id', id).single();
@@ -67,19 +65,18 @@ export default function Explore() {
   };
 
   const loadCommunities = async () => {
-    if (isAdmin) {
-      const { data } = await supabase.from('communities').select('*').order('created_at', { ascending: false });
-      setCommunities(data || []);
-    } else {
-      const { data: memberData } = await supabase.from('community_members').select('community_id').eq('user_id', session.user.id);
-      if (!memberData || memberData.length === 0) {
-        setCommunities([]);
-        return;
-      }
-      const communityIds = memberData.map(m => m.community_id);
-      const { data } = await supabase.from('communities').select('*').in('id', communityIds).order('created_at', { ascending: false });
-      setCommunities(data || []);
+    // Show all communities so user knows they exist
+    const { data: allCommunities } = await supabase.from('communities').select('*').order('created_at', { ascending: false });
+    
+    // Check which ones we are members of
+    const { data: memberData } = await supabase.from('community_members').select('community_id, role').eq('user_id', session.user.id);
+    const map = {};
+    if (memberData) {
+      memberData.forEach(m => { map[m.community_id] = m.role; });
     }
+    
+    setCommunities(allCommunities || []);
+    setMyMemberships(map);
   };
 
   const loadPosts = async (communityId) => {
@@ -88,7 +85,7 @@ export default function Explore() {
       .select('*, profiles(name, avatar_url)')
       .eq('community_id', communityId)
       .order('created_at', { ascending: false });
-    if (data) setPosts(data);
+    setPosts(data || []);
   };
 
   const loadMySubjects = async () => {
@@ -109,13 +106,13 @@ export default function Explore() {
     const { data, error } = await supabase.from('communities').insert([{ name: newCommunityName.trim(), created_by: session.user.id }]).select();
     if (error) alert(error.message);
     else {
-      // Auto-add creator to community_members as admin
       await supabase.from('community_members').insert([{
         community_id: data[0].id,
         user_id: session.user.id,
         role: 'admin'
       }]);
       setCommunities([data[0], ...communities]);
+      setMyMemberships(prev => ({ ...prev, [data[0].id]: 'admin' }));
       setShowCreateCommunity(false);
       setNewCommunityName('');
       setSelectedCommunity(data[0]);
@@ -205,12 +202,9 @@ export default function Explore() {
   // --- Members Management ---
   const openMembersModal = async () => {
     setShowMembersModal(true);
-    
-    // Load members
     const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, avatar_url)').eq('community_id', selectedCommunity.id);
     setCommunityMembers(membersData || []);
 
-    // Load followers to add
     const { data: follows } = await supabase.from('follows').select('follower_id').eq('following_id', session.user.id);
     if (follows && follows.length > 0) {
       const followerIds = follows.map(f => f.follower_id);
@@ -230,8 +224,6 @@ export default function Explore() {
         role: 'member'
       }]);
       if (error) throw error;
-      
-      // Update local state
       const { data: profile } = await supabase.from('profiles').select('name, avatar_url').eq('id', userId).single();
       setCommunityMembers([...communityMembers, { user_id: userId, profiles: profile }]);
     } catch (err) {
@@ -240,38 +232,13 @@ export default function Explore() {
     setIsAddingMember(false);
   };
 
-  // --- User Search & Follow ---
-  const openUserSearch = async () => {
-    setShowUserSearch(true);
-    const { data } = await supabase.from('follows').select('following_id').eq('follower_id', session.user.id);
-    const map = {};
-    if (data) data.forEach(f => { map[f.following_id] = true; });
-    setFollowingMap(map);
-  };
-
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
-    const { data } = await supabase.from('profiles').select('*').ilike('name', `%${searchQuery}%`).neq('id', session.user.id).limit(10);
-    setSearchResults(data || []);
-  };
-
-  const toggleFollow = async (userId) => {
-    const isFollowing = followingMap[userId];
-    if (isFollowing) {
-      await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
-      setFollowingMap(prev => ({ ...prev, [userId]: false }));
-    } else {
-      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
-      setFollowingMap(prev => ({ ...prev, [userId]: true }));
-    }
-  };
-
   const getIcon = (type) => {
     if (type === 'pdf') return <FileText size={16} className="text-primary" />;
     if (type === 'chat') return <MessageSquare size={16} className="text-primary" />;
     return <FileText size={16} className="text-primary" />;
   };
+
+  const isCurrentMember = selectedCommunity ? (myMemberships[selectedCommunity.id] || isAdmin) : false;
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-[#333]">
@@ -282,19 +249,14 @@ export default function Explore() {
         <div className={`w-full md:w-1/3 md:border-r border-[#333] flex flex-col bg-surface ${selectedCommunity ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-[#333] flex items-center justify-between bg-surface z-10">
             <h2 className="text-xl font-bold text-header">Communities</h2>
-            <div className="flex gap-2">
-              <button onClick={openUserSearch} className="btn-outline p-2 rounded-full shadow-sm text-primary border-primary hover:bg-primary hover:text-white transition-colors">
-                <Search size={18} />
-              </button>
-              <button onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
-                <Plus size={18} />
-              </button>
-            </div>
+            <button onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
+              <Plus size={18} />
+            </button>
           </div>
 
           <div className="flex-1 overflow-y-auto">
             {communities.length === 0 ? (
-              <p className="p-8 text-center text-body text-sm">No communities found. Create one or wait to be invited!</p>
+              <p className="p-8 text-center text-body text-sm">No communities found. Create one!</p>
             ) : (
               communities.map(comm => (
                 <button 
@@ -305,12 +267,14 @@ export default function Explore() {
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
                     <Layers size={20} className="text-white" />
                   </div>
-                  <div>
-                    <h3 className="font-bold text-header text-base">{comm.name}</h3>
-                    <p className="text-xs text-body line-clamp-1">Tap to view shared resources</p>
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-bold text-header text-base truncate">{comm.name}</h3>
+                    <p className="text-xs text-body truncate">
+                      {myMemberships[comm.id] || isAdmin ? 'Tap to view shared resources' : 'Private Group'}
+                    </p>
                   </div>
                   {isAdmin && (
-                    <button onClick={(e) => handleDeleteCommunity(comm.id, e)} className="ml-auto text-red-400 hover:text-red-600 p-2">
+                    <button onClick={(e) => handleDeleteCommunity(comm.id, e)} className="text-red-400 hover:text-red-600 p-2">
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -325,7 +289,17 @@ export default function Explore() {
           {!selectedCommunity ? (
             <div className="text-center space-y-3 opacity-50">
               <Layers size={48} className="mx-auto text-body" />
-              <p className="text-body font-medium">Select a private community</p>
+              <p className="text-body font-medium">Select a community</p>
+            </div>
+          ) : !isCurrentMember ? (
+            <div className="text-center space-y-3 opacity-60 p-8 flex flex-col items-center justify-center h-full">
+              <button onClick={() => setSelectedCommunity(null)} className="md:hidden p-2 absolute top-4 left-4 text-header bg-surface rounded-full shadow-md">
+                <ArrowLeft size={20} />
+              </button>
+              <Lock size={48} className="text-body mb-2" />
+              <p className="text-header font-bold text-lg">Private Community</p>
+              <p className="text-sm text-body">You are not a member of {selectedCommunity.name}.</p>
+              <p className="text-xs text-body">Ask the admin to follow you and add you to the group.</p>
             </div>
           ) : (
             <>
@@ -576,60 +550,6 @@ export default function Explore() {
               <button onClick={executeImport} className="btn-primary flex-1 py-2 flex items-center justify-center gap-1">
                 <Download size={16}/> Save
               </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* USER SEARCH MODAL */}
-      {showUserSearch && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="card p-5 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-bold text-header flex items-center gap-2">
-                <Search size={20} className="text-primary"/> Find People
-              </h3>
-              <button onClick={() => setShowUserSearch(false)}><X size={20}/></button>
-            </div>
-            
-            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-              <input 
-                className="app-input flex-1 text-sm" 
-                placeholder="Search users by name..." 
-                value={searchQuery} 
-                onChange={e => setSearchQuery(e.target.value)}
-                autoFocus
-              />
-              <button type="submit" className="btn-primary p-2 flex items-center justify-center rounded-xl">
-                <Search size={16} />
-              </button>
-            </form>
-
-            <div className="overflow-y-auto space-y-2 flex-1">
-              {searchResults.length === 0 ? (
-                <p className="text-center text-xs text-body italic mt-4">Search for classmates to follow them.</p>
-              ) : (
-                searchResults.map(user => {
-                  const isFollowing = followingMap[user.id];
-                  return (
-                    <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
-                      <div className="w-10 h-10 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
-                        {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={16} />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-header truncate">{user.name}</p>
-                        <p className="text-xs text-body truncate">{user.branch || 'No branch'}</p>
-                      </div>
-                      <button 
-                        onClick={() => toggleFollow(user.id)}
-                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isFollowing ? 'bg-black/10 text-header' : 'bg-primary text-white'}`}
-                      >
-                        {isFollowing ? 'Following' : 'Follow'}
-                      </button>
-                    </div>
-                  );
-                })
-              )}
             </div>
           </div>
         </div>
