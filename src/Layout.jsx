@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, X, Users } from 'lucide-react';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, X, Users, Search } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
