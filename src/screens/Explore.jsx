@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Link as LinkIcon, User, Layers } from 'lucide-react';
+import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X } from 'lucide-react';
 
 export default function Explore() {
   const { session, userProfile } = useAppContext();
@@ -25,6 +25,12 @@ export default function Explore() {
   const [mySubjects, setMySubjects] = useState([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
 
+  // Members Modal
+  const [showMembersModal, setShowMembersModal] = useState(false);
+  const [communityMembers, setCommunityMembers] = useState([]);
+  const [myFollowers, setMyFollowers] = useState([]);
+  const [isAddingMember, setIsAddingMember] = useState(false);
+
   useEffect(() => {
     if (session) {
       loadCommunities();
@@ -36,10 +42,8 @@ export default function Explore() {
     if (selectedCommunity) {
       loadPosts(selectedCommunity.id);
       
-      // Realtime subscription for WhatsApp-like feel
       const channel = supabase.channel('community_posts')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
-          // Fetch the full post with profile to append to state
           fetchSinglePost(payload.new.id);
         })
         .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_posts' }, payload => {
@@ -57,8 +61,19 @@ export default function Explore() {
   };
 
   const loadCommunities = async () => {
-    const { data } = await supabase.from('communities').select('*').order('created_at', { ascending: false });
-    if (data) setCommunities(data);
+    if (isAdmin) {
+      const { data } = await supabase.from('communities').select('*').order('created_at', { ascending: false });
+      setCommunities(data || []);
+    } else {
+      const { data: memberData } = await supabase.from('community_members').select('community_id').eq('user_id', session.user.id);
+      if (!memberData || memberData.length === 0) {
+        setCommunities([]);
+        return;
+      }
+      const communityIds = memberData.map(m => m.community_id);
+      const { data } = await supabase.from('communities').select('*').in('id', communityIds).order('created_at', { ascending: false });
+      setCommunities(data || []);
+    }
   };
 
   const loadPosts = async (communityId) => {
@@ -66,17 +81,15 @@ export default function Explore() {
       .from('community_posts')
       .select('*, profiles(name, avatar_url)')
       .eq('community_id', communityId)
-      .order('created_at', { ascending: false }); // descending because feed, but whatsapp is usually bottom-up. We'll do top-down for now.
+      .order('created_at', { ascending: false });
     if (data) setPosts(data);
   };
 
   const loadMySubjects = async () => {
-    // We need the user's subjects grouped by semester
     const { data: sems } = await supabase.from('semesters').select('id, name').eq('user_id', session.user.id);
     if (!sems || sems.length === 0) return;
     const { data: subs } = await supabase.from('subjects').select('id, name, semester_id').in('semester_id', sems.map(s => s.id));
     
-    // Attach semester name to subject for dropdown
     const formatted = (subs || []).map(sub => {
       const sem = sems.find(s => s.id === sub.semester_id);
       return { ...sub, semName: sem ? sem.name : 'Unknown' };
@@ -90,6 +103,12 @@ export default function Explore() {
     const { data, error } = await supabase.from('communities').insert([{ name: newCommunityName.trim(), created_by: session.user.id }]).select();
     if (error) alert(error.message);
     else {
+      // Auto-add creator to community_members as admin
+      await supabase.from('community_members').insert([{
+        community_id: data[0].id,
+        user_id: session.user.id,
+        role: 'admin'
+      }]);
       setCommunities([data[0], ...communities]);
       setShowCreateCommunity(false);
       setNewCommunityName('');
@@ -164,7 +183,7 @@ export default function Explore() {
     try {
       const { error } = await supabase.from('resources').insert([{
         subject_id: selectedSubjectId,
-        title: importingPost.title, // Keep original title or add tag?
+        title: importingPost.title,
         url: importingPost.url,
         type: importingPost.type,
         size: importingPost.size
@@ -175,6 +194,44 @@ export default function Explore() {
     } catch (err) {
       alert(err.message);
     }
+  };
+
+  // --- Members Management ---
+  const openMembersModal = async () => {
+    setShowMembersModal(true);
+    
+    // Load members
+    const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, avatar_url)').eq('community_id', selectedCommunity.id);
+    setCommunityMembers(membersData || []);
+
+    // Load followers to add
+    const { data: follows } = await supabase.from('follows').select('follower_id').eq('following_id', session.user.id);
+    if (follows && follows.length > 0) {
+      const followerIds = follows.map(f => f.follower_id);
+      const { data: followersProfiles } = await supabase.from('profiles').select('*').in('id', followerIds);
+      setMyFollowers(followersProfiles || []);
+    } else {
+      setMyFollowers([]);
+    }
+  };
+
+  const addMemberToGroup = async (userId) => {
+    setIsAddingMember(true);
+    try {
+      const { error } = await supabase.from('community_members').insert([{
+        community_id: selectedCommunity.id,
+        user_id: userId,
+        role: 'member'
+      }]);
+      if (error) throw error;
+      
+      // Update local state
+      const { data: profile } = await supabase.from('profiles').select('name, avatar_url').eq('id', userId).single();
+      setCommunityMembers([...communityMembers, { user_id: userId, profiles: profile }]);
+    } catch (err) {
+      alert('Could not add member: ' + err.message);
+    }
+    setIsAddingMember(false);
   };
 
   const getIcon = (type) => {
@@ -199,7 +256,7 @@ export default function Explore() {
 
           <div className="flex-1 overflow-y-auto">
             {communities.length === 0 ? (
-              <p className="p-8 text-center text-body text-sm">No communities yet. Create one!</p>
+              <p className="p-8 text-center text-body text-sm">No communities found. Create one or wait to be invited!</p>
             ) : (
               communities.map(comm => (
                 <button 
@@ -230,7 +287,7 @@ export default function Explore() {
           {!selectedCommunity ? (
             <div className="text-center space-y-3 opacity-50">
               <Layers size={48} className="mx-auto text-body" />
-              <p className="text-body font-medium">Select a community to view resources</p>
+              <p className="text-body font-medium">Select a private community</p>
             </div>
           ) : (
             <>
@@ -244,8 +301,16 @@ export default function Explore() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-header text-lg">{selectedCommunity.name}</h3>
-                  <p className="text-xs text-primary font-medium">Community Group</p>
+                  <p className="text-xs text-primary font-medium">Secure Group</p>
                 </div>
+                
+                {/* Admin/Creator Tools */}
+                {(selectedCommunity.created_by === session?.user?.id || isAdmin) && (
+                  <button onClick={openMembersModal} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
+                    <Users size={14} /> <span className="hidden sm:inline">Members</span>
+                  </button>
+                )}
+
                 <button onClick={() => setShowShareModal(true)} className="btn-primary text-sm flex items-center gap-1 py-1.5 px-3">
                   <Plus size={14} /> Share
                 </button>
@@ -266,7 +331,7 @@ export default function Explore() {
                       <div key={post.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                         {!isMine && (
                           <div className="flex items-center gap-2 mb-1 ml-1">
-                            <div className="w-5 h-5 rounded-full bg-divider overflow-hidden flex items-center justify-center shrink-0">
+                            <div className="w-5 h-5 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0 border border-[#333]">
                               {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={10} />}
                             </div>
                             <span className="text-[11px] font-bold text-body">{post.profiles?.name || 'Unknown'}</span>
@@ -314,11 +379,80 @@ export default function Explore() {
         </div>
       </div>
 
+      {/* MEMBERS MODAL */}
+      {showMembersModal && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card p-5 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-header flex items-center gap-2">
+                <Users size={20} className="text-primary"/> Manage Members
+              </h3>
+              <button onClick={() => setShowMembersModal(false)}><X size={20}/></button>
+            </div>
+            
+            <div className="overflow-y-auto space-y-4">
+              {/* Current Members */}
+              <div>
+                <p className="text-xs font-bold uppercase text-primary mb-2">Current Members ({communityMembers.length})</p>
+                <div className="space-y-2">
+                  {communityMembers.map(m => (
+                    <div key={m.user_id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
+                      <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                        {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
+                      </div>
+                      <span className="text-sm font-semibold text-header flex-1">{m.profiles?.name || 'Unknown'}</span>
+                      {m.role === 'admin' && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase">Admin</span>}
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Add Followers */}
+              <div className="pt-2 border-t border-[#333]">
+                <p className="text-xs font-bold uppercase text-primary mb-2">Add Your Followers</p>
+                {myFollowers.length === 0 ? (
+                  <p className="text-xs text-body italic">No followers found, or everyone is already added.</p>
+                ) : (
+                  <div className="space-y-2">
+                    {myFollowers.map(follower => {
+                      const isAlreadyMember = communityMembers.some(m => m.user_id === follower.id);
+                      return (
+                        <div key={follower.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
+                          <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                            {follower.avatar_url ? <img src={follower.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
+                          </div>
+                          <span className="text-sm font-semibold text-header flex-1">{follower.name}</span>
+                          
+                          {isAlreadyMember ? (
+                            <span className="text-xs text-primary flex items-center gap-1 font-bold"><Check size={14}/> Added</span>
+                          ) : (
+                            <button 
+                              onClick={() => addMemberToGroup(follower.id)}
+                              disabled={isAddingMember}
+                              className="btn-primary py-1 px-3 text-xs rounded flex items-center gap-1"
+                            >
+                              <UserPlus size={12}/> Add
+                            </button>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
+            
+            <button onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
+          </div>
+        </div>
+      )}
+
       {/* CREATE COMMUNITY MODAL */}
       {showCreateCommunity && (
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <form onSubmit={handleCreateCommunity} className="card p-5 w-full max-w-sm space-y-4 shadow-2xl">
-            <h3 className="text-lg font-bold text-header">Create Community</h3>
+            <h3 className="text-lg font-bold text-header">Create Private Community</h3>
+            <p className="text-xs text-body -mt-2">Groups are private. You can add your followers later.</p>
             <input 
               className="app-input"
               placeholder="e.g. CSM 2-2"
