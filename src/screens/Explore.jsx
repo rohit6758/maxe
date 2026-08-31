@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon } from 'lucide-react';
+import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon, Search } from 'lucide-react';
 
 export default function Explore() {
   const { session } = useAppContext();
@@ -26,11 +26,15 @@ export default function Explore() {
   const [mySubjects, setMySubjects] = useState([]);
   const [selectedSubjectId, setSelectedSubjectId] = useState('');
 
+
   // Members Modal
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [communityMembers, setCommunityMembers] = useState([]);
   const [myFollowers, setMyFollowers] = useState([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const [memberSearch, setMemberSearch] = useState('');
+  const [memberSearchResults, setMemberSearchResults] = useState([]);
+
 
   useEffect(() => {
     if (session) {
@@ -60,7 +64,7 @@ export default function Explore() {
   }, [selectedCommunity, myMemberships, isAdmin]);
 
   const fetchSinglePost = async (id) => {
-    const { data } = await supabase.from('community_posts').select('*, profiles(name, avatar_url)').eq('id', id).single();
+    const { data } = await supabase.from('community_posts').select('*, profiles(name, username, avatar_url)').eq('id', id).single();
     if (data) setPosts(prev => [data, ...prev]);
   };
 
@@ -82,7 +86,7 @@ export default function Explore() {
   const loadPosts = async (communityId) => {
     const { data } = await supabase
       .from('community_posts')
-      .select('*, profiles(name, avatar_url)')
+      .select('*, profiles(name, username, avatar_url)')
       .eq('community_id', communityId)
       .order('created_at', { ascending: false });
     setPosts(data || []);
@@ -202,7 +206,7 @@ export default function Explore() {
   // --- Members Management ---
   const openMembersModal = async () => {
     setShowMembersModal(true);
-    const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, avatar_url)').eq('community_id', selectedCommunity.id);
+    const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, username, avatar_url)').eq('community_id', selectedCommunity.id);
     setCommunityMembers(membersData || []);
 
     const { data: follows } = await supabase.from('follows').select('follower_id').eq('following_id', session.user.id);
@@ -215,6 +219,13 @@ export default function Explore() {
     }
   };
 
+
+  const handleMemberSearch = async (e) => {
+    e.preventDefault();
+    if (!memberSearch.trim()) return;
+    const { data } = await supabase.from('profiles').select('*').or(`name.ilike.%${memberSearch}%,username.ilike.%${memberSearch}%`).neq('id', session.user.id).limit(10);
+    setMemberSearchResults(data || []);
+  };
   const addMemberToGroup = async (userId) => {
     setIsAddingMember(true);
     try {
@@ -425,7 +436,10 @@ export default function Explore() {
                       <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
                         {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                       </div>
-                      <span className="text-sm font-semibold text-header flex-1 truncate">{m.profiles?.name || 'Unknown'}</span>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-header truncate">{m.profiles?.name || 'Unknown'}</p>
+                        <p className="text-[10px] text-primary font-bold truncate">@{m.profiles?.username || 'user'}</p>
+                      </div>
                       {m.role === 'admin' && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase shrink-0">Admin</span>}
                       {isCommunityAdmin && m.user_id !== session?.user?.id && (
                         <div className="flex gap-1 shrink-0">
@@ -440,21 +454,28 @@ export default function Explore() {
                 </div>
               </div>
 
-              {/* Add Followers */}
+              {/* Add Members */}
               <div className="pt-2 border-t border-[#333]">
-                <p className="text-xs font-bold uppercase text-primary mb-2">Add Your Followers</p>
-                {myFollowers.length === 0 ? (
-                  <p className="text-xs text-body italic">No followers found, or everyone is already added.</p>
-                ) : (
-                  <div className="space-y-2">
-                    {myFollowers.map(follower => {
+                <div className="flex items-center justify-between mb-2">
+                  <p className="text-xs font-bold uppercase text-primary">Add People</p>
+                </div>
+                <form onSubmit={handleMemberSearch} className="flex gap-2 mb-3">
+                  <input className="app-input flex-1 text-xs" placeholder="Search by name or @username..." value={memberSearch} onChange={e => setMemberSearch(e.target.value)} />
+                  <button type="submit" className="btn-primary p-2 rounded-xl"><Search size={14}/></button>
+                </form>
+
+                <div className="space-y-2">
+                  {(memberSearchResults.length > 0 ? memberSearchResults : myFollowers).map(follower => {
                       const isAlreadyMember = communityMembers.some(m => m.user_id === follower.id);
                       return (
                         <div key={follower.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
                           <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
                             {follower.avatar_url ? <img src={follower.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                           </div>
-                          <span className="text-sm font-semibold text-header flex-1">{follower.name}</span>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-header truncate">{follower.name}</p>
+                            <p className="text-[10px] text-primary font-bold truncate">@{follower.username || 'user'}</p>
+                          </div>
                           
                           {isAlreadyMember ? (
                             <span className="text-xs text-primary flex items-center gap-1 font-bold"><Check size={14}/> Added</span>
@@ -471,7 +492,6 @@ export default function Explore() {
                       );
                     })}
                   </div>
-                )}
               </div>
             </div>
             

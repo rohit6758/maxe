@@ -23,7 +23,7 @@ export default function UserSearch() {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
-    const { data } = await supabase.from('profiles').select('*').ilike('name', `%${searchQuery}%`).neq('id', session.user.id).limit(15);
+    const { data } = await supabase.from('profiles').select('*').or(`name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`).neq('id', session.user.id).limit(15);
     setSearchResults(data || []);
   };
 
@@ -74,7 +74,7 @@ export default function UserSearch() {
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-bold text-header truncate">{user.name}</p>
-                  <p className="text-xs text-body truncate">{user.branch || 'No branch'}</p>
+                  <p className="text-xs text-body truncate">@{user.username || 'user'} {user.branch ? `• ${user.branch}` : ''}</p>
                 </div>
                 <button 
                   onClick={() => toggleFollow(user.id)}
