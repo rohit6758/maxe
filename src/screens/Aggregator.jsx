@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import TodoModal from './TodoModal';
-import { FileText, CheckSquare, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
+import { FileText, CheckSquare, Image as ImageIcon, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
 
 const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
 
@@ -131,6 +131,7 @@ export default function Aggregator() {
     { id: 'notes', label: 'PDF Notes', icon: <FileText size={13} /> },
     { id: 'papers', label: 'Question Papers', icon: <ClipboardList size={13} /> },
     { id: 'ai', label: 'AI Chats', icon: <MessageSquare size={13} /> },
+    { id: 'diagrams', label: 'Diagrams', icon: <ImageIcon size={13} /> },
   ];
 
   return (
@@ -348,6 +349,36 @@ export default function Aggregator() {
           )}
 
           {/* ── AI Chat History ── */}
+          {activeTab === 'diagrams' && (
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-bold" style={{color:'#2D4A3E'}}>Diagrams & Flowcharts</h3>
+                <label className="btn-outline flex items-center gap-1 text-xs cursor-pointer">
+                  <UploadCloud size={12} /> Upload
+                  <input type="file" accept="application/pdf,image/*" className="hidden" onChange={e => handleUpload(e.target.files[0], 'diagram')} />
+                </label>
+              </div>
+              <p className="text-xs" style={{color:'#6BA898'}}>Upload system designs, architecture flows, or mind maps.</p>
+              <div className="space-y-2">
+                {resources.filter(r => r.type === 'diagram').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No diagrams yet.</p>}
+                {resources.filter(r => r.type === 'diagram').map(res => (
+                  <div key={res.id} className="card-sm flex items-center gap-2 p-2 pl-3">
+                    <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
+                      <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
+                        <ImageIcon size={18} style={{color:'#6BA898'}} />
+                      </div>
+                      <div className="min-w-0 flex-1 pr-2">
+                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
+                        <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
+                      </div>
+                    </a>
+                    <button onClick={() => handleDelete(res.id)} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={16}/></button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
           {activeTab === 'ai' && (
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
