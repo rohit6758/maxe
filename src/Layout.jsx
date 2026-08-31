@@ -10,6 +10,18 @@ export default function Layout() {
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+
+  useEffect(() => {
+    const goOnline = () => setIsOnline(true);
+    const goOffline = () => setIsOnline(false);
+    window.addEventListener('online', goOnline);
+    window.addEventListener('offline', goOffline);
+    return () => {
+      window.removeEventListener('online', goOnline);
+      window.removeEventListener('offline', goOffline);
+    };
+  }, []);
 
   useEffect(() => {
     const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
@@ -180,7 +192,13 @@ export default function Layout() {
         </header>
 
         <main className="flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
-          <Outlet />
+          {/* Offline Banner */}
+        {!isOnline && (
+          <div className="sticky top-0 z-50 bg-yellow-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
+            <span>⚠️ You are offline — PDFs you've viewed are available. Community needs internet.</span>
+          </div>
+        )}
+        <Outlet />
         </main>
 
         {/* Mobile Bottom Nav */}

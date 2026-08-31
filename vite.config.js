@@ -14,7 +14,53 @@ export default defineConfig({
         cleanupOutdatedCaches: true,
         skipWaiting: true,
         clientsClaim: true,
-        navigateFallback: '/index.html'
+        navigateFallback: '/index.html',
+        // Cache Supabase API responses for offline access
+        runtimeCaching: [
+          {
+            // Cache Supabase storage files (PDFs, images) - Cache First (once loaded, always available offline)
+            urlPattern: /^https:\/\/dgveleeduexjklzojkcj\.supabase\.co\/storage\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'supabase-storage-cache',
+              expiration: {
+                maxEntries: 200,
+                maxAgeSeconds: 60 * 60 * 24 * 30 // 30 days
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            // Cache Supabase REST API calls - Network First (use network, fall back to cache)
+            urlPattern: /^https:\/\/dgveleeduexjklzojkcj\.supabase\.co\/rest\/.*/i,
+            handler: 'NetworkFirst',
+            options: {
+              cacheName: 'supabase-api-cache',
+              networkTimeoutSeconds: 5,
+              expiration: {
+                maxEntries: 100,
+                maxAgeSeconds: 60 * 60 * 24 // 24 hours
+              },
+              cacheableResponse: {
+                statuses: [0, 200]
+              }
+            }
+          },
+          {
+            // Cache Google Fonts and other CDN resources
+            urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+            handler: 'CacheFirst',
+            options: {
+              cacheName: 'google-fonts-cache',
+              expiration: {
+                maxEntries: 10,
+                maxAgeSeconds: 60 * 60 * 24 * 365 // 1 year
+              }
+            }
+          }
+        ]
       },
       manifest: {
         id: '/',
@@ -24,7 +70,7 @@ export default defineConfig({
         theme_color: '#2D4A3E',
         background_color: '#EDF4F0',
         display: 'standalone',
-        display_override: ['standalone', 'minimal-ui', 'window-controls-overlay'],
+        display_override: ['standalone', 'minimal-ui', 'window-controls-overlay', 'tabbed'],
         orientation: 'portrait',
         start_url: '/',
         scope: '/',
@@ -33,6 +79,9 @@ export default defineConfig({
         categories: ['education', 'productivity'],
         prefer_related_applications: false,
         iarc_rating_id: 'e84b072d-71b3-4d3e-86ae-31a8ce4e53b7',
+        note_taking: {
+          new_note_url: '/'
+        },
         launch_handler: {
           client_mode: 'focus-existing'
         },
@@ -73,6 +122,20 @@ export default defineConfig({
         },
         scope_extensions: [
           { origin: 'https://rohit6758-maxe-n51bhadsj-rohit6758s-projects.vercel.app' }
+        ],
+        widgets: [
+          {
+            name: 'Maxe Study Widget',
+            short_name: 'Maxe',
+            description: 'Quick access to your study resources',
+            tag: 'maxe-widget',
+            template: 'maxe-widget',
+            ms_ac_template: 'widget/maxe-widget.json',
+            data: '/',
+            type: 'application/json',
+            screenshots: [{ src: 'screenshot1.png', sizes: '512x512', label: 'Maxe widget' }],
+            icons: [{ src: 'icon-128x128.png', sizes: '128x128' }]
+          }
         ],
         icons: [
           { src: 'icon-72x72.png',   sizes: '72x72',   type: 'image/png' },
