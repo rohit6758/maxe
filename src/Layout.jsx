@@ -26,7 +26,10 @@ export default function Layout() {
       if (!session) return;
       if (!('Notification' in window) || Notification.permission !== 'granted') return;
       
-      const today = new Date().toISOString().split('T')[0];
+      // Use local timezone date string to prevent UTC date mismatch
+      const offset = new Date().getTimezoneOffset() * 60000;
+      const today = new Date(Date.now() - offset).toISOString().split('T')[0];
+      
       const { data } = await supabase.from('calendar_events')
         .select('*')
         .eq('user_id', session.user.id)

@@ -12,6 +12,8 @@ export default function CalendarModal({ onClose }) {
   const [showForm, setShowForm] = useState(false);
   const [form, setForm] = useState({ title: '', type: 'exam', marks: '' });
 
+  const getLocalYMD = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
+
   useEffect(() => { if (session) load(); }, [session]);
 
   const load = async () => {
@@ -26,7 +28,7 @@ export default function CalendarModal({ onClose }) {
       title: form.title,
       type: form.type,
       marks: form.marks ? parseInt(form.marks) : null,
-      event_date: selected.toISOString().split('T')[0]
+      event_date: getLocalYMD(selected)
     }]).select();
     if (error) {
       alert('Failed to save event: ' + error.message);
@@ -43,7 +45,7 @@ export default function CalendarModal({ onClose }) {
     else setEvents(p => p.filter(e => e.id !== id));
   };
 
-  const selStr = selected.toISOString().split('T')[0];
+  const selStr = getLocalYMD(selected);
   const dayEvents = events.filter(e => e.event_date === selStr);
   const eventDates = new Set(events.map(e => e.event_date));
   const typeIcon = { exam:'📝', assignment:'📌', result:'📊', reminder:'🔔' };
@@ -67,7 +69,7 @@ export default function CalendarModal({ onClose }) {
               onChange={setSelected}
               value={selected}
               tileContent={({ date }) => {
-                const s = date.toISOString().split('T')[0];
+                const s = getLocalYMD(date);
                 return eventDates.has(s)
                   ? <div className="flex justify-center mt-0.5"><div className="w-1.5 h-1.5 rounded-full" style={{background:'#6BA898'}} /></div>
                   : null;
@@ -120,13 +122,13 @@ export default function CalendarModal({ onClose }) {
           </div>
 
           {/* Upcoming */}
-          {events.filter(e => e.event_date >= new Date().toISOString().split('T')[0]).length > 0 && (
+          {events.filter(e => e.event_date >= getLocalYMD()).length > 0 && (
             <div className="card p-4 space-y-2">
               <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style={{color:'#6BA898'}}>
                 <Bell size={12} /> Upcoming
               </p>
               {events
-                .filter(e => e.event_date >= new Date().toISOString().split('T')[0])
+                .filter(e => e.event_date >= getLocalYMD())
                 .slice(0, 5)
                 .map(ev => (
                   <div key={ev.id} className="flex items-center gap-2 p-2 rounded-lg" style={{background:'rgba(107,168,152,0.06)'}}>
