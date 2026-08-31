@@ -211,7 +211,25 @@ export default function Explore() {
     setHasSearched(false);
     setMemberSearchResults([]);
     const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, username, avatar_url)').eq('community_id', selectedCommunity.id);
-    setCommunityMembers(membersData || []);
+    let mems = membersData || [];
+    
+    // Ensure Creator is always visually in the list even if RLS blocked their initial insertion
+    if (selectedCommunity && !mems.some(m => m.user_id === selectedCommunity.created_by)) {
+      const { data: creatorProfile } = await supabase.from('profiles').select('name, username, avatar_url').eq('id', selectedCommunity.created_by).single();
+      if (creatorProfile) {
+        mems = [{ user_id: selectedCommunity.created_by, role: 'admin', profiles: creatorProfile }, ...mems];
+      }
+    }
+    
+    // Ensure Super Admin visually appears if they are viewing, so they can manage
+    if (isAdmin && session?.user?.id !== selectedCommunity.created_by && !mems.some(m => m.user_id === session?.user?.id)) {
+      const { data: myProfile } = await supabase.from('profiles').select('name, username, avatar_url').eq('id', session.user.id).single();
+      if (myProfile) {
+        mems = [...mems, { user_id: session.user.id, role: 'admin', profiles: myProfile }];
+      }
+    }
+
+    setCommunityMembers(mems);
 
     const { data: follows } = await supabase.from('follows').select('follower_id').eq('following_id', session.user.id);
     if (follows && follows.length > 0) {
