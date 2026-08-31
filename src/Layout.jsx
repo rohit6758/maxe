@@ -62,14 +62,12 @@ export default function Layout() {
 
   const NAV_ITEMS = [
     { id: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
-    { id: 'todos', label: 'Goals', icon: <CheckSquare size={18} /> },
     { id: 'aggregator', label: 'Hub', icon: <BookOpen size={18} /> },
     { id: 'personals', label: 'Improvements', icon: <User size={18} /> },
   ];
 
   const navLinks = [
     { to: '/', icon: <LayoutGrid size={18} />, label: 'Hub' },
-    { to: '/todos', icon: <CheckSquare size={18} />, label: 'To-Do' },
     { to: '/personals', icon: <BookOpen size={18} />, label: 'Improvements' },
     { to: '/explore', icon: <Users size={18} />, label: 'Community' },
   ];

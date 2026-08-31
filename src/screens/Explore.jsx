@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X } from 'lucide-react';
+import { Plus, Search, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X } from 'lucide-react';
 
 export default function Explore() {
   const { session, userProfile } = useAppContext();
@@ -30,6 +30,12 @@ export default function Explore() {
   const [communityMembers, setCommunityMembers] = useState([]);
   const [myFollowers, setMyFollowers] = useState([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
+
+  // User Search Modal
+  const [showUserSearch, setShowUserSearch] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [followingMap, setFollowingMap] = useState({});
 
   useEffect(() => {
     if (session) {
@@ -234,6 +240,33 @@ export default function Explore() {
     setIsAddingMember(false);
   };
 
+  // --- User Search & Follow ---
+  const openUserSearch = async () => {
+    setShowUserSearch(true);
+    const { data } = await supabase.from('follows').select('following_id').eq('follower_id', session.user.id);
+    const map = {};
+    if (data) data.forEach(f => { map[f.following_id] = true; });
+    setFollowingMap(map);
+  };
+
+  const handleSearch = async (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const { data } = await supabase.from('profiles').select('*').ilike('name', `%${searchQuery}%`).neq('id', session.user.id).limit(10);
+    setSearchResults(data || []);
+  };
+
+  const toggleFollow = async (userId) => {
+    const isFollowing = followingMap[userId];
+    if (isFollowing) {
+      await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
+      setFollowingMap(prev => ({ ...prev, [userId]: false }));
+    } else {
+      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      setFollowingMap(prev => ({ ...prev, [userId]: true }));
+    }
+  };
+
   const getIcon = (type) => {
     if (type === 'pdf') return <FileText size={16} className="text-primary" />;
     if (type === 'chat') return <MessageSquare size={16} className="text-primary" />;
@@ -249,9 +282,14 @@ export default function Explore() {
         <div className={`w-full md:w-1/3 md:border-r border-[#333] flex flex-col bg-surface ${selectedCommunity ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-[#333] flex items-center justify-between bg-surface z-10">
             <h2 className="text-xl font-bold text-header">Communities</h2>
-            <button onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
-              <Plus size={18} />
-            </button>
+            <div className="flex gap-2">
+              <button onClick={openUserSearch} className="btn-outline p-2 rounded-full shadow-sm text-primary border-primary hover:bg-primary hover:text-white transition-colors">
+                <Search size={18} />
+              </button>
+              <button onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
+                <Plus size={18} />
+              </button>
+            </div>
           </div>
 
           <div className="flex-1 overflow-y-auto">
@@ -538,6 +576,60 @@ export default function Explore() {
               <button onClick={executeImport} className="btn-primary flex-1 py-2 flex items-center justify-center gap-1">
                 <Download size={16}/> Save
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* USER SEARCH MODAL */}
+      {showUserSearch && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card p-5 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-lg font-bold text-header flex items-center gap-2">
+                <Search size={20} className="text-primary"/> Find People
+              </h3>
+              <button onClick={() => setShowUserSearch(false)}><X size={20}/></button>
+            </div>
+            
+            <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+              <input 
+                className="app-input flex-1 text-sm" 
+                placeholder="Search users by name..." 
+                value={searchQuery} 
+                onChange={e => setSearchQuery(e.target.value)}
+                autoFocus
+              />
+              <button type="submit" className="btn-primary p-2 flex items-center justify-center rounded-xl">
+                <Search size={16} />
+              </button>
+            </form>
+
+            <div className="overflow-y-auto space-y-2 flex-1">
+              {searchResults.length === 0 ? (
+                <p className="text-center text-xs text-body italic mt-4">Search for classmates to follow them.</p>
+              ) : (
+                searchResults.map(user => {
+                  const isFollowing = followingMap[user.id];
+                  return (
+                    <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
+                      <div className="w-10 h-10 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                        {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={16} />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-header truncate">{user.name}</p>
+                        <p className="text-xs text-body truncate">{user.branch || 'No branch'}</p>
+                      </div>
+                      <button 
+                        onClick={() => toggleFollow(user.id)}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${isFollowing ? 'bg-black/10 text-header' : 'bg-primary text-white'}`}
+                      >
+                        {isFollowing ? 'Following' : 'Follow'}
+                      </button>
+                    </div>
+                  );
+                })
+              )}
             </div>
           </div>
         </div>

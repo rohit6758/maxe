@@ -64,7 +64,6 @@ function AppRoutes() {
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route index element={<Aggregator />} />
         <Route path="personals" element={<Personals />} />
-        <Route path="todos" element={<Todos />} />
         <Route path="explore" element={<Explore />} />
         <Route path="profile" element={<Profile />} />
       </Route>

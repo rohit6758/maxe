@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
-import { FileText, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
+import TodoModal from './TodoModal';
+import { FileText, CheckSquare, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
 
 const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
 
@@ -18,6 +19,7 @@ export default function Aggregator() {
   
   const [showAddChat, setShowAddChat] = useState(false);
   const [newChat, setNewChat] = useState({ title: '', url: '' });
+  const [showTodoModal, setShowTodoModal] = useState(false);
 
   useEffect(() => {
     if (session && activeBranch) fetchSemesters();
