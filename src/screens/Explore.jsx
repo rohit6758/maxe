@@ -37,6 +37,7 @@ export default function Explore() {
   // Members Modal
   const [showMembersModal, setShowMembersModal] = useState(false);
   const [communityMembers, setCommunityMembers] = useState([]);
+  const [isLoadingMembers, setIsLoadingMembers] = useState(false);
   const [myFollowers, setMyFollowers] = useState([]);
   const [isAddingMember, setIsAddingMember] = useState(false);
   const [memberSearch, setMemberSearch] = useState('');
@@ -254,6 +255,7 @@ export default function Explore() {
   // --- Members Management ---
   const openMembersModal = async () => {
     setShowMembersModal(true);
+    setIsLoadingMembers(true);
     setMemberSearch('');
     setHasSearched(false);
     setMemberSearchResults([]);

@@ -22,6 +22,7 @@ export default function Profile() {
   const [showNetwork, setShowNetwork] = useState(false);
   const [networkType, setNetworkType] = useState('followers'); // 'followers' or 'following'
   const [networkList, setNetworkList] = useState([]);
+  const [isLoadingNetwork, setIsLoadingNetwork] = useState(false);
 
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -37,16 +38,18 @@ export default function Profile() {
     setNetworkType(type);
     setShowNetwork(true);
     setNetworkList([]);
+    setIsLoadingNetwork(true);
     const column = type === 'followers' ? 'following_id' : 'follower_id';
     const selectCol = type === 'followers' ? 'follower_id' : 'following_id';
     
     const { data, error } = await supabase.from('follows').select(selectCol).eq(column, session.user.id);
-    if (error) { alert('Error loading network'); return; }
+    if (error) { alert('Error loading network'); setIsLoadingNetwork(false); return; }
     if (data && data.length > 0) {
       const ids = data.map(d => d[selectCol]);
       const { data: profiles } = await supabase.from('profiles').select('id, name, username, avatar_url, branch').in('id', ids);
       setNetworkList(profiles || []);
     }
+    setIsLoadingNetwork(false);
   };
 const loadFollowStats = async () => {
     const { count: followers } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', session.user.id);
@@ -276,7 +279,12 @@ const loadFollowStats = async () => {
             </div>
             
             <div className="overflow-y-auto space-y-2 flex-1">
-              {networkList.length === 0 ? (
+              {isLoadingNetwork ? (
+                <div className="flex flex-col items-center justify-center h-32 space-y-2">
+                  <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                  <p className="text-xs text-body animate-pulse">Loading {networkType}...</p>
+                </div>
+              ) : networkList.length === 0 ? (
                 <p className="text-center text-xs text-body italic mt-4">No {networkType} found.</p>
               ) : (
                 networkList.map(user => (
