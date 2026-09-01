@@ -9,7 +9,7 @@ const EXAMS = [
 ];
 
 export default function Personals() {
-  const { session, activeSemester } = useAppContext();
+  const { session, activeSemester, activeBranch, userProfile } = useAppContext();
 
   // Subjects for current semester
   const [subjects, setSubjects] = useState([]);
@@ -30,14 +30,16 @@ export default function Personals() {
   const [localSemesters, setLocalSemesters] = useState([]);
   const [selectedSemester, setSelectedSemester] = useState(activeSemester);
 
-  useEffect(() => {
-    if (session) {
-      fetchSemesters();
-    }
-  }, [session, useAppContext().activeBranch]); // Refetch if global branch changes
+  // Determine branch reliably
+  const branchToUse = activeBranch || userProfile?.branch;
 
-  const fetchSemesters = async () => {
-    const branch = useAppContext().activeBranch || 'CSE'; // fallback
+  useEffect(() => {
+    if (session && branchToUse) {
+      fetchSemesters(branchToUse);
+    }
+  }, [session, branchToUse]);
+
+  const fetchSemesters = async (branch) => {
     const { data } = await supabase.from('semesters').select('*').eq('user_id', session.user.id).eq('branch', branch).order('name');
     setLocalSemesters(data || []);
     if (data && data.length > 0) {
