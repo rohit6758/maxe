@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon, Search } from 'lucide-react';
+import UserProfilePopup from '../components/UserProfilePopup';
 
 export default function Explore() {
   const { session } = useAppContext();
@@ -777,36 +778,14 @@ export default function Explore() {
 
       {/* Selected User Popup (Instagram Style) */}
       {selectedUser && (
-        <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedUser(null)}>
-          <button onClick={() => setSelectedUser(null)} className="absolute top-6 right-6 p-2 text-white hover:bg-white/20 rounded-full transition-colors">
-            <X size={28} />
-          </button>
-          
-          <div className="relative w-full max-w-sm aspect-square bg-surface rounded-3xl overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
-            {selectedUser.avatar_url ? (
-              <img src={selectedUser.avatar_url} className="w-full h-full object-cover" alt="avatar" />
-            ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)'}}>
-                <User size={120} style={{color:'#6BA898'}} />
-              </div>
-            )}
-          </div>
-          
-          <div className="mt-6 w-full max-w-sm text-center animate-slide-up bg-surface p-6 rounded-3xl" onClick={e => e.stopPropagation()}>
-            <h2 className="text-2xl font-black text-header">{selectedUser.name}</h2>
-            <p className="text-sm font-bold mt-1 tracking-widest uppercase text-primary">@{selectedUser.username || 'username'}</p>
-            {selectedUser.branch && <p className="text-sm font-semibold mt-2 text-body">{selectedUser.branch}</p>}
-            
-            {selectedUser.id !== session?.user?.id && (
-              <button 
-                onClick={() => toggleFollow(selectedUser.id)}
-                className={`w-full mt-6 py-3 rounded-xl text-sm font-bold transition-colors ${followingMap[selectedUser.id] ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
-              >
-                {followingMap[selectedUser.id] ? 'Following' : 'Follow User'}
-              </button>
-            )}
-          </div>
-        </div>
+        <UserProfilePopup 
+          userId={selectedUser.id} 
+          onClose={() => setSelectedUser(null)} 
+          currentUserId={session?.user?.id}
+          onFollowChange={(id, isFollowing) => {
+            setFollowingMap(prev => ({ ...prev, [id]: isFollowing }));
+          }}
+        />
       )}
 
     </div>
