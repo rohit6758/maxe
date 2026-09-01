@@ -297,6 +297,7 @@ export default function Explore() {
     } else {
       setMyFollowers([]);
     }
+    setIsLoadingMembers(false);
   };
 
 
