@@ -26,6 +26,9 @@ export default function Profile() {
 
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  
+  const [followingMap, setFollowingMap] = useState({});
+  const [selectedUser, setSelectedUser] = useState(null); // For Profile Popup
 
   useEffect(() => {
     if (session) {
@@ -56,6 +59,30 @@ const loadFollowStats = async () => {
     const { count: following } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', session.user.id);
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
+  };
+
+  const loadFollowingMap = async () => {
+    const { data } = await supabase.from('follows').select('following_id').eq('follower_id', session.user.id);
+    const map = {};
+    if (data) data.forEach(f => { map[f.following_id] = true; });
+    setFollowingMap(map);
+  };
+
+  useEffect(() => {
+    if (showNetwork) loadFollowingMap();
+  }, [showNetwork]);
+
+  const toggleFollow = async (userId) => {
+    const isFollowing = followingMap[userId];
+    if (isFollowing) {
+      await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
+      setFollowingMap(prev => ({ ...prev, [userId]: false }));
+      if (networkType === 'following') setFollowingCount(prev => prev - 1);
+    } else {
+      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      setFollowingMap(prev => ({ ...prev, [userId]: true }));
+      if (networkType === 'following') setFollowingCount(prev => prev + 1);
+    }
   };
 
   useEffect(() => {
@@ -287,19 +314,65 @@ const loadFollowStats = async () => {
               ) : networkList.length === 0 ? (
                 <p className="text-center text-xs text-body italic mt-4">No {networkType} found.</p>
               ) : (
-                networkList.map(user => (
-                  <div key={user.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
-                    <div className="w-10 h-10 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
-                      {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={16} />}
+                networkList.map(user => {
+                  const isFollowing = followingMap[user.id];
+                  const isMe = user.id === session?.user?.id;
+                  return (
+                    <div key={user.id} onClick={() => setSelectedUser(user)} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333] cursor-pointer hover:border-primary transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                        {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={16} className="text-body" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-header truncate">{user.name}</p>
+                        <p className="text-[10px] text-primary font-bold">@{user.username || 'user'}</p>
+                      </div>
+                      {!isMe && (
+                        <button 
+                          onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
+                        >
+                          {isFollowing ? 'Following' : 'Follow'}
+                        </button>
+                      )}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold text-header truncate">{user.name}</p>
-                      <p className="text-[10px] text-primary font-bold">@{user.username || 'user'}</p>
-                    </div>
-                  </div>
-                ))
+                  );
+                })
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Selected User Popup (Instagram Style) */}
+      {selectedUser && (
+        <div className="fixed inset-0 z-[110] flex flex-col items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setSelectedUser(null)}>
+          <button onClick={() => setSelectedUser(null)} className="absolute top-6 right-6 p-2 text-white hover:bg-white/20 rounded-full transition-colors">
+            <X size={28} />
+          </button>
+          
+          <div className="relative w-full max-w-sm aspect-square bg-surface rounded-3xl overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+            {selectedUser.avatar_url ? (
+              <img src={selectedUser.avatar_url} className="w-full h-full object-cover" alt="avatar" />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)'}}>
+                <User size={120} style={{color:'#6BA898'}} />
+              </div>
+            )}
+          </div>
+          
+          <div className="mt-6 w-full max-w-sm text-center animate-slide-up bg-surface p-6 rounded-3xl" onClick={e => e.stopPropagation()}>
+            <h2 className="text-2xl font-black text-header">{selectedUser.name}</h2>
+            <p className="text-sm font-bold mt-1 tracking-widest uppercase text-primary">@{selectedUser.username || 'username'}</p>
+            {selectedUser.branch && <p className="text-sm font-semibold mt-2 text-body">{selectedUser.branch}</p>}
+            
+            {selectedUser.id !== session?.user?.id && (
+              <button 
+                onClick={() => toggleFollow(selectedUser.id)}
+                className={`w-full mt-6 py-3 rounded-xl text-sm font-bold transition-colors ${followingMap[selectedUser.id] ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
+              >
+                {followingMap[selectedUser.id] ? 'Following' : 'Follow User'}
+              </button>
+            )}
           </div>
         </div>
       )}
