@@ -4,10 +4,12 @@ import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Me
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
+import TodoModal from './screens/TodoModal';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
+  const [isTodoOpen, setIsTodoOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -79,7 +81,7 @@ export default function Layout() {
   ];
 
   const navLinks = [
-    { to: '/', icon: <LayoutGrid size={18} />, label: 'Hub' },
+    { to: '/', icon: <LayoutGrid size={18} />, label: 'Home' },
     { to: '/personals', icon: <BookOpen size={18} />, label: 'Improvements' },
     { to: '/explore', icon: <Users size={18} />, label: 'Community' },
     { to: '/search', icon: <Search size={18} />, label: 'Find' },
@@ -120,6 +122,9 @@ export default function Layout() {
             <Download size={18} /> Install App
           </button>
         )}
+        <button onClick={() => { setIsTodoOpen(true); setSidebarOpen(false); }} className="nav-item w-full">
+          <CheckSquare size={18} /> To-Do List
+        </button>
         <button onClick={() => { setIsCalendarOpen(true); setSidebarOpen(false); }} className="nav-item w-full">
           <Calendar size={18} /> Calendar
         </button>
@@ -164,11 +169,14 @@ export default function Layout() {
             <Menu size={22} />
           </button>
           <h1 className="font-bold text-lg text-aberration" style={{color: '#2D4A3E'}}>Maxe</h1>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1">
+            <button onClick={() => setIsTodoOpen(true)} className="p-2 rounded-xl" style={{color: '#6BA898'}}>
+              <CheckSquare size={20} />
+            </button>
             <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" style={{color: '#6BA898'}}>
               <Calendar size={20} />
             </button>
-            <Link to="/profile" className="w-8 h-8 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '1.5px solid rgba(107,168,152,0.3)'}}>
+            <Link to="/profile" className="w-8 h-8 ml-1 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '1.5px solid rgba(107,168,152,0.3)'}}>
               {userProfile?.avatar_url
                 ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
                 : <User size={16} style={{color: '#6BA898'}} />}
@@ -202,12 +210,13 @@ export default function Layout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-4 z-30" style={{background: '#F7FBF9', borderTop: '1px solid rgba(107,168,152,0.15)'}}>
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-2 z-30" style={{background: '#F7FBF9', borderTop: '1px solid rgba(107,168,152,0.15)'}}>
           {[
-            { to: '/', icon: <LayoutGrid size={22} />, label: 'Hub' },
-            { to: '/todos', icon: <CheckSquare size={22} />, label: 'To-Do' },
-            { to: '/personals', icon: <BookOpen size={22} />, label: 'Improvements' },
-            { to: '/profile', icon: <User size={22} />, label: 'Profile' },
+            { to: '/', icon: <LayoutGrid size={20} />, label: 'Home' },
+            { to: '/explore', icon: <Users size={20} />, label: 'Community' },
+            { to: '/search', icon: <Search size={20} />, label: 'Search' },
+            { to: '/personals', icon: <BookOpen size={20} />, label: 'Improve' },
+            { to: '/profile', icon: <User size={20} />, label: 'Profile' },
           ].map(item => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) =>
               `flex flex-col items-center gap-0.5 transition-all ${isActive ? '' : 'opacity-50'}`
@@ -226,6 +235,7 @@ export default function Layout() {
       </div>
 
       {isCalendarOpen && <CalendarModal onClose={() => setIsCalendarOpen(false)} />}
+      {isTodoOpen && <TodoModal onClose={() => setIsTodoOpen(false)} />}
     </div>
   );
 }
