@@ -415,7 +415,7 @@ export default function Explore() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-header text-lg">{selectedCommunity.name}</h3>
-                  <p className="text-xs text-primary font-medium">Tap here for group info</p>
+                  <p className="text-xs text-primary font-medium">Secure Group</p>
                 </div>
                 
                 {/* Tools */}
