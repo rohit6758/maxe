@@ -578,34 +578,30 @@ export default function Explore() {
                 </form>
 
                 <div className="space-y-2">
-                  {(hasSearched ? memberSearchResults : myFollowers).length === 0 && <p className="text-xs text-body italic text-center py-2">No people found.</p>}
-                  {(hasSearched ? memberSearchResults : myFollowers).map(follower => {
-                      const isAlreadyMember = communityMembers.some(m => m.user_id === follower.id);
+                  {hasSearched && memberSearchResults.length === 0 && <p className="text-xs text-body italic text-center py-2">No people found.</p>}
+                  {hasSearched && memberSearchResults.map(person => {
+                      const isAlreadyMember = communityMembers.some(m => m.user_id === person.id);
+                      if (isAlreadyMember) return null;
                       return (
-                        <div key={follower.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
+                        <div key={person.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
                           <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
-                            {follower.avatar_url ? <img src={follower.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
+                            {person.avatar_url ? <img src={person.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-sm font-semibold text-header truncate">{follower.name}</p>
-                            <p className="text-[10px] text-primary font-bold truncate">@{follower.username || 'user'}</p>
+                            <p className="text-sm font-semibold text-header truncate">{person.name}</p>
+                            <p className="text-[10px] text-primary font-bold truncate">@{person.username || 'user'}</p>
                           </div>
-                          
-                          {isAlreadyMember ? (
-                            <span className="text-xs text-primary flex items-center gap-1 font-bold"><Check size={14}/> Added</span>
-                          ) : (
-                            <button 
-                              onClick={() => addMemberToGroup(follower.id)}
-                              disabled={isAddingMember}
-                              className="btn-primary py-1 px-3 text-xs rounded flex items-center gap-1"
-                            >
-                              <UserPlus size={12}/> Add
-                            </button>
-                          )}
+                          <button 
+                            onClick={() => addMemberToGroup(person.id)}
+                            disabled={isAddingMember}
+                            className="btn-primary py-1 px-3 text-xs rounded flex items-center gap-1"
+                          >
+                            <UserPlus size={12}/> Add
+                          </button>
                         </div>
                       );
                     })}
-                  </div>
+                </div>
               </div>
             </div>
             
