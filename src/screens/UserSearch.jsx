@@ -182,9 +182,9 @@ export default function UserSearch() {
                           openUserPopup(item);
                         }
                       }} 
-                      className="p-3 flex items-center gap-4 cursor-pointer hover:bg-black/5 rounded-xl transition-colors"
+                      className="p-3 flex items-center gap-4 cursor-pointer hover:bg-primary/5 rounded-xl transition-colors"
                     >
-                      <div className={`w-14 h-14 rounded-full border border-[#333] flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
+                      <div className={`w-14 h-14 rounded-full border border-primary/15 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
                         {isText ? (
                           <Search size={22} className="text-body" />
                         ) : item.avatar_url ? (
@@ -221,7 +221,7 @@ export default function UserSearch() {
             const isFollowing = followingMap[user.id];
             return (
               <div key={user.id} onClick={() => openUserPopup(user)} className="card p-3 flex items-center gap-3 cursor-pointer hover:border-primary transition-colors">
-                <div className="w-12 h-12 rounded-full bg-surface border border-[#333] overflow-hidden flex items-center justify-center shrink-0">
+                <div className="w-12 h-12 rounded-full bg-surface border border-primary/15 overflow-hidden flex items-center justify-center shrink-0">
                   {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-body" />}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -230,7 +230,7 @@ export default function UserSearch() {
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${isFollowing ? 'bg-surface text-header border border-[#333]' : 'bg-primary text-white'}`}
+                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${isFollowing ? 'bg-surface text-header border border-primary/15' : 'bg-primary text-white'}`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>

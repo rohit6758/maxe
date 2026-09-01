@@ -378,13 +378,13 @@ export default function Explore() {
   const isCommunityAdmin = selectedCommunity ? (selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) : false;
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-[#333]">
+    <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-primary/15">
       
       <div className="flex flex-1 h-full overflow-hidden">
         
         {/* LEFT PANE: Community List */}
-        <div className={`w-full md:w-1/3 md:border-r border-[#333] flex flex-col bg-surface ${selectedCommunity ? 'hidden md:flex' : 'flex'}`}>
-          <div className="p-4 border-b border-[#333] flex items-center justify-between bg-surface z-10">
+        <div className={`w-full md:w-1/3 md:border-r border-primary/15 flex flex-col bg-surface ${selectedCommunity ? 'hidden md:flex' : 'flex'}`}>
+          <div className="p-4 border-b border-primary/15 flex items-center justify-between bg-surface z-10">
             <h2 className="text-xl font-bold text-header">Communities</h2>
             <button onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
               <Plus size={18} />
@@ -404,7 +404,7 @@ export default function Explore() {
                 <button 
                   key={comm.id} 
                   onClick={() => setSelectedCommunity(comm)}
-                  className={`w-full text-left p-4 border-b border-[#333] hover:bg-black/10 transition-colors flex items-center gap-3 ${selectedCommunity?.id === comm.id ? 'bg-black/20' : ''}`}
+                  className={`w-full text-left p-4 border-b border-primary/15 hover:bg-primary/10 transition-colors flex items-center gap-3 ${selectedCommunity?.id === comm.id ? 'bg-primary/15' : ''}`}
                 >
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
                     <Layers size={20} className="text-white" />
@@ -446,7 +446,7 @@ export default function Explore() {
           ) : (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-[#333] bg-surface flex items-center gap-3 z-10 shadow-sm cursor-pointer hover:bg-black/10 transition-colors" onClick={() => { setEditCommunityName(selectedCommunity.name); setIsEditingName(false); setShowGroupInfo(true); }}>
+              <div className="p-4 border-b border-primary/15 bg-surface flex items-center gap-3 z-10 shadow-sm cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => { setEditCommunityName(selectedCommunity.name); setIsEditingName(false); setShowGroupInfo(true); }}>
                 <button onClick={(e) => { e.stopPropagation(); setSelectedCommunity(null); }} className="md:hidden p-2 -ml-2 text-header">
                   <ArrowLeft size={20} />
                 </button>
@@ -480,7 +480,7 @@ export default function Explore() {
                     <p className="font-semibold text-primary animate-pulse text-sm">Loading posts...</p>
                   </div>
                 ) : posts.length === 0 ? (
-                  <div className="text-center p-8 bg-surface rounded-xl border border-[#333] text-body text-sm">
+                  <div className="text-center p-8 bg-surface rounded-xl border border-primary/15 text-body text-sm">
                     No resources shared yet. Be the first to post!
                   </div>
                 ) : (
@@ -492,7 +492,7 @@ export default function Explore() {
                       <div key={post.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                         {!isMine && (
                           <div className="flex items-center gap-2 mb-1 ml-1">
-                            <div className="w-5 h-5 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0 border border-[#333]">
+                            <div className="w-5 h-5 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0 border border-primary/15">
                               {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={10} />}
                             </div>
                             <span className="text-[11px] font-bold text-body">{post.profiles?.name || 'Unknown'}</span>
@@ -521,8 +521,8 @@ export default function Explore() {
                             </div>
                           </div>
 
-                          <div className="flex items-center gap-2 pt-2 mt-2 border-t border-[#333]/50">
-                            <a href={post.url} target="_blank" rel="noreferrer" className="flex-1 py-1.5 text-center text-xs font-bold text-header bg-black/5 hover:bg-black/10 rounded-lg transition-colors">
+                          <div className="flex items-center gap-2 pt-2 mt-2 border-t border-primary/15/50">
+                            <a href={post.url} target="_blank" rel="noreferrer" className="flex-1 py-1.5 text-center text-xs font-bold text-header bg-primary/5 hover:bg-primary/10 rounded-lg transition-colors">
                               View
                             </a>
                             <button onClick={() => initiateImport(post)} className="flex-1 py-1.5 text-center text-xs font-bold text-white bg-primary hover:bg-[#529683] rounded-lg transition-colors flex items-center justify-center gap-1">
@@ -542,8 +542,8 @@ export default function Explore() {
 
       {/* MEMBERS MODAL */}
       {showMembersModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="card p-5 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card p-5 w-full max-w-md shadow-xl shadow-primary/10 flex flex-col max-h-[80vh]">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-header flex items-center gap-2">
                 <Users size={20} className="text-primary"/> Manage Members
@@ -565,8 +565,8 @@ export default function Explore() {
                     const isFollowing = followingMap[m.user_id];
                     const isMe = m.user_id === session?.user?.id;
                     return (
-                      <div key={m.user_id} onClick={() => setSelectedUser({ id: m.user_id, ...m.profiles })} className="flex items-center gap-2 p-2 rounded-lg bg-surface border border-[#333] cursor-pointer hover:border-primary transition-colors">
-                        <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                      <div key={m.user_id} onClick={() => setSelectedUser({ id: m.user_id, ...m.profiles })} className="flex items-center gap-2 p-2 rounded-lg bg-surface border border-primary/15 cursor-pointer hover:border-primary transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-primary/5 overflow-hidden flex items-center justify-center shrink-0">
                           {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                         </div>
                         <div className="flex-1 min-w-0">
@@ -581,7 +581,7 @@ export default function Explore() {
                           {!isMe && (
                             <button 
                               onClick={(e) => { e.stopPropagation(); toggleFollow(m.user_id); }}
-                              className={`px-2 py-1 rounded text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
+                              className={`px-2 py-1 rounded text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-primary/15' : 'bg-primary text-white'}`}
                             >
                               {isFollowing ? 'Following' : 'Follow'}
                             </button>
@@ -590,7 +590,7 @@ export default function Explore() {
                           {isCommunityAdmin && !isMe && (
                             <>
                               {m.role !== 'admin' && (
-                                <button onClick={(e) => { e.stopPropagation(); promoteToAdmin(m.user_id); }} className="px-2 py-1 text-[10px] bg-black/5 rounded hover:bg-black/10 font-bold text-header">Admin +</button>
+                                <button onClick={(e) => { e.stopPropagation(); promoteToAdmin(m.user_id); }} className="px-2 py-1 text-[10px] bg-primary/5 rounded hover:bg-primary/10 font-bold text-header">Admin +</button>
                               )}
                               <button onClick={(e) => { e.stopPropagation(); removeMember(m.user_id); }} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 font-bold">Remove</button>
                             </>
@@ -604,7 +604,7 @@ export default function Explore() {
 
               {/* Add Members */}
               {isCommunityAdmin && (
-              <div className="pt-2 border-t border-[#333]">
+              <div className="pt-2 border-t border-primary/15">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold uppercase text-primary">Add People</p>
                 </div>
@@ -622,8 +622,8 @@ export default function Explore() {
                       const isAlreadyMember = communityMembers.some(m => m.user_id === person.id);
                       if (isAlreadyMember) return null;
                       return (
-                        <div key={person.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333]">
-                          <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                        <div key={person.id} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-primary/15">
+                          <div className="w-8 h-8 rounded-full bg-primary/5 overflow-hidden flex items-center justify-center shrink-0">
                             {person.avatar_url ? <img src={person.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                           </div>
                           <div className="flex-1 min-w-0">
@@ -652,8 +652,8 @@ export default function Explore() {
 
       {/* CREATE COMMUNITY MODAL */}
       {showCreateCommunity && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <form onSubmit={handleCreateCommunity} className="card p-5 w-full max-w-sm space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleCreateCommunity} className="card p-5 w-full max-w-sm space-y-4 shadow-xl shadow-primary/10">
             <h3 className="text-lg font-bold text-header">Create Private Community</h3>
             <p className="text-xs text-body -mt-2">Groups are private. You can add your followers later.</p>
             <input 
@@ -674,8 +674,8 @@ export default function Explore() {
 
       {/* SHARE RESOURCE MODAL */}
       {showShareModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <form onSubmit={handleShare} className="card p-5 w-full max-w-sm space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <form onSubmit={handleShare} className="card p-5 w-full max-w-sm space-y-4 shadow-xl shadow-primary/10">
             <h3 className="text-lg font-bold text-header">Share Resource</h3>
             
             <input 
@@ -720,8 +720,8 @@ export default function Explore() {
 
       {/* IMPORT RESOURCE MODAL */}
       {showImportModal && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="card p-5 w-full max-w-sm space-y-4 shadow-2xl">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card p-5 w-full max-w-sm space-y-4 shadow-xl shadow-primary/10">
             <h3 className="text-lg font-bold text-header">Import Resource</h3>
             <p className="text-sm text-body">
               Where do you want to save <strong>{importingPost?.title}</strong>?
@@ -748,8 +748,8 @@ export default function Explore() {
 
       {/* Group Info Modal (WhatsApp Style) */}
       {showGroupInfo && selectedCommunity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowGroupInfo(false)}>
-          <div className="bg-surface rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-slide-up border border-[#333]" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowGroupInfo(false)}>
+          <div className="bg-surface rounded-3xl w-full max-w-sm overflow-hidden shadow-xl shadow-primary/10 animate-slide-up border border-primary/15" onClick={e => e.stopPropagation()}>
             <div className="relative">
               {/* Big Avatar */}
               <div className="w-full aspect-square bg-primary flex items-center justify-center relative">
@@ -767,7 +767,7 @@ export default function Explore() {
                   </label>
                 )}
                 
-                <button onClick={() => setShowGroupInfo(false)} className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70">
+                <button onClick={() => setShowGroupInfo(false)} className="absolute top-4 right-4 p-2 bg-primary/50 text-white rounded-full hover:bg-black/70">
                   <X size={20} />
                 </button>
               </div>
@@ -793,14 +793,14 @@ export default function Explore() {
                     )}
                   </div>
                   {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && !isEditingName && (
-                    <button onClick={() => setIsEditingName(true)} className="p-2 bg-surface border border-[#333] rounded-full text-body hover:text-primary mt-4">
+                    <button onClick={() => setIsEditingName(true)} className="p-2 bg-surface border border-primary/15 rounded-full text-body hover:text-primary mt-4">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                     </button>
                   )}
                 </div>
                 
                 <div className="mt-8 space-y-3">
-                  <button onClick={() => { setShowGroupInfo(false); openMembersModal(); }} className="w-full flex items-center gap-3 p-4 bg-background rounded-2xl border border-[#333] hover:border-primary transition-colors text-header font-bold text-sm">
+                  <button onClick={() => { setShowGroupInfo(false); openMembersModal(); }} className="w-full flex items-center gap-3 p-4 bg-background rounded-2xl border border-primary/15 hover:border-primary transition-colors text-header font-bold text-sm">
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Users size={16} /></div>
                     View all Members
                   </button>

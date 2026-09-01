@@ -297,8 +297,8 @@ const loadFollowStats = async () => {
 
       {/* Network Modal */}
       {showNetwork && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="card p-5 w-full max-w-md shadow-2xl flex flex-col max-h-[80vh]">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="card p-5 w-full max-w-md shadow-xl shadow-primary/10 flex flex-col max-h-[80vh]">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-header capitalize flex items-center gap-2">
                 <Users size={20} className="text-primary"/> {networkType}
@@ -319,8 +319,8 @@ const loadFollowStats = async () => {
                   const isFollowing = followingMap[user.id];
                   const isMe = user.id === session?.user?.id;
                   return (
-                    <div key={user.id} onClick={() => setSelectedUser(user)} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-[#333] cursor-pointer hover:border-primary transition-colors">
-                      <div className="w-10 h-10 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                    <div key={user.id} onClick={() => setSelectedUser(user)} className="flex items-center gap-3 p-2 rounded-lg bg-surface border border-primary/15 cursor-pointer hover:border-primary transition-colors">
+                      <div className="w-10 h-10 rounded-full bg-primary/5 overflow-hidden flex items-center justify-center shrink-0">
                         {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={16} className="text-body" />}
                       </div>
                       <div className="flex-1 min-w-0">
@@ -330,7 +330,7 @@ const loadFollowStats = async () => {
                       {!isMe && (
                         <button 
                           onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
+                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-primary/15' : 'bg-primary text-white'}`}
                         >
                           {isFollowing ? 'Following' : 'Follow'}
                         </button>
@@ -361,13 +361,13 @@ const loadFollowStats = async () => {
 
       {/* Big Avatar Popup */}
       {showAvatarPopup && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-black/90 backdrop-blur-sm animate-fade-in" onClick={() => setShowAvatarPopup(false)}>
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={() => setShowAvatarPopup(false)}>
           
-          <button onClick={() => setShowAvatarPopup(false)} className="absolute top-6 right-6 p-2 text-white hover:bg-white/20 rounded-full transition-colors">
+          <button onClick={() => setShowAvatarPopup(false)} className="absolute top-6 right-6 p-2 text-white hover:bg-white/50 rounded-full transition-colors">
             <X size={28} />
           </button>
           
-          <div className="relative w-full max-w-sm aspect-square bg-surface rounded-3xl overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+          <div className="relative w-full max-w-sm aspect-square bg-surface rounded-3xl overflow-hidden shadow-xl shadow-primary/10 animate-slide-up" onClick={e => e.stopPropagation()}>
             {userProfile?.avatar_url ? (
               <img src={userProfile?.avatar_url} className="w-full h-full object-cover" alt="avatar" />
             ) : (
@@ -376,7 +376,7 @@ const loadFollowStats = async () => {
               </div>
             )}
             
-            <label className="absolute bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-2xl cursor-pointer hover:scale-105 transition-transform text-white border-2 border-white" style={{background:'#6BA898'}}>
+            <label className="absolute bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-primary/10 cursor-pointer hover:scale-105 transition-transform text-white border-2 border-white" style={{background:'#6BA898'}}>
               {uploading ? (
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (

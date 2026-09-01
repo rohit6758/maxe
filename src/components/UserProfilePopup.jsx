@@ -50,14 +50,14 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
   };
 
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       
-      <div className="relative w-full max-w-sm bg-surface rounded-2xl overflow-hidden shadow-2xl animate-slide-up border border-[#333]" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-sm bg-surface rounded-2xl overflow-hidden shadow-xl shadow-primary/10 animate-slide-up border border-primary/15" onClick={e => e.stopPropagation()}>
         
         {/* Header with Close */}
-        <div className="flex justify-between items-center p-3 border-b border-[#333]">
+        <div className="flex justify-between items-center p-3 border-b border-primary/15">
           <h3 className="font-bold text-header text-sm truncate px-1">@{profile?.username || 'user'}</h3>
-          <button onClick={onClose} className="p-1 text-body hover:text-white transition-colors rounded-full bg-black/10">
+          <button onClick={onClose} className="p-1 text-body hover:text-white transition-colors rounded-full bg-primary/10">
             <X size={18} />
           </button>
         </div>
@@ -71,7 +71,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
           <div className="p-5">
             {/* Top section: Avatar + Stats */}
             <div className="flex items-center gap-6 mb-4">
-              <div className="w-20 h-20 rounded-full border border-[#333] overflow-hidden flex items-center justify-center shrink-0 bg-black/10">
+              <div className="w-20 h-20 rounded-full border border-primary/15 overflow-hidden flex items-center justify-center shrink-0 bg-primary/10">
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="w-full h-full object-cover" alt="avatar" />
                 ) : (
@@ -102,7 +102,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
             {currentUserId && currentUserId !== userId && (
               <button 
                 onClick={toggleFollow}
-                className={`w-full py-2.5 rounded-lg text-sm font-bold transition-all active:scale-95 flex items-center justify-center gap-2 ${isFollowing ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
+                className={`w-full py-2.5 rounded-lg text-sm font-bold transition-all active:scale-95 flex items-center justify-center gap-2 ${isFollowing ? 'bg-background text-header border border-primary/15' : 'bg-primary text-white'}`}
               >
                 {isFollowing ? 'Following' : 'Follow'}
               </button>
