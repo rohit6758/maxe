@@ -541,26 +541,49 @@ export default function Explore() {
               <div>
                 <p className="text-xs font-bold uppercase text-primary mb-2">Current Members ({communityMembers.length})</p>
                 <div className="space-y-2">
-                  {communityMembers.map(m => (
-                    <div key={m.user_id} className="flex items-center gap-2 p-2 rounded-lg bg-surface border border-[#333]">
-                      <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
-                        {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-header truncate">{m.profiles?.name || 'Unknown'}</p>
-                        <p className="text-[10px] text-primary font-bold truncate">@{m.profiles?.username || 'user'}</p>
-                      </div>
-                      {m.role === 'admin' && <span className="text-[10px] bg-primary/20 text-primary px-2 py-0.5 rounded font-bold uppercase shrink-0">Admin</span>}
-                      {isCommunityAdmin && m.user_id !== session?.user?.id && (
-                        <div className="flex gap-1 shrink-0">
-                          {m.role !== 'admin' && (
-                            <button onClick={() => promoteToAdmin(m.user_id)} className="px-2 py-1 text-[10px] bg-black/5 rounded hover:bg-black/10 font-bold text-header">Admin +</button>
-                          )}
-                          <button onClick={() => removeMember(m.user_id)} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 font-bold">Remove</button>
-                        </div>
-                      )}
+                  {isLoadingMembers ? (
+                    <div className="flex flex-col items-center justify-center py-6">
+                      <div className="w-6 h-6 border-2 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                      <p className="text-xs text-body animate-pulse mt-2">Loading members...</p>
                     </div>
-                  ))}
+                  ) : communityMembers.map(m => {
+                    const isFollowing = followingMap[m.user_id];
+                    const isMe = m.user_id === session?.user?.id;
+                    return (
+                      <div key={m.user_id} onClick={() => setSelectedUser({ id: m.user_id, ...m.profiles })} className="flex items-center gap-2 p-2 rounded-lg bg-surface border border-[#333] cursor-pointer hover:border-primary transition-colors">
+                        <div className="w-8 h-8 rounded-full bg-black/5 overflow-hidden flex items-center justify-center shrink-0">
+                          {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-header truncate">{m.profiles?.name || 'Unknown'}</p>
+                          <div className="flex gap-2 items-center">
+                            <p className="text-[10px] text-primary font-bold truncate">@{m.profiles?.username || 'user'}</p>
+                            {m.role === 'admin' && <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase shrink-0">Admin</span>}
+                          </div>
+                        </div>
+
+                        <div className="flex gap-1 items-center shrink-0">
+                          {!isMe && (
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); toggleFollow(m.user_id); }}
+                              className={`px-2 py-1 rounded text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-[#333]' : 'bg-primary text-white'}`}
+                            >
+                              {isFollowing ? 'Following' : 'Follow'}
+                            </button>
+                          )}
+                          
+                          {isCommunityAdmin && !isMe && (
+                            <>
+                              {m.role !== 'admin' && (
+                                <button onClick={(e) => { e.stopPropagation(); promoteToAdmin(m.user_id); }} className="px-2 py-1 text-[10px] bg-black/5 rounded hover:bg-black/10 font-bold text-header">Admin +</button>
+                              )}
+                              <button onClick={(e) => { e.stopPropagation(); removeMember(m.user_id); }} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 font-bold">Remove</button>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
 
