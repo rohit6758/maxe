@@ -26,12 +26,23 @@
             console.log('SW registration failed:', err);
           });
 
-          // When a new SW takes over (thanks to skipWaiting in sw.js), reload the page once automatically
+          // When a new SW takes over, show a gentle toast instead of forcing a reload
           let refreshing = false;
           navigator.serviceWorker.addEventListener('controllerchange', function() {
             if (!refreshing) {
               refreshing = true;
-              window.location.reload();
+              // Create a custom update toast banner
+              const toast = document.createElement('div');
+              toast.innerHTML = `
+                <div style="position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); background: #2D4A3E; color: white; padding: 12px 20px; border-radius: 50px; z-index: 9999; box-shadow: 0 4px 12px rgba(0,0,0,0.2); display: flex; align-items: center; gap: 12px; font-family: sans-serif; font-size: 14px; font-weight: bold; width: max-content; animation: slideUp 0.3s ease-out;">
+                  <span>✨ New version ready!</span>
+                  <button onclick="window.location.reload()" style="background: #6BA898; color: white; border: none; padding: 6px 12px; border-radius: 20px; font-weight: bold; cursor: pointer;">Refresh App</button>
+                </div>
+                <style>
+                  @keyframes slideUp { from { bottom: 0; opacity: 0; } to { bottom: 80px; opacity: 1; } }
+                </style>
+              `;
+              document.body.appendChild(toast);
             }
           });
         });
