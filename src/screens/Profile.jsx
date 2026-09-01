@@ -15,6 +15,7 @@ export default function Profile() {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [saved, setSaved] = useState(false);
+  const [checkingUpdate, setCheckingUpdate] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [showNetwork, setShowNetwork] = useState(false);
@@ -81,6 +82,33 @@ const loadFollowStats = async () => {
       alert('Avatar upload failed: ' + err.message);
     } finally {
       setUploading(false);
+    }
+  };
+
+  const handleCheckUpdate = async () => {
+    setCheckingUpdate(true);
+    if ('serviceWorker' in navigator) {
+      try {
+        const regs = await navigator.serviceWorker.getRegistrations();
+        if (regs.length > 0) {
+          for (let reg of regs) {
+            await reg.update();
+          }
+          // The index.html listener will automatically reload the page if an update is found.
+          // If we reach here after 2 seconds, no update was found.
+          setTimeout(() => {
+            alert('Your app is already up to date! 🚀');
+            setCheckingUpdate(false);
+          }, 2000);
+        } else {
+          setCheckingUpdate(false);
+        }
+      } catch (e) {
+        setCheckingUpdate(false);
+      }
+    } else {
+      alert('App updates are not supported in this browser.');
+      setCheckingUpdate(false);
     }
   };
 
