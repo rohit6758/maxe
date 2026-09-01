@@ -18,10 +18,10 @@ export default function Explore() {
   const [showCreateCommunity, setShowCreateCommunity] = useState(false);
   const [newCommunityName, setNewCommunityName] = useState('');
   
-  const [showEditCommunity, setShowEditCommunity] = useState(false);
+  const [showGroupInfo, setShowGroupInfo] = useState(false);
   const [editCommunityName, setEditCommunityName] = useState('');
-  const [editCommunityAvatar, setEditCommunityAvatar] = useState(null);
-  const [isEditingCommunity, setIsEditingCommunity] = useState(false);
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isSavingInfo, setIsSavingInfo] = useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareData, setShareData] = useState({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
@@ -180,45 +180,40 @@ export default function Explore() {
     else setPosts(posts.filter(p => p.id !== postId));
   };
 
-  const handleEditCommunity = async (e) => {
-    e.preventDefault();
-    if (!editCommunityName.trim()) return;
-    setIsEditingCommunity(true);
+  const handleUpdateGroupName = async () => {
+    if (!editCommunityName.trim() || editCommunityName === selectedCommunity.name) {
+      setIsEditingName(false);
+      return;
+    }
+    setIsSavingInfo(true);
     try {
-      let finalAvatarUrl = selectedCommunity.avatar_url || null;
-      if (editCommunityAvatar) {
-        const fileExt = editCommunityAvatar.name.split('.').pop();
-        const fileName = `${Math.random()}.${fileExt}`;
-        const { error: uploadError } = await supabase.storage
-          .from('pdfs') // reusing existing bucket for now
-          .upload(`community_avatars/${fileName}`, editCommunityAvatar);
-        
-        if (uploadError) throw uploadError;
-        
-        const { data: { publicUrl } } = supabase.storage
-          .from('pdfs')
-          .getPublicUrl(`community_avatars/${fileName}`);
-          
-        finalAvatarUrl = publicUrl;
-      }
-
-      const { data, error } = await supabase
-        .from('communities')
-        .update({ name: editCommunityName.trim(), avatar_url: finalAvatarUrl })
-        .eq('id', selectedCommunity.id)
-        .select()
-        .single();
-
+      const { data, error } = await supabase.from('communities').update({ name: editCommunityName.trim() }).eq('id', selectedCommunity.id).select().single();
       if (error) throw error;
-      
-      // Update local state
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
       setSelectedCommunity(data);
-      setShowEditCommunity(false);
-    } catch (err) {
-      alert(err.message);
-    }
-    setIsEditingCommunity(false);
+      setIsEditingName(false);
+    } catch(e) { alert(e.message); }
+    setIsSavingInfo(false);
+  };
+
+  const handleUpdateGroupAvatar = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsSavingInfo(true);
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `avatar_${selectedCommunity.id}_${Math.random()}.${fileExt}`;
+      const { error: uploadError } = await supabase.storage.from('pdfs').upload(`community_avatars/${fileName}`, file);
+      if (uploadError) throw uploadError;
+      
+      const { data: { publicUrl } } = supabase.storage.from('pdfs').getPublicUrl(`community_avatars/${fileName}`);
+      const { data, error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id).select().single();
+      if (error) throw error;
+      
+      setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
+      setSelectedCommunity(data);
+    } catch(err) { alert(err.message); }
+    setIsSavingInfo(false);
   };
 
   const handleDeleteCommunity = async (communityId, e) => {
@@ -407,8 +402,8 @@ export default function Explore() {
           ) : (
             <>
               {/* Chat Header */}
-              <div className="p-4 border-b border-[#333] bg-surface flex items-center gap-3 z-10 shadow-sm">
-                <button onClick={() => setSelectedCommunity(null)} className="md:hidden p-2 -ml-2 text-header">
+              <div className="p-4 border-b border-[#333] bg-surface flex items-center gap-3 z-10 shadow-sm cursor-pointer hover:bg-black/10 transition-colors" onClick={() => { setEditCommunityName(selectedCommunity.name); setIsEditingName(false); setShowGroupInfo(true); }}>
+                <button onClick={(e) => { e.stopPropagation(); setSelectedCommunity(null); }} className="md:hidden p-2 -ml-2 text-header">
                   <ArrowLeft size={20} />
                 </button>
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 overflow-hidden">
@@ -420,26 +415,17 @@ export default function Explore() {
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-header text-lg">{selectedCommunity.name}</h3>
-                  <p className="text-xs text-primary font-medium">Secure Group</p>
+                  <p className="text-xs text-primary font-medium">Tap here for group info</p>
                 </div>
                 
-                {/* Admin/Creator Tools */}
+                {/* Tools */}
                 {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && (
-                  <>
-                    <button onClick={() => {
-                      setEditCommunityName(selectedCommunity.name);
-                      setEditCommunityAvatar(null);
-                      setShowEditCommunity(true);
-                    }} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
-                      <ImageIcon size={14} /> <span className="hidden sm:inline">Edit</span>
-                    </button>
-                    <button onClick={openMembersModal} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
-                      <Users size={14} /> <span className="hidden sm:inline">Members</span>
-                    </button>
-                  </>
+                  <button onClick={(e) => { e.stopPropagation(); openMembersModal(); }} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
+                    <Users size={14} /> <span className="hidden sm:inline">Members</span>
+                  </button>
                 )}
 
-                <button onClick={() => setShowShareModal(true)} className="btn-primary text-sm flex items-center gap-1 py-1.5 px-3">
+                <button onClick={(e) => { e.stopPropagation(); setShowShareModal(true); }} className="btn-primary text-sm flex items-center gap-1 py-1.5 px-3">
                   <Plus size={14} /> Share
                 </button>
               </div>
@@ -692,37 +678,67 @@ export default function Explore() {
         </div>
       )}
 
-      {/* Edit Community Modal */}
-      {showEditCommunity && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
-          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-slide-up">
-            <div className="p-4 border-b flex justify-between items-center" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
-              <h3 className="font-bold text-lg text-aberration" style={{color: '#2D4A3E'}}>Edit Community</h3>
-              <button onClick={() => setShowEditCommunity(false)} className="p-1 rounded-full hover:bg-gray-100" style={{color: '#5E7A6E'}}>
-                <X size={20} />
-              </button>
+      {/* Group Info Modal (WhatsApp Style) */}
+      {showGroupInfo && selectedCommunity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm animate-fade-in" onClick={() => setShowGroupInfo(false)}>
+          <div className="bg-surface rounded-3xl w-full max-w-sm overflow-hidden shadow-2xl animate-slide-up border border-[#333]" onClick={e => e.stopPropagation()}>
+            <div className="relative">
+              {/* Big Avatar */}
+              <div className="w-full aspect-square bg-primary flex items-center justify-center relative">
+                {selectedCommunity.avatar_url ? (
+                  <img src={selectedCommunity.avatar_url} className="w-full h-full object-cover" alt="Group" />
+                ) : (
+                  <span className="text-white font-black text-6xl">{selectedCommunity.name.charAt(0).toUpperCase()}</span>
+                )}
+                
+                {/* Pencil Edit Avatar (Admins only) */}
+                {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && (
+                  <label className="absolute bottom-4 right-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform text-white">
+                    {isSavingInfo ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ImageIcon size={20} />}
+                    <input type="file" className="hidden" accept="image/*" onChange={handleUpdateGroupAvatar} disabled={isSavingInfo} />
+                  </label>
+                )}
+                
+                <button onClick={() => setShowGroupInfo(false)} className="absolute top-4 right-4 p-2 bg-black/50 text-white rounded-full hover:bg-black/70">
+                  <X size={20} />
+                </button>
+              </div>
+
+              {/* Group Name & Edit Name */}
+              <div className="p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <p className="text-xs text-primary font-bold tracking-widest uppercase mb-1">Group Name</p>
+                    {isEditingName ? (
+                      <div className="flex gap-2">
+                        <input 
+                          type="text" 
+                          value={editCommunityName} 
+                          onChange={e => setEditCommunityName(e.target.value)}
+                          className="app-input flex-1 py-1 px-2" 
+                          autoFocus
+                        />
+                        <button onClick={handleUpdateGroupName} className="btn-primary px-3 rounded-lg text-sm">{isSavingInfo ? '...' : 'Save'}</button>
+                      </div>
+                    ) : (
+                      <h2 className="text-2xl font-black text-header leading-tight">{selectedCommunity.name}</h2>
+                    )}
+                  </div>
+                  {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && !isEditingName && (
+                    <button onClick={() => setIsEditingName(true)} className="p-2 bg-surface border border-[#333] rounded-full text-body hover:text-primary mt-4">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
+                    </button>
+                  )}
+                </div>
+                
+                <div className="mt-8 space-y-3">
+                  <button onClick={() => { setShowGroupInfo(false); openMembersModal(); }} className="w-full flex items-center gap-3 p-4 bg-background rounded-2xl border border-[#333] hover:border-primary transition-colors text-header font-bold text-sm">
+                    <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Users size={16} /></div>
+                    View all Members
+                  </button>
+                </div>
+              </div>
             </div>
-            <form onSubmit={handleEditCommunity} className="p-4 space-y-4">
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Group Name</label>
-                <input
-                  type="text" value={editCommunityName} onChange={e => setEditCommunityName(e.target.value)}
-                  className="app-input" required placeholder="e.g. CSE A Sec"
-                />
-              </div>
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Group Profile Picture</label>
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={e => setEditCommunityAvatar(e.target.files[0])}
-                  className="app-input"
-                />
-              </div>
-              <button type="submit" disabled={isEditingCommunity} className="btn-primary w-full py-3">
-                {isEditingCommunity ? 'Saving...' : 'Save Changes'}
-              </button>
-            </form>
           </div>
         </div>
       )}
