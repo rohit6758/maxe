@@ -19,6 +19,9 @@ export default function Aggregator() {
   
   const [showAddChat, setShowAddChat] = useState(false);
   const [newChat, setNewChat] = useState({ title: '', url: '' });
+  const [isLoadingSems, setIsLoadingSems] = useState(false);
+  const [isLoadingSubs, setIsLoadingSubs] = useState(false);
+  const [isLoadingRes, setIsLoadingRes] = useState(false);
   const [showTodoModal, setShowTodoModal] = useState(false);
 
   useEffect(() => {
@@ -37,21 +40,27 @@ export default function Aggregator() {
   }, [activeSubject]);
 
   const fetchSemesters = async () => {
+    setIsLoadingSems(true);
     const { data } = await supabase.from('semesters').select('*').eq('user_id', session.user.id).eq('branch', activeBranch).order('name');
     setSemesters(data || []);
     if (!activeSemester && data?.length) setActiveSemester(data[0].id);
+    setIsLoadingSems(false);
   };
 
   const fetchSubjects = async () => {
+    setIsLoadingSubs(true);
     const { data } = await supabase.from('subjects').select('*').eq('semester_id', activeSemester).order('name');
     setSubjects(data || []);
     if (!activeSubject && data?.length) setActiveSubject(data[0].id);
     else if (!data?.length) setActiveSubject(null);
+    setIsLoadingSubs(false);
   };
 
   const fetchResources = async () => {
+    setIsLoadingRes(true);
     const { data } = await supabase.from('resources').select('*').eq('subject_id', activeSubject).order('created_at', { ascending: false });
     setResources(data || []);
+    setIsLoadingRes(false);
   };
 
   const handleCreateSemester = async () => {

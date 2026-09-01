@@ -8,6 +8,8 @@ export default function UserSearch() {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [followingMap, setFollowingMap] = useState({});
+  const [isSearching, setIsSearching] = useState(false);
+  const [hasSearched, setHasSearched] = useState(false);
 
   useEffect(() => {
     if (session) loadFollowingMap();
@@ -23,8 +25,16 @@ export default function UserSearch() {
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
+    setIsSearching(true);
+    setHasSearched(true);
+    // Add small synthetic delay for visual feedback if internet is too fast
+    const start = Date.now();
     const { data } = await supabase.from('profiles').select('*').or(`name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`).neq('id', session.user.id).limit(15);
+    const elapsed = Date.now() - start;
+    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
+    
     setSearchResults(data || []);
+    setIsSearching(false);
   };
 
   const toggleFollow = async (userId) => {
@@ -50,19 +60,36 @@ export default function UserSearch() {
       <form onSubmit={handleSearch} className="flex gap-2">
         <input 
           className="app-input flex-1" 
-          placeholder="Search users by name..." 
+          placeholder="Search users by name or username..." 
           value={searchQuery} 
-          onChange={e => setSearchQuery(e.target.value)}
+          onChange={e => { setSearchQuery(e.target.value); if(e.target.value === '') { setHasSearched(false); setSearchResults([]); } }}
         />
-        <button type="submit" className="btn-primary p-3 flex items-center justify-center rounded-xl">
-          <Search size={18} />
+        <button 
+          type="submit" 
+          disabled={isSearching}
+          className="btn-primary p-3 flex items-center justify-center rounded-xl transition-all active:scale-90"
+        >
+          {isSearching ? (
+            <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <Search size={18} />
+          )}
         </button>
       </form>
 
-      <div className="space-y-2">
-        {searchResults.length === 0 ? (
-          <div className="card p-8 text-center text-body text-sm">
-            Search for people to see results here.
+      <div className="space-y-2 relative min-h-[150px]">
+        {isSearching ? (
+          <div className="absolute inset-0 flex flex-col items-center justify-center text-body text-sm gap-3 pt-8">
+            <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin" />
+            <p className="font-semibold text-primary animate-pulse">Searching...</p>
+          </div>
+        ) : searchResults.length === 0 ? (
+          <div className="card p-8 text-center text-body text-sm mt-2">
+            {hasSearched ? (
+              <span className="font-bold text-red-500">Not existed!! 📭</span>
+            ) : (
+              "Search for people to see results here."
+            )}
           </div>
         ) : (
           searchResults.map(user => {

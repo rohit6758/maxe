@@ -9,6 +9,8 @@ export default function Explore() {
 
   const [communities, setCommunities] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
+  const [isLoadingCommunities, setIsLoadingCommunities] = useState(true);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [posts, setPosts] = useState([]);
   const [myMemberships, setMyMemberships] = useState({});
 
@@ -75,6 +77,7 @@ export default function Explore() {
   };
 
   const loadCommunities = async () => {
+    setIsLoadingCommunities(true);
     // Show all communities so user knows they exist
     const { data: allCommunities } = await supabase.from('communities').select('*').order('created_at', { ascending: false });
     
@@ -87,15 +90,18 @@ export default function Explore() {
     
     setCommunities(allCommunities || []);
     setMyMemberships(map);
+    setIsLoadingCommunities(false);
   };
 
   const loadPosts = async (communityId) => {
+    setIsLoadingPosts(true);
     const { data } = await supabase
       .from('community_posts')
       .select('*, profiles(name, username, avatar_url)')
       .eq('community_id', communityId)
       .order('created_at', { ascending: false });
     setPosts(data || []);
+    setIsLoadingPosts(false);
   };
 
   const loadMySubjects = async () => {
