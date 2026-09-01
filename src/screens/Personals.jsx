@@ -13,6 +13,7 @@ export default function Personals() {
 
   // Subjects for current semester
   const [subjects, setSubjects] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // Which subject is expanded
   const [expandedSubject, setExpandedSubject] = useState(null);
@@ -57,8 +58,10 @@ export default function Personals() {
   }, [selectedSemester]);
 
   const fetchSubjects = async (semId) => {
+    setIsLoading(true);
     const { data } = await supabase.from('subjects').select('*').eq('semester_id', semId).order('name');
     setSubjects(data || []);
+    setIsLoading(false);
   };
 
 
@@ -186,7 +189,12 @@ export default function Personals() {
       </div>
 
       {/* Subjects list */}
-      {subjects.length === 0 ? (
+      {isLoading ? (
+        <div className="flex flex-col items-center justify-center p-12 space-y-4">
+          <div className="w-10 h-10 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+          <p className="font-semibold text-primary animate-pulse text-sm">Loading improvements...</p>
+        </div>
+      ) : subjects.length === 0 ? (
         <div className="card p-8 text-center">
           <p className="text-3xl mb-2">📝</p>
           <p className="font-semibold" style={{color:'#2D4A3E'}}>No subjects yet</p>

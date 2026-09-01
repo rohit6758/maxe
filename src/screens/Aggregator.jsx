@@ -176,9 +176,16 @@ export default function Aggregator() {
             </div>
             <div className="flex gap-2 items-center">
               <select className="app-input flex-1" value={activeSemester || ''}
-                onChange={e => { setActiveSemester(e.target.value); setActiveSubject(null); }}>
-                <option value="" disabled>Select semester</option>
-                {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                onChange={e => { setActiveSemester(e.target.value); setActiveSubject(null); }}
+                disabled={isLoadingSems}>
+                {isLoadingSems ? (
+                  <option value="" disabled>Loading semesters...</option>
+                ) : (
+                  <>
+                    <option value="" disabled>Select semester</option>
+                    {semesters.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </>
+                )}
               </select>
               <button onClick={handleCreateSemester} className="btn-outline px-3 py-2.5 text-lg font-bold">+</button>
             </div>
@@ -198,9 +205,16 @@ export default function Aggregator() {
             </div>
             <div className="flex gap-2 items-center">
               <select className="app-input flex-1" value={activeSubject || ''}
-                onChange={e => setActiveSubject(e.target.value)}>
-                <option value="" disabled>Select subject</option>
-                {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                onChange={e => setActiveSubject(e.target.value)}
+                disabled={isLoadingSubs}>
+                {isLoadingSubs ? (
+                  <option value="" disabled>Loading subjects...</option>
+                ) : (
+                  <>
+                    <option value="" disabled>Select subject</option>
+                    {subjects.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </>
+                )}
               </select>
               <button onClick={handleCreateSubject} className="btn-outline px-3 py-2.5 text-lg font-bold">+</button>
             </div>
