@@ -18,19 +18,28 @@ export default function UserSearch() {
     if (saved) setRecentSearches(JSON.parse(saved));
   }, []);
 
-  const saveRecentSearch = (user) => {
+  const saveRecentSearch = (item) => {
     setRecentSearches(prev => {
-      const filtered = prev.filter(u => u.id !== user.id);
-      const updated = [user, ...filtered].slice(0, 10);
+      // item can be a user object (has .id) or a text string
+      const isText = typeof item === 'string';
+      const filtered = prev.filter(u => {
+        if (isText && typeof u === 'string') return u.toLowerCase() !== item.toLowerCase();
+        if (!isText && typeof u !== 'string') return u.id !== item.id;
+        return true;
+      });
+      const updated = [item, ...filtered].slice(0, 10);
       localStorage.setItem('maxe_recent_searches', JSON.stringify(updated));
       return updated;
     });
   };
 
-  const removeRecentSearch = (userId, e) => {
+  const removeRecentSearch = (identifier, e) => {
     e.stopPropagation();
     setRecentSearches(prev => {
-      const updated = prev.filter(u => u.id !== userId);
+      const updated = prev.filter(u => {
+        if (typeof identifier === 'string') return u !== identifier;
+        return u.id !== identifier;
+      });
       localStorage.setItem('maxe_recent_searches', JSON.stringify(updated));
       return updated;
     });
@@ -92,8 +101,10 @@ export default function UserSearch() {
 
   const handleSearch = (e) => {
     e.preventDefault();
-    // The debounce will handle it, but if they hit Enter immediately, we can force it
-    executeSearch(searchQuery);
+    if (searchQuery.trim()) {
+      saveRecentSearch(searchQuery.trim());
+      executeSearch(searchQuery);
+    }
   };
 
   const toggleFollow = async (userId) => {
@@ -156,20 +167,47 @@ export default function UserSearch() {
               </div>
             ) : (
               <div className="space-y-1">
-                {recentSearches.map(user => (
-                  <div key={user.id} onClick={() => openUserPopup(user)} className="p-3 flex items-center gap-3 cursor-pointer hover:bg-black/5 rounded-xl transition-colors">
-                    <div className="w-14 h-14 rounded-full bg-surface border border-[#333] overflow-hidden flex items-center justify-center shrink-0">
-                      {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={24} className="text-body" />}
+                {recentSearches.map((item, index) => {
+                  const isText = typeof item === 'string';
+                  return (
+                    <div 
+                      key={isText ? item : item.id} 
+                      onClick={() => {
+                        if (isText) {
+                          setSearchQuery(item);
+                          executeSearch(item);
+                          saveRecentSearch(item); // bump to top
+                        } else {
+                          openUserPopup(item);
+                        }
+                      }} 
+                      className="p-3 flex items-center gap-4 cursor-pointer hover:bg-black/5 rounded-xl transition-colors"
+                    >
+                      <div className={`w-14 h-14 rounded-full border border-[#333] flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
+                        {isText ? (
+                          <Search size={22} className="text-body" />
+                        ) : item.avatar_url ? (
+                          <img src={item.avatar_url} className="w-full h-full object-cover" alt="" />
+                        ) : (
+                          <User size={24} className="text-body" />
+                        )}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        {isText ? (
+                          <p className="text-base font-bold text-header truncate">{item}</p>
+                        ) : (
+                          <>
+                            <p className="text-base font-bold text-header truncate">{item.name}</p>
+                            <p className="text-sm text-body truncate">@{item.username || 'user'}</p>
+                          </>
+                        )}
+                      </div>
+                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className="p-2 text-body hover:text-header">
+                        <X size={20} />
+                      </button>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-base font-bold text-header truncate">{user.name}</p>
-                      <p className="text-sm text-body truncate">@{user.username || 'user'}</p>
-                    </div>
-                    <button onClick={(e) => removeRecentSearch(user.id, e)} className="p-2 text-body hover:text-header">
-                      <X size={20} />
-                    </button>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
