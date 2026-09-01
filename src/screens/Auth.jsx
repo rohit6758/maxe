@@ -7,7 +7,6 @@ import { Eye, EyeOff } from 'lucide-react';
 export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [name, setName] = useState('');
   const [username, setUsername] = useState('');
   const [showPass, setShowPass] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -32,7 +31,6 @@ export default function Auth() {
           password,
           options: {
             data: {
-              full_name: name,
               username: username
             }
           }
@@ -43,7 +41,6 @@ export default function Auth() {
         if (data?.user) {
           await supabase.from('profiles').upsert({
             id: data.user.id,
-            name: name,
             username: username
           });
         }
@@ -102,22 +99,13 @@ export default function Auth() {
 
           <form onSubmit={handleAuth} className="space-y-3">
             {!isLogin && (
-              <>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Full Name</label>
-                  <input
-                    type="text" value={name} onChange={e => setName(e.target.value)}
-                    placeholder="John Doe" className="app-input" required={!isLogin}
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username (Unique)</label>
-                  <input
-                    type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                    placeholder="john_doe123" className="app-input" required={!isLogin}
-                  />
-                </div>
-              </>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username (Unique)</label>
+                <input
+                  type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                  placeholder="e.g. john_doe123" className="app-input" required={!isLogin}
+                />
+              </div>
             )}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Email</label>
