@@ -26,15 +26,40 @@ export default function Personals() {
   const [evidenceCache, setEvidenceCache] = useState({}); // key → [evidence]
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    if (activeSemester) fetchSubjects();
-    else { setSubjects([]); setExpandedSubject(null); setOpenExam(null); }
-  }, [activeSemester]);
+  // State for semesters local to Personals in case we didn't visit Hub
+  const [localSemesters, setLocalSemesters] = useState([]);
+  const [selectedSemester, setSelectedSemester] = useState(activeSemester);
 
-  const fetchSubjects = async () => {
-    const { data } = await supabase.from('subjects').select('*').eq('semester_id', activeSemester).order('name');
+  useEffect(() => {
+    if (session) {
+      fetchSemesters();
+    }
+  }, [session, useAppContext().activeBranch]); // Refetch if global branch changes
+
+  const fetchSemesters = async () => {
+    const branch = useAppContext().activeBranch || 'CSE'; // fallback
+    const { data } = await supabase.from('semesters').select('*').eq('user_id', session.user.id).eq('branch', branch).order('name');
+    setLocalSemesters(data || []);
+    if (data && data.length > 0) {
+      // Pick the global activeSemester if it exists, otherwise the first one
+      const targetSem = data.find(s => s.id === activeSemester)?.id || data[0].id;
+      setSelectedSemester(targetSem);
+    } else {
+      setSelectedSemester(null);
+    }
+  };
+
+  useEffect(() => {
+    if (selectedSemester) fetchSubjects(selectedSemester);
+    else { setSubjects([]); setExpandedSubject(null); setOpenExam(null); }
+  }, [selectedSemester]);
+
+  const fetchSubjects = async (semId) => {
+    const { data } = await supabase.from('subjects').select('*').eq('semester_id', semId).order('name');
     setSubjects(data || []);
   };
+
+
 
   const cacheKey = (subjectId, examId) => `${subjectId}-${examId}`;
 
