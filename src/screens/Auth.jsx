@@ -8,7 +8,9 @@ export default function Auth() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
+  const [branch, setBranch] = useState('');
   const [showPass, setShowPass] = useState(false);
+  const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [msg, setMsg] = useState(null);
@@ -31,7 +33,8 @@ export default function Auth() {
           password,
           options: {
             data: {
-              username: username
+              username: username,
+              branch: branch
             }
           }
         });
@@ -41,7 +44,8 @@ export default function Auth() {
         if (data?.user) {
           await supabase.from('profiles').upsert({
             id: data.user.id,
-            username: username
+            username: username,
+            branch: branch
           });
         }
         
@@ -99,13 +103,29 @@ export default function Auth() {
 
           <form onSubmit={handleAuth} className="space-y-3">
             {!isLogin && (
-              <div>
-                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username (Unique)</label>
-                <input
-                  type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
-                  placeholder="e.g. john_doe123" className="app-input" required={!isLogin}
-                />
-              </div>
+              <>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username (Unique)</label>
+                  <input
+                    type="text" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+                    placeholder="e.g. john_doe123" className="app-input" required={!isLogin}
+                  />
+                </div>
+                <div>
+                  <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
+                  <select 
+                    value={branch} 
+                    onChange={e => setBranch(e.target.value)} 
+                    className="app-input" 
+                    required={!isLogin}
+                  >
+                    <option value="" disabled>Select your branch</option>
+                    {BRANCHES.map(b => (
+                      <option key={b} value={b}>{b}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
             )}
             <div>
               <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Email</label>

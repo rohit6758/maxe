@@ -39,7 +39,13 @@ export function AppProvider({ children }) {
       .eq('id', userId)
       .single();
       
-    if (data) setUserProfile(data);
+    if (data) {
+      setUserProfile(data);
+      // Auto-select the user's branch for the Hub if not already selected
+      if (data.branch && !activeBranch) {
+        setActiveBranch(data.branch);
+      }
+    }
     setLoading(false);
   };
 
