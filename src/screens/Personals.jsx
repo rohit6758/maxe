@@ -148,7 +148,7 @@ export default function Personals() {
   };
 
   // ── No semester selected ──
-  if (!activeSemester) {
+  if (!selectedSemester) {
     return (
       <div className="card p-10 text-center">
         <p className="text-4xl mb-3">📖</p>
@@ -164,9 +164,23 @@ export default function Personals() {
     <div className="space-y-4">
 
       {/* Header */}
-      <div className="card p-4">
-        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Improvements</h2>
-        <p className="text-sm mt-0.5" style={{color:'#6BA898'}}>Select a subject to view exam reflections</p>
+      <div className="card p-4 flex justify-between items-center">
+        <div>
+          <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Improvements</h2>
+          <p className="text-sm mt-0.5" style={{color:'#6BA898'}}>Select a subject to view exam reflections</p>
+        </div>
+        {localSemesters.length > 0 && (
+          <select 
+            className="app-input text-xs py-1.5 px-2 bg-background font-bold shadow-sm" 
+            style={{color: '#2D4A3E', borderColor: 'rgba(107,168,152,0.3)', width: 'auto'}}
+            value={selectedSemester || ''} 
+            onChange={e => setSelectedSemester(e.target.value)}
+          >
+            {localSemesters.map(s => (
+              <option key={s.id} value={s.id}>{s.name}</option>
+            ))}
+          </select>
+        )}
       </div>
 
       {/* Subjects list */}
