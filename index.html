@@ -12,14 +12,27 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Maxe" />
-    <!-- Explicit SW registration for PWABuilder detection -->
+    <!-- Explicit SW registration for PWABuilder detection & Auto-Update -->
     <script>
       if ('serviceWorker' in navigator) {
         window.addEventListener('load', function() {
           navigator.serviceWorker.register('/sw.js').then(function(reg) {
             console.log('SW registered:', reg.scope);
+            
+            // Periodically check for updates every 10 mins if app is left open
+            setInterval(() => { reg.update(); }, 10 * 60 * 1000);
+            
           }).catch(function(err) {
             console.log('SW registration failed:', err);
+          });
+
+          // When a new SW takes over (thanks to skipWaiting in sw.js), reload the page once automatically
+          let refreshing = false;
+          navigator.serviceWorker.addEventListener('controllerchange', function() {
+            if (!refreshing) {
+              refreshing = true;
+              window.location.reload();
+            }
           });
         });
       }
