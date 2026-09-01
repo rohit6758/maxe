@@ -374,7 +374,12 @@ export default function Explore() {
           </div>
 
           <div className="flex-1 overflow-y-auto">
-            {communities.length === 0 ? (
+            {isLoadingCommunities ? (
+              <div className="flex flex-col items-center justify-center p-8 mt-10 space-y-3">
+                <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                <p className="font-semibold text-primary animate-pulse text-sm">Loading communities...</p>
+              </div>
+            ) : communities.length === 0 ? (
               <p className="p-8 text-center text-body text-sm">No communities found. Create one!</p>
             ) : (
               communities.map(comm => (
@@ -453,7 +458,12 @@ export default function Explore() {
 
               {/* Chat Messages */}
               <div className="flex-1 overflow-y-auto p-4 space-y-4">
-                {posts.length === 0 ? (
+                {isLoadingPosts ? (
+                  <div className="flex flex-col items-center justify-center p-8 space-y-3">
+                    <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
+                    <p className="font-semibold text-primary animate-pulse text-sm">Loading posts...</p>
+                  </div>
+                ) : posts.length === 0 ? (
                   <div className="text-center p-8 bg-surface rounded-xl border border-[#333] text-body text-sm">
                     No resources shared yet. Be the first to post!
                   </div>
