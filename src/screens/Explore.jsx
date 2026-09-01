@@ -53,6 +53,22 @@ export default function Explore() {
     if (session) {
       loadCommunities();
       loadMySubjects();
+      
+      const memberChannel = supabase.channel('my_memberships')
+        .on('postgres_changes', { event: '*', schema: 'public', table: 'community_members', filter: `user_id=eq.${session.user.id}` }, payload => {
+          if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
+             setMyMemberships(prev => ({ ...prev, [payload.new.community_id]: payload.new.role }));
+          } else if (payload.eventType === 'DELETE') {
+             setMyMemberships(prev => {
+                const newMap = {...prev};
+                delete newMap[payload.old.community_id];
+                return newMap;
+             });
+          }
+        })
+        .subscribe();
+        
+      return () => { supabase.removeChannel(memberChannel); };
     }
   }, [session]);
 
@@ -447,11 +463,9 @@ export default function Explore() {
                 </div>
                 
                 {/* Tools */}
-                {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && (
-                  <button onClick={(e) => { e.stopPropagation(); openMembersModal(); }} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
-                    <Users size={14} /> <span className="hidden sm:inline">Members</span>
-                  </button>
-                )}
+                <button onClick={(e) => { e.stopPropagation(); openMembersModal(); }} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
+                  <Users size={14} /> <span className="hidden sm:inline">Members</span>
+                </button>
 
                 <button onClick={(e) => { e.stopPropagation(); setShowShareModal(true); }} className="btn-primary text-sm flex items-center gap-1 py-1.5 px-3">
                   <Plus size={14} /> Share
@@ -589,6 +603,7 @@ export default function Explore() {
               </div>
 
               {/* Add Members */}
+              {isCommunityAdmin && (
               <div className="pt-2 border-t border-[#333]">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold uppercase text-primary">Add People</p>
@@ -627,6 +642,7 @@ export default function Explore() {
                     })}
                 </div>
               </div>
+              )}
             </div>
             
             <button onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
