@@ -411,8 +411,12 @@ export default function Explore() {
                 <button onClick={() => setSelectedCommunity(null)} className="md:hidden p-2 -ml-2 text-header">
                   <ArrowLeft size={20} />
                 </button>
-                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0">
-                  <Layers size={18} className="text-white" />
+                <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 overflow-hidden">
+                  {selectedCommunity.avatar_url ? (
+                    <img src={selectedCommunity.avatar_url} alt="Group" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-white font-bold">{selectedCommunity.name.charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
                 <div className="flex-1">
                   <h3 className="font-bold text-header text-lg">{selectedCommunity.name}</h3>
@@ -421,9 +425,18 @@ export default function Explore() {
                 
                 {/* Admin/Creator Tools */}
                 {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && (
-                  <button onClick={openMembersModal} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
-                    <Users size={14} /> <span className="hidden sm:inline">Members</span>
-                  </button>
+                  <>
+                    <button onClick={() => {
+                      setEditCommunityName(selectedCommunity.name);
+                      setEditCommunityAvatar(null);
+                      setShowEditCommunity(true);
+                    }} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
+                      <ImageIcon size={14} /> <span className="hidden sm:inline">Edit</span>
+                    </button>
+                    <button onClick={openMembersModal} className="btn-outline text-sm flex items-center gap-1 py-1.5 px-2 mr-1">
+                      <Users size={14} /> <span className="hidden sm:inline">Members</span>
+                    </button>
+                  </>
                 )}
 
                 <button onClick={() => setShowShareModal(true)} className="btn-primary text-sm flex items-center gap-1 py-1.5 px-3">
