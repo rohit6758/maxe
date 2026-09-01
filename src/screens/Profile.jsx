@@ -70,14 +70,18 @@ const loadFollowStats = async () => {
     setUploading(true);
     try {
       const ext = file.name.split('.').pop();
-      const path = `avatars/${session.user.id}.${ext}`;
+      const path = `avatars/${session.user.id}_${Math.random()}.${ext}`;
       const { error: upErr } = await supabase.storage
         .from('uploads')
         .upload(path, file, { upsert: true, contentType: file.type });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('uploads').getPublicUrl(path);
-      const url = `${data.publicUrl}?t=${Date.now()}`;
-      setAvatarUrl(url);
+      const url = `${data.publicUrl}`;
+      
+      // Instantly update database
+      await supabase.from('profiles').update({ avatar_url: url }).eq('id', session.user.id);
+      setUserProfile(prev => ({ ...prev, avatar_url: url }));
+      
     } catch (err) {
       alert('Avatar upload failed: ' + err.message);
     } finally {
@@ -146,101 +150,56 @@ const loadFollowStats = async () => {
         <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Profile</h2>
       </div>
 
-      {!isEditing ? (
-        <div className="card p-6">
-          <div className="flex items-center gap-5">
-            <div className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2"
-              style={{borderColor: 'rgba(107,168,152,0.3)', background: 'rgba(107,168,152,0.1)'}}>
-              {userProfile?.avatar_url
-                ? <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                : <User size={40} style={{color:'#6BA898'}} />}
-            </div>
-            <div className="flex-1 min-w-0">
-              <h2 className="text-lg md:text-xl font-bold truncate" style={{color:'#2D4A3E'}}>{userProfile?.name || 'Your Name'}</h2>
-              <p className="text-xs font-semibold mt-0.5" style={{color:'#6BA898'}}>@{userProfile?.username || 'username'}</p>
-              <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.branch || 'No branch selected'}</p>
-              
-              <div className="flex gap-4 mt-2">
-                <button onClick={() => openNetwork('followers')} className="flex flex-col items-start hover:opacity-80">
-                  <span className="font-bold text-sm" style={{color:'#2D4A3E'}}>{followerCount}</span>
-                  <span className="text-[10px] uppercase font-bold" style={{color:'#6BA898'}}>Followers</span>
-                </button>
-                <button onClick={() => openNetwork('following')} className="flex flex-col items-start hover:opacity-80">
-                  <span className="font-bold text-sm" style={{color:'#2D4A3E'}}>{followingCount}</span>
-                  <span className="text-[10px] uppercase font-bold" style={{color:'#6BA898'}}>Following</span>
-                </button>
-              </div>
-            </div>
-          </div>
+      <div className="card overflow-hidden">
+        {/* Big Avatar Area */}
+        <div className="w-full aspect-square flex items-center justify-center relative" style={{background: 'rgba(107,168,152,0.15)'}}>
+          {userProfile?.avatar_url ? (
+            <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
+          ) : (
+            <User size={80} style={{color:'#6BA898'}} />
+          )}
           
-          <div className="mt-5">
-            <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{color:'#5E7A6E'}}>
-              {userProfile?.bio || 'Add a bio...'}
-            </p>
-          </div>
+          <label className="absolute bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform text-white" style={{background:'#6BA898'}}>
+            {uploading ? (
+              <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+            ) : (
+              <Camera size={24} />
+            )}
+            <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
+              await handleAvatarUpload(e);
+              // Save it to DB instantly
+              if (session) {
+                const url = avatarUrl || e.target.files?.[0]?.url;
+                if (!url) {
+                  // We need the new url from handleAvatarUpload, so let's use a trick
+                  setTimeout(async () => {
+                     // The state might take a tick to update, the best way is to fetch profile again or just let userProfile handle it
+                     const { data } = await supabase.from('profiles').select('avatar_url').eq('id', session.user.id).single();
+                     if (data) setUserProfile(prev => ({...prev, avatar_url: data.avatar_url}));
+                  }, 2000);
+                }
+              }
+            }} />
+          </label>
+        </div>
+
+        <div className="p-6 text-center">
+          <h2 className="text-3xl font-black truncate text-header" style={{color:'#2D4A3E'}}>{userProfile?.name || userProfile?.username || 'Student'}</h2>
+          <p className="text-sm font-bold mt-1 tracking-widest uppercase" style={{color:'#6BA898'}}>@{userProfile?.username || 'username'}</p>
+          <p className="text-sm font-semibold mt-2" style={{color:'#5E7A6E'}}>{userProfile?.branch ? `Branch: ${userProfile.branch}` : 'No branch selected'}</p>
           
-          <button 
-            onClick={() => setIsEditing(true)}
-            className="w-full mt-6 py-2 rounded-xl text-sm font-bold transition-transform active:scale-95"
-            style={{background: '#EAF4EF', color: '#2D4A3E', border: '1px solid rgba(107,168,152,0.2)'}}>
-            Edit Profile
-          </button>
+          <div className="flex justify-center gap-8 mt-6 pt-6 border-t" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
+            <button onClick={() => openNetwork('followers')} className="flex flex-col items-center hover:opacity-80">
+              <span className="font-black text-2xl" style={{color:'#2D4A3E'}}>{followerCount}</span>
+              <span className="text-xs uppercase font-bold" style={{color:'#6BA898'}}>Followers</span>
+            </button>
+            <button onClick={() => openNetwork('following')} className="flex flex-col items-center hover:opacity-80">
+              <span className="font-black text-2xl" style={{color:'#2D4A3E'}}>{followingCount}</span>
+              <span className="text-xs uppercase font-bold" style={{color:'#6BA898'}}>Following</span>
+            </button>
+          </div>
         </div>
-      ) : (
-        <div className="card p-5 space-y-5">
-          <div className="flex items-center justify-between mb-2">
-            <h3 className="font-bold" style={{color:'#2D4A3E'}}>Edit Profile</h3>
-            <button onClick={() => setIsEditing(false)} className="text-xs font-bold" style={{color:'#DC6B6B'}}>Cancel</button>
-          </div>
-
-          <div className="flex flex-col items-center gap-3">
-            <div className="relative">
-              <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
-                style={{background:'rgba(107,168,152,0.12)', border:'2px solid rgba(107,168,152,0.3)'}}>
-                {avatarUrl
-                  ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                  : <User size={36} style={{color:'#6BA898'}} />}
-              </div>
-              <label className="absolute -bottom-1 -right-1 rounded-xl p-2 cursor-pointer shadow"
-                style={{background:'#6BA898', border:'2px solid #FFFFFF'}}>
-                {uploading
-                  ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  : <Camera size={14} style={{color:'#FFFFFF'}} />}
-                <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} />
-              </label>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
-            <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username</label>
-            <input className="app-input" placeholder="unique username" value={username} onChange={e => setUsername(e.target.value.replace(/[^a-zA-Z0-9_]/g, ''))} />
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
-            <select className="app-input" value={branch} onChange={e => setBranch(e.target.value)}>
-              <option value="">Select branch</option>
-              {['CSE','CSM','IT','CSC','EEE','MECH','CIVIL','ECE'].map(b => <option key={b} value={b}>{b}</option>)}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Bio</label>
-            <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
-          </div>
-
-          <button onClick={handleSave} disabled={saving}
-            className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm mt-2">
-            <Save size={16} />
-            {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
-          </button>
-        </div>
-      )}
+      </div>
 
 
 
