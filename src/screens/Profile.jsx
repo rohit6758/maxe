@@ -96,26 +96,26 @@ const loadFollowStats = async () => {
     if ('serviceWorker' in navigator) {
       try {
         const regs = await navigator.serviceWorker.getRegistrations();
-        if (regs.length > 0) {
-          for (let reg of regs) {
-            await reg.update();
-          }
-          // The index.html listener will automatically reload the page if an update is found.
-          // If we reach here after 2 seconds, no update was found.
-          setTimeout(() => {
-            alert('Your app is already up to date! 🚀');
-            setCheckingUpdate(false);
-          }, 2000);
-        } else {
-          setCheckingUpdate(false);
+        for (let reg of regs) {
+          await reg.unregister(); // Kill the old service worker
         }
       } catch (e) {
-        setCheckingUpdate(false);
+        console.error(e);
       }
-    } else {
-      alert('App updates are not supported in this browser.');
-      setCheckingUpdate(false);
     }
+    
+    // Clear all caches
+    if ('caches' in window) {
+      try {
+        const cacheNames = await caches.keys();
+        await Promise.all(cacheNames.map(name => caches.delete(name)));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+    
+    // Force a hard reload from the server, skipping browser cache
+    window.location.reload(true);
   };
 
   const handleSave = async () => {
