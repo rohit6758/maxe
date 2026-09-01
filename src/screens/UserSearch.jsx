@@ -15,6 +15,20 @@ export default function UserSearch() {
     if (session) loadFollowingMap();
   }, [session]);
 
+  // Live search with debounce
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (searchQuery.trim()) {
+        executeSearch(searchQuery);
+      } else {
+        setHasSearched(false);
+        setSearchResults([]);
+      }
+    }, 400); // 400ms delay while typing
+
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   const loadFollowingMap = async () => {
     const { data } = await supabase.from('follows').select('following_id').eq('follower_id', session.user.id);
     const map = {};
@@ -22,19 +36,12 @@ export default function UserSearch() {
     setFollowingMap(map);
   };
 
-  const handleSearch = async (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) return;
+  const executeSearch = async (query) => {
+    if (!query.trim()) return;
     setIsSearching(true);
     setHasSearched(true);
-    // Add small synthetic delay for visual feedback if internet is too fast
-    const start = Date.now();
     
-    // Split the search query by spaces to allow fuzzy matching for multiple words
-    const words = searchQuery.trim().split(/\s+/);
-    
-    // Build an OR query string that checks every word against both name and username
-    // e.g. name.ilike.%word1%,username.ilike.%word1%,name.ilike.%word2%,username.ilike.%word2%
+    const words = query.trim().split(/\s+/);
     const orQuery = words.map(word => `name.ilike.%${word}%,username.ilike.%${word}%`).join(',');
     
     const { data } = await supabase
@@ -44,11 +51,14 @@ export default function UserSearch() {
       .neq('id', session.user.id)
       .limit(15);
       
-    const elapsed = Date.now() - start;
-    if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
-    
     setSearchResults(data || []);
     setIsSearching(false);
+  };
+
+  const handleSearch = (e) => {
+    e.preventDefault();
+    // The debounce will handle it, but if they hit Enter immediately, we can force it
+    executeSearch(searchQuery);
   };
 
   const toggleFollow = async (userId) => {
@@ -76,7 +86,7 @@ export default function UserSearch() {
           className="app-input flex-1" 
           placeholder="Search users by name or username..." 
           value={searchQuery} 
-          onChange={e => { setSearchQuery(e.target.value); if(e.target.value === '') { setHasSearched(false); setSearchResults([]); } }}
+          onChange={e => setSearchQuery(e.target.value)}
         />
         <button 
           type="submit" 
