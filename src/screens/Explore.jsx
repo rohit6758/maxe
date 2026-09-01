@@ -15,6 +15,11 @@ export default function Explore() {
   // Modals / Forms
   const [showCreateCommunity, setShowCreateCommunity] = useState(false);
   const [newCommunityName, setNewCommunityName] = useState('');
+  
+  const [showEditCommunity, setShowEditCommunity] = useState(false);
+  const [editCommunityName, setEditCommunityName] = useState('');
+  const [editCommunityAvatar, setEditCommunityAvatar] = useState(null);
+  const [isEditingCommunity, setIsEditingCommunity] = useState(false);
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareData, setShareData] = useState({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
@@ -167,6 +172,47 @@ export default function Explore() {
     const { error } = await supabase.from('community_posts').delete().eq('id', postId);
     if (error) alert(error.message);
     else setPosts(posts.filter(p => p.id !== postId));
+  };
+
+  const handleEditCommunity = async (e) => {
+    e.preventDefault();
+    if (!editCommunityName.trim()) return;
+    setIsEditingCommunity(true);
+    try {
+      let finalAvatarUrl = selectedCommunity.avatar_url || null;
+      if (editCommunityAvatar) {
+        const fileExt = editCommunityAvatar.name.split('.').pop();
+        const fileName = `${Math.random()}.${fileExt}`;
+        const { error: uploadError } = await supabase.storage
+          .from('pdfs') // reusing existing bucket for now
+          .upload(`community_avatars/${fileName}`, editCommunityAvatar);
+        
+        if (uploadError) throw uploadError;
+        
+        const { data: { publicUrl } } = supabase.storage
+          .from('pdfs')
+          .getPublicUrl(`community_avatars/${fileName}`);
+          
+        finalAvatarUrl = publicUrl;
+      }
+
+      const { data, error } = await supabase
+        .from('communities')
+        .update({ name: editCommunityName.trim(), avatar_url: finalAvatarUrl })
+        .eq('id', selectedCommunity.id)
+        .select()
+        .single();
+
+      if (error) throw error;
+      
+      // Update local state
+      setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
+      setSelectedCommunity(data);
+      setShowEditCommunity(false);
+    } catch (err) {
+      alert(err.message);
+    }
+    setIsEditingCommunity(false);
   };
 
   const handleDeleteCommunity = async (communityId, e) => {
@@ -623,6 +669,41 @@ export default function Explore() {
                 <Download size={16}/> Save
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Community Modal */}
+      {showEditCommunity && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in">
+          <div className="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl animate-slide-up">
+            <div className="p-4 border-b flex justify-between items-center" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
+              <h3 className="font-bold text-lg text-aberration" style={{color: '#2D4A3E'}}>Edit Community</h3>
+              <button onClick={() => setShowEditCommunity(false)} className="p-1 rounded-full hover:bg-gray-100" style={{color: '#5E7A6E'}}>
+                <X size={20} />
+              </button>
+            </div>
+            <form onSubmit={handleEditCommunity} className="p-4 space-y-4">
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Group Name</label>
+                <input
+                  type="text" value={editCommunityName} onChange={e => setEditCommunityName(e.target.value)}
+                  className="app-input" required placeholder="e.g. CSE A Sec"
+                />
+              </div>
+              <div>
+                <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Group Profile Picture</label>
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={e => setEditCommunityAvatar(e.target.files[0])}
+                  className="app-input"
+                />
+              </div>
+              <button type="submit" disabled={isEditingCommunity} className="btn-primary w-full py-3">
+                {isEditingCommunity ? 'Saving...' : 'Save Changes'}
+              </button>
+            </form>
           </div>
         </div>
       )}
