@@ -48,35 +48,9 @@ class ErrorBoundary extends React.Component {
 const ProtectedRoute = ({ children }) => {
   const { session, loading } = useAppContext();
   if (loading) return (
-    <div className="h-screen w-full flex flex-col items-center justify-center overflow-hidden relative" style={{background: '#EDF4F0'}}>
-      {/* Decorative floating blobs */}
-      <div className="absolute top-0 right-0 w-96 h-96 rounded-full pointer-events-none animate-pulse" style={{background:'rgba(107,168,152,0.08)', transform:'translate(30%,-30%)', animationDuration: '3s'}} />
-      <div className="absolute bottom-0 left-0 w-80 h-80 rounded-full pointer-events-none animate-pulse" style={{background:'rgba(168,197,184,0.15)', transform:'translate(-30%,30%)', animationDuration: '4s'}} />
-      
-      {/* Main Logo Box */}
-      <div className="relative z-10 flex flex-col items-center animate-slide-up">
-        <div className="relative">
-          <img src="/logo.png" alt="Maxe Logo" className="w-24 h-24 mx-auto rounded-3xl shadow-2xl relative z-10 animate-bounce" style={{animationDuration: '2s'}} />
-          {/* Glowing shadow behind logo */}
-          <div className="absolute inset-0 bg-[#6BA898] rounded-3xl blur-xl opacity-40 animate-pulse"></div>
-        </div>
-        
-        <h1 className="text-4xl font-black mt-6 tracking-tight text-aberration" style={{color:'#2D4A3E'}}>Maxe</h1>
-        
-        {/* Sleek Progress Bar */}
-        <div className="w-32 h-1.5 rounded-full mt-6 overflow-hidden" style={{background: 'rgba(107,168,152,0.2)'}}>
-          <div className="h-full rounded-full" style={{background: '#6BA898', width: '40%', animation: 'loadingBar 1.5s infinite ease-in-out alternate'}}></div>
-        </div>
-        
-        <p className="font-bold tracking-[0.2em] text-[10px] uppercase mt-4 animate-pulse" style={{color: '#5E7A6E'}}>Preparing your workspace</p>
-      </div>
-      
-      <style>{`
-        @keyframes loadingBar {
-          0% { transform: translateX(-100%); }
-          100% { transform: translateX(250%); }
-        }
-      `}</style>
+    <div className="h-screen w-full flex flex-col items-center justify-center gap-4 animate-pulse" style={{background: '#EDF4F0'}}>
+      <div className="w-16 h-16 rounded-full border-4 animate-spin" style={{borderColor: 'rgba(107,168,152,0.2)', borderTopColor: '#6BA898'}} />
+      <p className="font-bold tracking-widest text-sm uppercase" style={{color: '#6BA898'}}>Loading Maxe</p>
     </div>
   );
   if (!session) return <Navigate to="/auth" />;
