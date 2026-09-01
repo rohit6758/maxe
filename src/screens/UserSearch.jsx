@@ -29,7 +29,21 @@ export default function UserSearch() {
     setHasSearched(true);
     // Add small synthetic delay for visual feedback if internet is too fast
     const start = Date.now();
-    const { data } = await supabase.from('profiles').select('*').or(`name.ilike.%${searchQuery}%,username.ilike.%${searchQuery}%`).neq('id', session.user.id).limit(15);
+    
+    // Split the search query by spaces to allow fuzzy matching for multiple words
+    const words = searchQuery.trim().split(/\s+/);
+    
+    // Build an OR query string that checks every word against both name and username
+    // e.g. name.ilike.%word1%,username.ilike.%word1%,name.ilike.%word2%,username.ilike.%word2%
+    const orQuery = words.map(word => `name.ilike.%${word}%,username.ilike.%${word}%`).join(',');
+    
+    const { data } = await supabase
+      .from('profiles')
+      .select('*')
+      .or(orQuery)
+      .neq('id', session.user.id)
+      .limit(15);
+      
     const elapsed = Date.now() - start;
     if (elapsed < 500) await new Promise(r => setTimeout(r, 500 - elapsed));
     
