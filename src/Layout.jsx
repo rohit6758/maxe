@@ -210,23 +210,21 @@ export default function Layout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-16 px-2 z-30" style={{background: '#F7FBF9', borderTop: '1px solid rgba(107,168,152,0.15)'}}>
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30" style={{background: '#FFFFFF', borderTop: '1px solid rgba(107,168,152,0.15)'}}>
           {[
-            { to: '/', icon: <LayoutGrid size={20} />, label: 'Home' },
-            { to: '/explore', icon: <Users size={20} />, label: 'Community' },
-            { to: '/search', icon: <Search size={20} />, label: 'Search' },
-            { to: '/personals', icon: <BookOpen size={20} />, label: 'Improve' },
-            { to: '/profile', icon: <User size={20} />, label: 'Profile' },
+            { to: '/', icon: <LayoutGrid size={22} strokeWidth={2.5} />, label: 'Home' },
+            { to: '/explore', icon: <Users size={22} strokeWidth={2.5} />, label: 'Community' },
+            { to: '/search', icon: <Search size={22} strokeWidth={2.5} />, label: 'Search' },
+            { to: '/personals', icon: <BookOpen size={22} strokeWidth={2.5} />, label: 'Improve' },
+            { to: '/profile', icon: <User size={22} strokeWidth={2.5} />, label: 'Profile' },
           ].map(item => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) =>
-              `flex flex-col items-center gap-0.5 transition-all ${isActive ? '' : 'opacity-50'}`
+              `flex flex-col items-center justify-center w-12 h-full transition-all ${isActive ? 'scale-110' : 'opacity-60 hover:opacity-100'}`
             }>
               {({ isActive }) => (
                 <>
-                  <div className="p-1.5 rounded-xl" style={isActive ? {background: 'rgba(107,168,152,0.15)'} : {}}>
-                    <span style={{color: isActive ? '#6BA898' : '#5E7A6E'}}>{item.icon}</span>
-                  </div>
-                  <span className="text-[10px] font-semibold" style={{color: isActive ? '#6BA898' : '#5E7A6E'}}>{item.label}</span>
+                  <span style={{color: isActive ? '#3F5E56' : '#5E7A6E', transition: 'color 0.2s'}}>{item.icon}</span>
+                  {isActive && <span className="w-1 h-1 rounded-full mt-1" style={{background: '#3F5E56'}}></span>}
                 </>
               )}
             </NavLink>
