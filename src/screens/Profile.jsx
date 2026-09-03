@@ -166,7 +166,11 @@ const loadFollowStats = async () => {
       .single();
 
     if (error) {
-      alert('Save failed: ' + error.message);
+      if (error.code === '23505' || error.message.includes('duplicate')) {
+        alert('This username is already taken. Please choose another one.');
+      } else {
+        alert('Save failed: ' + error.message);
+      }
     } else if (data) {
       setUserProfile(data);
       setSaved(true);
