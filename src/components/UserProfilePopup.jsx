@@ -226,12 +226,12 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
       {viewingAvatar && (
         <div 
-          className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-[300] bg-black/95 flex flex-col items-center justify-center p-4 animate-fade-in"
           onClick={() => setViewingAvatar(false)}
         >
           <img 
             src={profile.avatar_url} 
-            className="max-w-full max-h-full object-contain rounded-lg animate-slide-up"
+            className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full animate-slide-up border-4 border-white/10"
             alt="Full Avatar" 
           />
           <button className="absolute top-4 right-4 text-white p-2 bg-white/10 hover:bg-white/20 rounded-full">

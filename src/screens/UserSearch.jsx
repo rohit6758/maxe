@@ -121,24 +121,26 @@ export default function UserSearch() {
 
   return (
     <div className="space-y-4 pb-24 md:pb-8">
-      <div className="card p-4">
+      <div className="px-2 pt-2">
         <h2 className="text-xl font-bold text-header flex items-center gap-2">
-          <Search size={22} className="text-primary"/> Find People
+          Find People
         </h2>
-        <p className="text-sm text-body mt-1">Search for classmates and follow them to build your network.</p>
       </div>
 
-      <form onSubmit={handleSearch} className="flex gap-2">
-        <input 
-          className="app-input flex-1" 
-          placeholder="Search users by name or username..." 
-          value={searchQuery} 
-          onChange={e => setSearchQuery(e.target.value)}
-        />
+      <form onSubmit={handleSearch} className="flex gap-2 px-2 pb-2">
+        <div className="relative flex-1">
+          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body/70" />
+          <input 
+            className="w-full bg-[#E8F2EE] border border-transparent focus:bg-white focus:border-primary/30 rounded-xl py-2 pl-9 pr-4 text-sm outline-none transition-all" 
+            placeholder="Search" 
+            value={searchQuery} 
+            onChange={e => setSearchQuery(e.target.value)}
+          />
+        </div>
         <button 
           type="submit" 
           disabled={isSearching}
-          className="btn-primary p-3 flex items-center justify-center rounded-xl transition-all active:scale-90"
+          className="hidden"
         >
           {isSearching ? (
             <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
@@ -182,9 +184,9 @@ export default function UserSearch() {
                           openUserPopup(item);
                         }
                       }} 
-                      className="p-3 flex items-center gap-4 cursor-pointer hover:bg-primary/5 rounded-xl transition-colors"
+                      className="px-2 py-3 flex items-center gap-3 cursor-pointer hover:bg-black/5 transition-colors"
                     >
-                      <div className={`w-14 h-14 rounded-full border border-primary/15 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
+                      <div className={`w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
                         {isText ? (
                           <Search size={22} className="text-body" />
                         ) : item.avatar_url ? (
@@ -220,7 +222,7 @@ export default function UserSearch() {
           searchResults.map(user => {
             const isFollowing = followingMap[user.id];
             return (
-              <div key={user.id} onClick={() => openUserPopup(user)} className="card p-3 flex items-center gap-3 cursor-pointer hover:border-primary transition-colors">
+              <div key={user.id} onClick={() => openUserPopup(user)} className="px-2 py-3 flex items-center gap-3 cursor-pointer hover:bg-black/5 transition-colors">
                 <div className="w-12 h-12 rounded-full bg-surface border border-primary/15 overflow-hidden flex items-center justify-center shrink-0">
                   {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-body" />}
                 </div>
@@ -230,7 +232,7 @@ export default function UserSearch() {
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
-                  className={`px-4 py-2 rounded-xl text-xs font-bold transition-colors ${isFollowing ? 'bg-surface text-header border border-primary/15' : 'bg-primary text-white'}`}
+                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${isFollowing ? 'bg-surface text-header border border-primary/15' : 'bg-primary text-white shadow-sm'}`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>

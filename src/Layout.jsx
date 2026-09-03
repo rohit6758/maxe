@@ -97,8 +97,8 @@ export default function Layout() {
         )}
       </div>
 
-      {/* Nav (Hidden on Mobile since it's redundant with Bottom Nav) */}
-      <nav className="hidden md:flex flex-1 flex-col p-4 space-y-1 mt-2">
+      {/* Nav */}
+      <nav className="flex flex-1 flex-col p-4 space-y-1 mt-2">
         {navLinks.map(link => (
           <NavLink
             key={link.to}
@@ -224,7 +224,7 @@ export default function Layout() {
               {({ isActive }) => (
                 <>
                   <span style={{color: isActive ? '#3F5E56' : '#5E7A6E', transition: 'color 0.2s'}}>{item.icon}</span>
-                  {isActive && <span className="w-1 h-1 rounded-full mt-1" style={{background: '#3F5E56'}}></span>}
+                  {/* Removed dot as per request */}
                 </>
               )}
             </NavLink>
