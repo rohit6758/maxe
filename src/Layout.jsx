@@ -97,8 +97,8 @@ export default function Layout() {
         )}
       </div>
 
-      {/* Nav */}
-      <nav className="flex-1 p-4 space-y-1 mt-2">
+      {/* Nav (Hidden on Mobile since it's redundant with Bottom Nav) */}
+      <nav className="hidden md:flex flex-1 flex-col p-4 space-y-1 mt-2">
         {navLinks.map(link => (
           <NavLink
             key={link.to}
@@ -116,7 +116,7 @@ export default function Layout() {
       </nav>
 
       {/* Bottom actions */}
-      <div className="p-4 space-y-1 border-t" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
+      <div className="p-4 space-y-1 border-t mt-auto" style={{borderColor: 'rgba(107,168,152,0.15)'}}>
         {installPrompt && (
           <button onClick={handleInstall} className="nav-item w-full font-semibold" style={{color:'#6BA898'}}>
             <Download size={18} /> Install App
