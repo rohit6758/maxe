@@ -156,17 +156,9 @@ input, textarea, .selectable, [contenteditable] {
 }
 
 * {
-  scrollbar-width: thin;
-  scrollbar-color: rgba(123,184,168,0.4) transparent;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
 }
 *::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
-}
-*::-webkit-scrollbar-track {
-  background: transparent;
-}
-*::-webkit-scrollbar-thumb {
-  background-color: rgba(123,184,168,0.4);
-  border-radius: 10px;
+  display: none;
 }

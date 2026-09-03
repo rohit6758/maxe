@@ -14,6 +14,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
   const [listUsers, setListUsers] = useState([]);
   const [loadingList, setLoadingList] = useState(false);
   const [myFollowingMap, setMyFollowingMap] = useState({});
+  const [viewingAvatar, setViewingAvatar] = useState(false);
 
   useEffect(() => {
     if (userId) loadData();
@@ -139,7 +140,10 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
           <div className="p-6">
             {/* Top section: Avatar + Stats */}
             <div className="flex items-center gap-6 mb-6">
-              <div className="w-24 h-24 rounded-full border-4 border-primary/20 overflow-hidden flex items-center justify-center shrink-0 bg-primary/5">
+              <div 
+                className="w-24 h-24 rounded-full border-4 border-primary/20 overflow-hidden flex items-center justify-center shrink-0 bg-primary/5 cursor-pointer"
+                onClick={() => profile?.avatar_url && setViewingAvatar(true)}
+              >
                 {profile?.avatar_url ? (
                   <img src={profile.avatar_url} className="w-full h-full object-cover" alt="avatar" />
                 ) : (
@@ -219,6 +223,23 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
         )}
         
       </div>
+
+      {viewingAvatar && (
+        <div 
+          className="fixed inset-0 z-[300] bg-black/90 flex items-center justify-center p-4 animate-fade-in"
+          onClick={() => setViewingAvatar(false)}
+        >
+          <img 
+            src={profile.avatar_url} 
+            className="max-w-full max-h-full object-contain rounded-lg animate-slide-up"
+            alt="Full Avatar" 
+          />
+          <button className="absolute top-4 right-4 text-white p-2 bg-white/10 hover:bg-white/20 rounded-full">
+            <X size={24} />
+          </button>
+        </div>
+      )}
+
     </div>
   );
 }

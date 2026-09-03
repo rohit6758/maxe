@@ -348,7 +348,11 @@ export default function Explore() {
   const removeMember = async (userId) => {
     if (!window.confirm("Remove this member from the community?")) return;
     const { error } = await supabase.from('community_members').delete().match({ community_id: selectedCommunity.id, user_id: userId });
-    if (!error) setCommunityMembers(communityMembers.filter(m => m.user_id !== userId));
+    if (error) {
+      alert("Failed to remove member: " + error.message);
+    } else {
+      setCommunityMembers(prev => prev.filter(m => m.user_id !== userId));
+    }
   };
 
   const promoteToAdmin = async (userId) => {
