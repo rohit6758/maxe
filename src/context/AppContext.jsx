@@ -33,17 +33,36 @@ export function AppProvider({ children }) {
   }, []);
 
   const fetchProfile = async (userId) => {
-    const { data } = await supabase
+    const { data, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
-      .single();
+      .maybeSingle();
       
     if (data) {
       setUserProfile(data);
       // Auto-select the user's branch for the Hub if not already selected
       if (data.branch && !activeBranch) {
         setActiveBranch(data.branch);
+      }
+    } else {
+      // Profile doesn't exist (e.g. they signed in with Google for the first time)
+      // Auto-create it!
+      const { data: sessionData } = await supabase.auth.getSession();
+      const user = sessionData?.session?.user;
+      if (user) {
+        let baseUsername = user.email ? user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '') : `user_${Math.floor(Math.random() * 10000)}`;
+        
+        const { data: newProfile } = await supabase.from('profiles').upsert({
+          id: userId,
+          username: baseUsername, // We use email prefix as a fallback username
+          name: user.user_metadata?.full_name || user.user_metadata?.name || 'New User',
+          avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
+        }).select().single();
+        
+        if (newProfile) {
+          setUserProfile(newProfile);
+        }
       }
     }
     setLoading(false);
