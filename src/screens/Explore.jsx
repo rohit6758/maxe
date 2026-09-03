@@ -491,7 +491,10 @@ export default function Explore() {
                     return (
                       <div key={post.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
                         {!isMine && (
-                          <div className="flex items-center gap-2 mb-1 ml-1">
+                          <div 
+                            className="flex items-center gap-2 mb-1 ml-1 cursor-pointer hover:opacity-70 transition-opacity"
+                            onClick={(e) => { e.stopPropagation(); setSelectedUser({ id: post.user_id, ...post.profiles }); }}
+                          >
                             <div className="w-5 h-5 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0 border border-primary/15">
                               {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={10} />}
                             </div>
