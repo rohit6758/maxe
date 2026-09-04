@@ -430,7 +430,7 @@ export default function Explore() {
                       </span>
                     )}
                   </div>
-                  {isAdmin && (
+                  {(isAdmin || myMemberships[comm.id] === 'admin') && (
                     <button onClick={(e) => handleDeleteCommunity(comm.id, e)} className="text-red-400 hover:text-red-600 p-2">
                       <Trash2 size={16} />
                     </button>
