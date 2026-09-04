@@ -6,6 +6,7 @@ import UserProfilePopup from '../components/UserProfilePopup';
 
 export default function UserSearch() {
   const { session, userProfile } = useAppContext();
+  const isAdmin = session?.user?.email === 'rohitnxtgengw@gmail.com';
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [followingMap, setFollowingMap] = useState({});
@@ -89,12 +90,17 @@ export default function UserSearch() {
     const words = query.trim().split(/\s+/);
     const orQuery = words.map(word => `name.ilike.%${word}%,username.ilike.%${word}%`).join(',');
     
-    const { data } = await supabase
+    let dbQuery = supabase
       .from('profiles')
       .select('*')
       .or(orQuery)
-      .eq('college', userProfile?.college)
       .limit(15);
+      
+    if (!isAdmin) {
+      dbQuery = dbQuery.eq('college', userProfile?.college);
+    }
+
+    const { data } = await dbQuery;
       
     setSearchResults(data || []);
     setIsSearching(false);
