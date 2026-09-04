@@ -43,7 +43,7 @@ export default function OnboardingPopup() {
       }
 
       const { error: updateError } = await supabase.from('profiles').update({
-        username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
+        username: username.toLowerCase().replace(/[^a-z0-9_.]/g, ''),
         branch: branch,
         college: college,
         name: user.user_metadata?.full_name || user.user_metadata?.name || username,
@@ -93,23 +93,25 @@ export default function OnboardingPopup() {
             <label className="text-xs font-bold uppercase tracking-wider text-body flex items-center gap-1.5">
               <User size={14} className="text-primary"/> Pick a Username
             </label>
-            <input
-              type="text"
-              required
-              value={username}
-              onChange={e => {
-                setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
-                if (usernameError) setUsernameError(null);
-              }}
-              placeholder="e.g. maxe_student"
-              className={`app-input w-full bg-surface ${usernameError ? 'border-[#2D4A3E]' : ''}`}
-              maxLength={20}
-            />
-            {usernameError ? (
-              <p className="text-[11px] font-bold px-1" style={{color: '#2D4A3E'}}>{usernameError}</p>
-            ) : (
-              <p className="text-[10px] text-body/60 px-1">Letters, numbers, and underscores only.</p>
-            )}
+              <input
+                type="text"
+                required
+                value={username}
+                onChange={e => {
+                  let val = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+                  if (val.length > 0 && (val[0] === '_' || val[0] === '.')) val = val.substring(1);
+                  setUsername(val);
+                  if (usernameError) setUsernameError(null);
+                }}
+                placeholder="e.g. rohit.67"
+                className={`app-input w-full bg-surface ${usernameError ? 'border-[#2D4A3E]' : ''}`}
+                maxLength={20}
+              />
+              {usernameError ? (
+                <p className="text-[11px] font-bold px-1" style={{color: '#2D4A3E'}}>{usernameError}</p>
+              ) : (
+                <p className="text-[10px] text-body/60 px-1">Letters, numbers, underscores, and dots. Must start with letter/number.</p>
+              )}
           </div>
 
           <div className="space-y-1.5">

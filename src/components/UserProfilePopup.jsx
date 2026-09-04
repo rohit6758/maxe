@@ -226,17 +226,25 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
       {viewingAvatar && (
         <div 
-          className="fixed inset-0 z-[300] bg-black/95 flex flex-col items-center justify-center p-4 animate-fade-in"
+          className="fixed inset-0 z-[300] bg-black/40 backdrop-blur-sm flex flex-col items-center justify-center p-4 animate-fade-in"
           onClick={() => setViewingAvatar(false)}
         >
-          <img 
-            src={profile.avatar_url} 
-            className="w-64 h-64 md:w-80 md:h-80 object-cover rounded-full animate-slide-up border-4 border-white/10"
-            alt="Full Avatar" 
-          />
-          <button className="absolute top-4 right-4 text-white p-2 bg-white/10 hover:bg-white/20 rounded-full">
-            <X size={24} />
+          <button onClick={() => setViewingAvatar(false)} className="absolute top-6 right-6 p-2 text-white hover:bg-white/50 rounded-full transition-colors">
+            <X size={28} />
           </button>
+          
+          <div className="relative w-full max-w-sm aspect-square bg-surface rounded-3xl overflow-hidden shadow-xl shadow-primary/10 animate-slide-up" onClick={e => e.stopPropagation()}>
+            <img 
+              src={profile.avatar_url} 
+              className="w-full h-full object-cover" 
+              alt="Full Avatar" 
+            />
+          </div>
+          
+          <div className="mt-6 text-center animate-slide-up">
+            <h2 className="text-2xl font-black text-white">{profile?.name}</h2>
+            <p className="text-sm font-bold mt-1 tracking-widest uppercase text-white/70">@{profile?.username}</p>
+          </div>
         </div>
       )}
 

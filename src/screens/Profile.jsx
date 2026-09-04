@@ -263,7 +263,11 @@ const loadFollowStats = async () => {
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username</label>
-            <input className="app-input" placeholder="Your unique username" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} />
+            <input className="app-input" placeholder="Your unique username" value={username} onChange={e => {
+              let val = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
+              if (val.length > 0 && (val[0] === '_' || val[0] === '.')) val = val.substring(1);
+              setUsername(val);
+            }} />
           </div>
 
           <div>

@@ -39,8 +39,8 @@ export default function Auth() {
 
         <div className="card p-6 space-y-5">
           <div className="text-center space-y-2 mb-6">
-            <h2 className="text-xl font-bold" style={{color:'#2D4A3E'}}>Welcome back</h2>
-            <p className="text-sm" style={{color:'#6BA898'}}>Sign in to continue your journey.</p>
+            <h2 className="text-xl font-bold" style={{color:'#2D4A3E'}}>Welcome to Maxe</h2>
+            <p className="text-sm" style={{color:'#6BA898'}}>Sign in or Create an Account to continue.</p>
           </div>
 
           {msg && (
