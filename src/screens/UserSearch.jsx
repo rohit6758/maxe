@@ -90,17 +90,11 @@ export default function UserSearch() {
     const words = query.trim().split(/\s+/);
     const orQuery = words.map(word => `name.ilike.%${word}%,username.ilike.%${word}%`).join(',');
     
-    let dbQuery = supabase
+    const { data } = await supabase
       .from('profiles')
       .select('*')
       .or(orQuery)
       .limit(15);
-      
-    if (!isAdmin) {
-      dbQuery = dbQuery.eq('college', userProfile?.college);
-    }
-
-    const { data } = await dbQuery;
       
     setSearchResults(data || []);
     setIsSearching(false);
@@ -206,8 +200,11 @@ export default function UserSearch() {
                           <p className="text-base font-bold text-header truncate">{item}</p>
                         ) : (
                           <>
-                            <p className="text-base font-bold text-header truncate">{item.name}</p>
-                            <p className="text-sm text-body truncate">@{item.username || 'user'}</p>
+                            <div className="flex items-center gap-1.5">
+                              <p className="text-base font-bold text-header truncate">{item.name}</p>
+                              {item.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{item.college}</span>}
+                            </div>
+                            <p className="text-sm text-body truncate">@{item.username || 'user'} {item.branch ? `• ${item.branch}` : ''}</p>
                           </>
                         )}
                       </div>
@@ -233,7 +230,10 @@ export default function UserSearch() {
                   {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-body" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm font-bold text-header truncate">{user.name}</p>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-sm font-bold text-header truncate">{user.name}</p>
+                    {user.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{user.college}</span>}
+                  </div>
                   <p className="text-xs text-body truncate">@{user.username || 'user'} {user.branch ? `• ${user.branch}` : ''}</p>
                 </div>
                 <button 
