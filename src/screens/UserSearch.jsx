@@ -94,7 +94,6 @@ export default function UserSearch() {
       .select('*')
       .or(orQuery)
       .eq('college', userProfile?.college)
-      .neq('id', session.user.id)
       .limit(15);
       
     setSearchResults(data || []);
@@ -217,7 +216,7 @@ export default function UserSearch() {
           </div>
         ) : searchResults.length === 0 ? (
           <div className="card p-8 text-center text-body text-sm mt-2">
-            <span className="font-bold text-red-500">Not existed!! 📭</span>
+            <span className="font-bold" style={{color: '#2D4A3E'}}>User not found</span>
           </div>
         ) : (
           searchResults.map(user => {
