@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { BRANCHES } from '../lib/constants';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { Eye, EyeOff } from 'lucide-react';
@@ -10,7 +11,7 @@ export default function Auth() {
   const [username, setUsername] = useState('');
   const [branch, setBranch] = useState('');
   const [showPass, setShowPass] = useState(false);
-  const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
+  
   const [loading, setLoading] = useState(false);
   const [isLogin, setIsLogin] = useState(true);
   const [msg, setMsg] = useState(null);

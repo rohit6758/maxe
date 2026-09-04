@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { BRANCHES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import TodoModal from './TodoModal';
 import AppDialog from '../components/AppDialog';
 import { FileText, CheckSquare, Image as ImageIcon, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
 
-const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
+
 
 export default function Aggregator() {
   const { session, activeBranch, setActiveBranch, activeSemester, setActiveSemester, activeSubject, setActiveSubject } = useAppContext();

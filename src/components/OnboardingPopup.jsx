@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { BRANCHES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import { User, BookOpen } from 'lucide-react';
 
@@ -9,8 +10,14 @@ export default function OnboardingPopup() {
   const [branch, setBranch] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  
-  const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
+
+  React.useEffect(() => {
+    if (session?.user?.email && !username) {
+      let base = session.user.email.split('@')[0].toLowerCase().replace(/[^a-z0-9_]/g, '');
+      setUsername(base + Math.floor(Math.random() * 100));
+    }
+  }, [session]);
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
