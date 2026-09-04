@@ -187,8 +187,11 @@ const loadFollowStats = async () => {
     <div className="space-y-4 pb-24 md:pb-8">
 
       {/* Header */}
-      <div className="card p-4">
+      <div className="card p-4 flex items-center justify-between">
         <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Profile</h2>
+        <button onClick={async () => { await supabase.auth.signOut(); window.location.reload(); }} className="text-sm font-bold flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-red-50 text-red-500 hover:bg-red-100 transition-colors">
+          <LogOut size={16} /> Sign Out
+        </button>
       </div>
 
       {!isEditing ? (

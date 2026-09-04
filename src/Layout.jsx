@@ -73,7 +73,10 @@ export default function Layout() {
     if (outcome === 'accepted') setInstallPrompt(null);
   };
 
-  const handleLogout = async () => supabase.auth.signOut();
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.reload();
+  };
 
   const NAV_ITEMS = [
     { id: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
