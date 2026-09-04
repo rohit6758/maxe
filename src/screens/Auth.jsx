@@ -162,7 +162,12 @@ export default function Auth() {
             type="button" 
             onClick={async () => {
               try {
-                const { error } = await supabase.auth.signInWithOAuth({ provider: 'google' });
+                const { error } = await supabase.auth.signInWithOAuth({ 
+                  provider: 'google', 
+                  options: { 
+                    redirectTo: window.location.origin 
+                  } 
+                });
                 if (error) throw error;
               } catch (err) {
                 setMsg({ type:'error', text: err.message });
