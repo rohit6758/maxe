@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
+import AppDialog from '../components/AppDialog';
 import { CheckCircle2, AlertTriangle, UploadCloud, Plus, Trash2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 const EXAMS = [
@@ -30,6 +31,10 @@ export default function Personals() {
   // State for semesters local to Personals in case we didn't visit Hub
   const [localSemesters, setLocalSemesters] = useState([]);
   const [selectedSemester, setSelectedSemester] = useState(activeSemester);
+  const [dialog, setDialog] = useState(null);
+  const showPrompt = ({ title, placeholder, onConfirm }) => setDialog({ type: 'prompt', title, placeholder, onConfirm });
+  const showConfirm = ({ title, message, danger, onConfirm }) => setDialog({ type: 'confirm', title, message, danger, onConfirm });
+  const closeDialog = () => setDialog(null);
 
   // Determine branch reliably
   const branchToUse = activeBranch || userProfile?.branch;
@@ -119,10 +124,15 @@ export default function Personals() {
     const key = cacheKey(subjectId, examId);
     const log = logCache[key];
     if (!log) return;
-    const text = prompt(type === 'tip' ? 'Enter tip or strategy:' : 'Enter a challenge:');
-    if (!text) return;
-    const { data } = await supabase.from('log_items').insert([{ log_id: log.id, type, text }]).select();
-    if (data) setItemCache(p => ({ ...p, [key]: [...(p[key] || []), data[0]] }));
+    showPrompt({
+      title: type === 'tip' ? '💡 Add a Study Tip' : '⚠️ Add a Challenge',
+      placeholder: type === 'tip' ? 'e.g. Focus on formulas first...' : 'e.g. Struggled with unit 3...',
+      onConfirm: async (text) => {
+        closeDialog();
+        const { data } = await supabase.from('log_items').insert([{ log_id: log.id, type, text }]).select();
+        if (data) setItemCache(p => ({ ...p, [key]: [...(p[key] || []), data[0]] }));
+      }
+    });
   };
 
   const deleteItem = async (subjectId, examId, itemId) => {
@@ -147,26 +157,37 @@ export default function Personals() {
 
   const deleteEvidence = async (subjectId, examId, evId) => {
     const key = cacheKey(subjectId, examId);
-    if (!confirm('Delete this uploaded file?')) return;
-    await supabase.from('log_evidence').delete().eq('id', evId);
-    setEvidenceCache(p => ({ ...p, [key]: (p[key] || []).filter(e => e.id !== evId) }));
+    showConfirm({
+      title: 'Delete this file?',
+      message: 'This will permanently remove the uploaded evidence.',
+      danger: true,
+      onConfirm: async () => {
+        closeDialog();
+        await supabase.from('log_evidence').delete().eq('id', evId);
+        setEvidenceCache(p => ({ ...p, [key]: (p[key] || []).filter(e => e.id !== evId) }));
+      }
+    });
   };
 
   // ── No semester selected ──
   if (!selectedSemester) {
     return (
-      <div className="card p-10 text-center">
-        <p className="text-4xl mb-3">📖</p>
-        <p className="font-bold text-lg" style={{color:'#2D4A3E'}}>No semester selected</p>
-        <p className="text-sm mt-2" style={{color:'#6BA898'}}>
-          Go to <strong>Hub</strong>, pick your branch and semester first.
-        </p>
-      </div>
+      <>
+        {dialog && <AppDialog type={dialog.type} title={dialog.title} message={dialog.message} placeholder={dialog.placeholder} danger={dialog.danger} onConfirm={dialog.onConfirm} onCancel={closeDialog} />}
+        <div className="card p-10 text-center">
+          <p className="text-4xl mb-3">📖</p>
+          <p className="font-bold text-lg" style={{color:'#2D4A3E'}}>No semester selected</p>
+          <p className="text-sm mt-2" style={{color:'#6BA898'}}>
+            Go to <strong>Hub</strong>, pick your branch and semester first.
+          </p>
+        </div>
+      </>
     );
   }
 
   return (
     <div className="space-y-4">
+      {dialog && <AppDialog type={dialog.type} title={dialog.title} message={dialog.message} placeholder={dialog.placeholder} danger={dialog.danger} onConfirm={dialog.onConfirm} onCancel={closeDialog} />}
 
       {/* Header */}
       <div className="card p-4 flex justify-between items-center">

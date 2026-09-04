@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import TodoModal from './TodoModal';
+import AppDialog from '../components/AppDialog';
 import { FileText, CheckSquare, Image as ImageIcon, MessageSquare, Link as LinkIcon, UploadCloud, Video, Plus, ClipboardList, Trash2, X } from 'lucide-react';
 
 const BRANCHES = ['CSE', 'CSM', 'IT', 'CSC', 'EEE', 'MECH', 'CIVIL', 'ECE'];
@@ -23,6 +24,13 @@ export default function Aggregator() {
   const [isLoadingSubs, setIsLoadingSubs] = useState(false);
   const [isLoadingRes, setIsLoadingRes] = useState(false);
   const [showTodoModal, setShowTodoModal] = useState(false);
+  const [dialog, setDialog] = useState(null); // { type, title, placeholder, danger, onConfirm }
+
+  const showPrompt = ({ title, placeholder, onConfirm }) =>
+    setDialog({ type: 'prompt', title, placeholder, onConfirm });
+  const showConfirm = ({ title, message, danger, onConfirm }) =>
+    setDialog({ type: 'confirm', title, message, danger, onConfirm });
+  const closeDialog = () => setDialog(null);
 
   useEffect(() => {
     if (session && activeBranch) fetchSemesters();
@@ -64,19 +72,29 @@ export default function Aggregator() {
   };
 
   const handleCreateSemester = async () => {
-    const name = prompt('Enter semester (e.g. 1-1, 2-2):');
-    if (!name) return;
-    const { data } = await supabase.from('semesters').insert([{ user_id: session.user.id, name, branch: activeBranch }]).select();
-    if (data) { setSemesters(p => [...p, data[0]]); setActiveSemester(data[0].id); }
+    showPrompt({
+      title: 'Add Semester',
+      placeholder: 'e.g. 1-1, 2-2, 3-1...',
+      onConfirm: async (name) => {
+        closeDialog();
+        const { data } = await supabase.from('semesters').insert([{ user_id: session.user.id, name, branch: activeBranch }]).select();
+        if (data) { setSemesters(p => [...p, data[0]]); setActiveSemester(data[0].id); }
+      }
+    });
   };
 
   const handleCreateSubject = async () => {
-    if (!activeSemester) { alert('Select a semester first.'); return; }
-    const name = prompt('Enter subject name:');
-    if (!name) return;
-    const semName = semesters.find(s => s.id === activeSemester)?.name || '';
-    const { data } = await supabase.from('subjects').insert([{ semester_id: activeSemester, name, user_id: session.user.id, branch: activeBranch, semester: semName, is_public: true }]).select();
-    if (data) { setSubjects(p => [...p, data[0]]); setActiveSubject(data[0].id); }
+    if (!activeSemester) { return; }
+    showPrompt({
+      title: 'Add Subject',
+      placeholder: 'e.g. Data Structures, DBMS...',
+      onConfirm: async (name) => {
+        closeDialog();
+        const semName = semesters.find(s => s.id === activeSemester)?.name || '';
+        const { data } = await supabase.from('subjects').insert([{ semester_id: activeSemester, name, user_id: session.user.id, branch: activeBranch, semester: semName, is_public: true }]).select();
+        if (data) { setSubjects(p => [...p, data[0]]); setActiveSubject(data[0].id); }
+      }
+    });
   };
 
   const handleUpload = async (file, type) => {
@@ -112,24 +130,45 @@ export default function Aggregator() {
 
   const handleDeleteResource = async (id, e) => {
     if (e) { e.preventDefault(); e.stopPropagation(); }
-    if (!confirm('Delete this item?')) return;
-    await supabase.from('resources').delete().eq('id', id);
-    setResources(p => p.filter(r => r.id !== id));
+    showConfirm({
+      title: 'Delete this item?',
+      message: 'This cannot be undone.',
+      danger: true,
+      onConfirm: async () => {
+        closeDialog();
+        await supabase.from('resources').delete().eq('id', id);
+        setResources(p => p.filter(r => r.id !== id));
+      }
+    });
   };
 
   const handleDeleteSemester = async (id) => {
-    if (!confirm('Delete this semester and ALL its subjects/resources?')) return;
-    await supabase.from('semesters').delete().eq('id', id);
-    setSemesters(p => p.filter(s => s.id !== id));
-    setActiveSemester(null);
-    setActiveSubject(null);
+    showConfirm({
+      title: 'Delete Semester?',
+      message: 'This will delete ALL subjects and resources in this semester.',
+      danger: true,
+      onConfirm: async () => {
+        closeDialog();
+        await supabase.from('semesters').delete().eq('id', id);
+        setSemesters(p => p.filter(s => s.id !== id));
+        setActiveSemester(null);
+        setActiveSubject(null);
+      }
+    });
   };
 
   const handleDeleteSubject = async (id) => {
-    if (!confirm('Delete this subject and ALL its resources?')) return;
-    await supabase.from('subjects').delete().eq('id', id);
-    setSubjects(p => p.filter(s => s.id !== id));
-    setActiveSubject(null);
+    showConfirm({
+      title: 'Delete Subject?',
+      message: 'This will delete ALL resources in this subject.',
+      danger: true,
+      onConfirm: async () => {
+        closeDialog();
+        await supabase.from('subjects').delete().eq('id', id);
+        setSubjects(p => p.filter(s => s.id !== id));
+        setActiveSubject(null);
+      }
+    });
   };
 
   const subjectName = subjects.find(s => s.id === activeSubject)?.name || '';
@@ -145,6 +184,17 @@ export default function Aggregator() {
 
   return (
     <div className="space-y-4">
+      {dialog && (
+        <AppDialog
+          type={dialog.type}
+          title={dialog.title}
+          message={dialog.message}
+          placeholder={dialog.placeholder}
+          danger={dialog.danger}
+          onConfirm={dialog.onConfirm}
+          onCancel={closeDialog}
+        />
+      )}
 
       {/* ── Funnel ── */}
       <div className="card p-4 space-y-4">
