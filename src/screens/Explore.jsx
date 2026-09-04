@@ -50,7 +50,7 @@ export default function Explore() {
 
 
   useEffect(() => {
-    if (session) {
+    if (session && userProfile?.college) {
       loadCommunities();
       loadMySubjects();
       
@@ -70,7 +70,7 @@ export default function Explore() {
         
       return () => { supabase.removeChannel(memberChannel); };
     }
-  }, [session]);
+  }, [session, userProfile]);
 
   useEffect(() => {
     if (selectedCommunity) {
@@ -100,7 +100,7 @@ export default function Explore() {
   const loadCommunities = async () => {
     setIsLoadingCommunities(true);
     // Show all communities so user knows they exist
-    const { data: allCommunities } = await supabase.from('communities').select('*').order('created_at', { ascending: false });
+    const { data: allCommunities } = await supabase.from('communities').select('*').eq('college', userProfile?.college).order('created_at', { ascending: false });
     
     // Check which ones we are members of
     const { data: memberData } = await supabase.from('community_members').select('community_id, role').eq('user_id', session.user.id);
@@ -140,7 +140,11 @@ export default function Explore() {
   const handleCreateCommunity = async (e) => {
     e.preventDefault();
     if (!newCommunityName.trim()) return;
-    const { data, error } = await supabase.from('communities').insert([{ name: newCommunityName.trim(), created_by: session.user.id }]).select();
+    const { data, error } = await supabase.from('communities').insert([{ 
+      name: newCommunityName.trim(), 
+      created_by: session.user.id,
+      college: userProfile?.college 
+    }]).select();
     if (error) alert(error.message);
     else {
       await supabase.from('community_members').insert([{

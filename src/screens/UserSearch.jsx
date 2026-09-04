@@ -93,6 +93,7 @@ export default function UserSearch() {
       .from('profiles')
       .select('*')
       .or(orQuery)
+      .eq('college', userProfile?.college)
       .neq('id', session.user.id)
       .limit(15);
       
