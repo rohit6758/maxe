@@ -141,7 +141,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen" style={{background: '#EDF4F0'}}>
-      {!userProfile && <OnboardingPopup />}
+      {(!userProfile || !userProfile.username || !userProfile.branch) && <OnboardingPopup />}
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{background: '#F7FBF9', borderRight: '1px solid rgba(107,168,152,0.18)'}}>
