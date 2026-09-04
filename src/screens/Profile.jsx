@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
+import { BRANCHES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import { User, Save, UploadCloud, LogOut, Camera, Users, X } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
@@ -255,19 +256,23 @@ const loadFollowStats = async () => {
           </div>
 
           <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username</label>
+            <input className="app-input" placeholder="Your unique username" value={username} onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))} />
+          </div>
+
+          <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
             <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
           </div>
-
-
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
             <select className="app-input" value={branch} onChange={e => setBranch(e.target.value)}>
               <option value="">Select branch</option>
-              {['CSE','CSM','IT','CSC','EEE','MECH','CIVIL','ECE'].map(b => <option key={b} value={b}>{b}</option>)}
+              {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
             </select>
           </div>
+
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Bio</label>
