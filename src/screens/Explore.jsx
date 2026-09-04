@@ -100,7 +100,11 @@ export default function Explore() {
   const loadCommunities = async () => {
     setIsLoadingCommunities(true);
     // Show all communities so user knows they exist
-    const { data: allCommunities } = await supabase.from('communities').select('*').eq('college', userProfile?.college).order('created_at', { ascending: false });
+    let query = supabase.from('communities').select('*').order('created_at', { ascending: false });
+    if (!isAdmin) {
+      query = query.eq('college', userProfile?.college);
+    }
+    const { data: allCommunities } = await query;
     
     // Check which ones we are members of
     const { data: memberData } = await supabase.from('community_members').select('community_id, role').eq('user_id', session.user.id);
@@ -417,11 +421,14 @@ export default function Explore() {
                   <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
                     <Layers size={20} className="text-white" />
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <h3 className="font-bold text-header text-base truncate">{comm.name}</h3>
-                    <p className="text-xs text-body truncate">
-                      {myMemberships[comm.id] || isAdmin ? 'Tap to view shared resources' : 'Private Group'}
-                    </p>
+                  <div className="flex-1 text-left">
+                    <h3 className="font-bold text-header text-sm line-clamp-1">{comm.name}</h3>
+                    <p className="text-xs text-body line-clamp-1">{myMemberships[comm.id] === 'admin' ? 'Admin' : myMemberships[comm.id] ? 'Member' : 'Private Group'}</p>
+                    {isAdmin && comm.college && (
+                      <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full inline-block mt-1">
+                        {comm.college}
+                      </span>
+                    )}
                   </div>
                   {isAdmin && (
                     <button onClick={(e) => handleDeleteCommunity(comm.id, e)} className="text-red-400 hover:text-red-600 p-2">
