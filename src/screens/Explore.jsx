@@ -5,7 +5,7 @@ import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layer
 import UserProfilePopup from '../components/UserProfilePopup';
 
 export default function Explore() {
-  const { session } = useAppContext();
+  const { session, userProfile } = useAppContext();
   const isAdmin = session?.user?.email === 'rohitnxtgengw@gmail.com';
 
   const [communities, setCommunities] = useState([]);

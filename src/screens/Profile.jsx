@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { BRANCHES } from '../lib/constants';
+import { BRANCHES, COLLEGES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import { User, Save, UploadCloud, LogOut, Camera, Users, X } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
@@ -13,6 +13,7 @@ export default function Profile() {
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [branch, setBranch] = useState('');
+  const [college, setCollege] = useState('');
   const [avatarUrl, setAvatarUrl] = useState(null);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -93,6 +94,7 @@ const loadFollowStats = async () => {
       setUsername(userProfile.username || '');
       setBio(userProfile.bio || '');
       setBranch(userProfile.branch || '');
+      setCollege(userProfile.college || '');
       setAvatarUrl(userProfile.avatar_url || null);
     }
   }, [userProfile, isEditing]);
@@ -160,6 +162,7 @@ const loadFollowStats = async () => {
         username: username.trim().toLowerCase(),
         bio: bio.trim(),
         branch,
+        college,
         avatar_url: avatarUrl
       })
       .eq('id', session.user.id)
@@ -202,7 +205,7 @@ const loadFollowStats = async () => {
             <div className="flex-1 min-w-0">
               <h2 className="text-lg md:text-xl font-bold truncate" style={{color:'#2D4A3E'}}>{userProfile?.name || 'Your Name'}</h2>
               <p className="text-xs font-semibold mt-0.5" style={{color:'#6BA898'}}>@{userProfile?.username || 'username'}</p>
-              <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.branch || 'No branch selected'}</p>
+              <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.college ? `${userProfile.college} • ${userProfile.branch}` : (userProfile?.branch || 'No branch selected')}</p>
               
               <div className="flex gap-4 mt-2">
                 <button onClick={() => openNetwork('followers')} className="flex flex-col items-start hover:opacity-80">
@@ -263,6 +266,14 @@ const loadFollowStats = async () => {
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
             <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
+          </div>
+
+          <div>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>College</label>
+            <select className="app-input" value={college} onChange={e => setCollege(e.target.value)}>
+              <option value="">Select college</option>
+              {COLLEGES.map(c => <option key={c} value={c}>{c}</option>)}
+            </select>
           </div>
 
           <div>

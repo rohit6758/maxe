@@ -5,7 +5,7 @@ import { Search, User, UserPlus, Check, X } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
 
 export default function UserSearch() {
-  const { session } = useAppContext();
+  const { session, userProfile } = useAppContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [followingMap, setFollowingMap] = useState({});

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { BRANCHES } from '../lib/constants';
+import { BRANCHES, COLLEGES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import { User, BookOpen } from 'lucide-react';
 
@@ -8,6 +8,7 @@ export default function OnboardingPopup() {
   const { session, fetchProfile } = useAppContext();
   const [username, setUsername] = useState('');
   const [branch, setBranch] = useState('');
+  const [college, setCollege] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
@@ -23,7 +24,7 @@ export default function OnboardingPopup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim() || !branch) return;
+    if (!username.trim() || !branch || !college) return;
     
     setLoading(true);
     setError(null);
@@ -44,6 +45,7 @@ export default function OnboardingPopup() {
       const { error: updateError } = await supabase.from('profiles').update({
         username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
         branch: branch,
+        college: college,
         name: user.user_metadata?.full_name || user.user_metadata?.name || username,
         avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
       }).eq('id', user.id);
@@ -108,6 +110,23 @@ export default function OnboardingPopup() {
             ) : (
               <p className="text-[10px] text-body/60 px-1">Letters, numbers, and underscores only.</p>
             )}
+          </div>
+
+          <div className="space-y-1.5">
+            <label className="text-xs font-bold uppercase tracking-wider text-body flex items-center gap-1.5">
+              <BookOpen size={14} className="text-primary"/> Select Your College
+            </label>
+            <select
+              required
+              value={college}
+              onChange={e => setCollege(e.target.value)}
+              className="app-input w-full bg-surface"
+            >
+              <option value="" disabled>Choose college...</option>
+              {COLLEGES.map(c => (
+                <option key={c} value={c}>{c}</option>
+              ))}
+            </select>
           </div>
 
           <div className="space-y-1.5">
