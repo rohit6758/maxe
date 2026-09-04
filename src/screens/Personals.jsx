@@ -178,7 +178,7 @@ export default function Personals() {
           <p className="text-4xl mb-3">📖</p>
           <p className="font-bold text-lg" style={{color:'#2D4A3E'}}>No semester selected</p>
           <p className="text-sm mt-2" style={{color:'#6BA898'}}>
-            Go to <strong>Hub</strong>, pick your branch and semester first.
+            Go to <strong>Home</strong>, pick your branch and semester first.
           </p>
         </div>
       </>
