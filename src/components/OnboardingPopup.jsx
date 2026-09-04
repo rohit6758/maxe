@@ -19,34 +19,42 @@ export default function OnboardingPopup() {
   }, [session]);
 
 
+  const [usernameError, setUsernameError] = useState(null);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!username.trim() || !branch) return;
     
     setLoading(true);
     setError(null);
+    setUsernameError(null);
     
     try {
       const user = session?.user;
       if (!user) throw new Error("No active session.");
 
-      // Check if username is already taken
-      const { data: existing } = await supabase.from('profiles').select('id').eq('username', username).maybeSingle();
+      // Check if username is already taken by someone else
+      const { data: existing } = await supabase.from('profiles').select('id').eq('username', username).neq('id', user.id).maybeSingle();
       if (existing) {
-        throw new Error("That username is already taken! Please try another one.");
+        setUsernameError("Username unavailable, already taken.");
+        setLoading(false);
+        return;
       }
 
-      const { error: upsertError } = await supabase.from('profiles').upsert({
-        id: user.id,
+      const { error: updateError } = await supabase.from('profiles').update({
         username: username.toLowerCase().replace(/[^a-z0-9_]/g, ''),
         branch: branch,
         name: user.user_metadata?.full_name || user.user_metadata?.name || username,
         avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-      });
+      }).eq('id', user.id);
 
-      if (upsertError) {
-        if (upsertError.code === '23505') throw new Error("That username is already taken! Please try another one.");
-        throw upsertError;
+      if (updateError) {
+        if (updateError.code === '23505') {
+          setUsernameError("Username unavailable, already taken.");
+          setLoading(false);
+          return;
+        }
+        throw updateError;
       }
       
       // Success! Fetch the new profile to unblock the app
@@ -87,12 +95,19 @@ export default function OnboardingPopup() {
               type="text"
               required
               value={username}
-              onChange={e => setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''))}
+              onChange={e => {
+                setUsername(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ''));
+                if (usernameError) setUsernameError(null);
+              }}
               placeholder="e.g. maxe_student"
-              className="app-input w-full bg-surface"
+              className={`app-input w-full bg-surface ${usernameError ? 'border-[#2D4A3E]' : ''}`}
               maxLength={20}
             />
-            <p className="text-[10px] text-body/60 px-1">Letters, numbers, and underscores only.</p>
+            {usernameError ? (
+              <p className="text-[11px] font-bold px-1" style={{color: '#2D4A3E'}}>{usernameError}</p>
+            ) : (
+              <p className="text-[10px] text-body/60 px-1">Letters, numbers, and underscores only.</p>
+            )}
           </div>
 
           <div className="space-y-1.5">
