@@ -74,7 +74,7 @@ export default function Auth() {
       <div className="w-full max-w-sm relative z-10">
         {/* Logo text */}
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="Maxe Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-md" />
+          <img src="/icon-192x192.png" alt="Maxe Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-md" />
           <h1 className="text-3xl font-black text-aberration" style={{color:'#2D4A3E'}}>Maxe</h1>
           <p className="text-sm mt-1" style={{color:'#6BA898'}}>Your academic study hub</p>
         </div>
