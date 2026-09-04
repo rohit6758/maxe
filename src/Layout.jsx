@@ -5,6 +5,7 @@ import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
+import OnboardingPopup from './components/OnboardingPopup';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
