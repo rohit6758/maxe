@@ -42,13 +42,14 @@ export default function OnboardingPopup() {
         return;
       }
 
-      const { error: updateError } = await supabase.from('profiles').update({
+      const { error: updateError } = await supabase.from('profiles').upsert({
+        id: user.id,
         username: username.toLowerCase().replace(/[^a-z0-9_.]/g, ''),
         branch: branch,
         college: college,
         name: user.user_metadata?.full_name || user.user_metadata?.name || username,
         avatar_url: user.user_metadata?.avatar_url || user.user_metadata?.picture || null,
-      }).eq('id', user.id);
+      }, { onConflict: 'id' });
 
       if (updateError) {
         if (updateError.code === '23505') {
