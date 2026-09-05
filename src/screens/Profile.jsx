@@ -189,7 +189,7 @@ const loadFollowStats = async () => {
 
       {/* Header */}
       <div className="card p-4">
-        <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Profile</h2>
+        <h2 className="text-xl font-bold text-aberration" className="text-header">Profile</h2>
       </div>
 
       {!isEditing ? (
@@ -201,31 +201,31 @@ const loadFollowStats = async () => {
               style={{borderColor: 'rgba(107,168,152,0.3)', background: 'rgba(107,168,152,0.1)'}}>
               {userProfile?.avatar_url
                 ? <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                : <User size={40} style={{color:'#6BA898'}} />}
+                : <User size={40} className="text-primary" />}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg md:text-xl font-bold truncate flex items-center" style={{color:'#2D4A3E'}}>
+              <h2 className="text-lg md:text-xl font-bold truncate flex items-center" className="text-header">
                 {userProfile?.name || 'Your Name'}
                 {userProfile?.is_premium && <VerifiedBadge />}
               </h2>
-              <p className="text-xs font-semibold mt-0.5" style={{color:'#6BA898'}}>@{userProfile?.username || 'username'}</p>
-              <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.college ? `${userProfile.college} • ${userProfile.branch}` : (userProfile?.branch || 'No branch selected')}</p>
+              <p className="text-xs font-semibold mt-0.5" className="text-primary">@{userProfile?.username || 'username'}</p>
+              <p className="text-xs md:text-sm font-semibold mt-0.5" className="text-primary">{userProfile?.college ? `${userProfile.college} • ${userProfile.branch}` : (userProfile?.branch || 'No branch selected')}</p>
               
               <div className="flex gap-4 mt-2">
                 <button onClick={() => openNetwork('followers')} className="flex flex-col items-start hover:opacity-80">
-                  <span className="font-bold text-sm" style={{color:'#2D4A3E'}}>{followerCount}</span>
-                  <span className="text-[10px] uppercase font-bold" style={{color:'#6BA898'}}>Followers</span>
+                  <span className="font-bold text-sm" className="text-header">{followerCount}</span>
+                  <span className="text-[10px] uppercase font-bold" className="text-primary">Followers</span>
                 </button>
                 <button onClick={() => openNetwork('following')} className="flex flex-col items-start hover:opacity-80">
-                  <span className="font-bold text-sm" style={{color:'#2D4A3E'}}>{followingCount}</span>
-                  <span className="text-[10px] uppercase font-bold" style={{color:'#6BA898'}}>Following</span>
+                  <span className="font-bold text-sm" className="text-header">{followingCount}</span>
+                  <span className="text-[10px] uppercase font-bold" className="text-primary">Following</span>
                 </button>
               </div>
             </div>
           </div>
           
           <div className="mt-5">
-            <p className="text-sm whitespace-pre-wrap leading-relaxed" style={{color:'#5E7A6E'}}>
+            <p className="text-sm whitespace-pre-wrap leading-relaxed" className="text-body">
               {userProfile?.bio || 'Add a bio...'}
             </p>
           </div>
@@ -238,52 +238,76 @@ const loadFollowStats = async () => {
           </button>
           
           {/* MAXE PRO SECTION */}
-          <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent relative overflow-hidden">
-            <div className="absolute -right-4 -top-4 opacity-10">
-              <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
-            </div>
-            {userProfile?.is_premium ? (
+          {userProfile?.is_premium ? (
+            <div className="mt-8 space-y-6">
+              <h3 className="font-black text-header text-lg border-b border-primary/20 pb-2">Pro Settings</h3>
+              
               <div>
-                <h3 className="font-black text-primary text-lg flex items-center gap-1">Maxe Pro <VerifiedBadge className="w-5 h-5 text-primary" /></h3>
-                <p className="text-xs text-body mt-1">You are a Pro member! Enjoy your exclusive features.</p>
-                
-                <div className="space-y-2 mt-4 pt-4 border-t border-primary/20">
-                  <p className="text-xs font-bold text-header uppercase tracking-wider">App Theme</p>
-                  <div className="flex gap-2 flex-wrap">
-                    <button onClick={() => setTheme('default')} className={`w-8 h-8 rounded-full border-2 ${theme==='default'?'border-primary scale-110':'border-transparent'} bg-[#E8F2EE] transition-transform`} aria-label="Default Mint Theme" title="Default Mint"></button>
-                    <button onClick={() => setTheme('eastbay')} className={`w-8 h-8 rounded-full border-2 ${theme==='eastbay'?'border-[#474C80] scale-110':'border-transparent'} bg-[#F8F7E2] transition-transform flex items-center justify-center`} aria-label="East Bay Theme" title="East Bay">
-                      <div className="w-4 h-4 rounded-full bg-[#474C80]"></div>
-                    </button>
-                    <button onClick={() => setTheme('dolphin')} className={`w-8 h-8 rounded-full border-2 ${theme==='dolphin'?'border-[#655A7C] scale-110':'border-transparent'} bg-[#FDF1E2] transition-transform flex items-center justify-center`} aria-label="Dolphin Theme" title="Dolphin">
-                      <div className="w-4 h-4 rounded-full bg-[#655A7C]"></div>
-                    </button>
-                    <button onClick={() => setTheme('venice')} className={`w-8 h-8 rounded-full border-2 ${theme==='venice'?'border-[#16587B] scale-110':'border-transparent'} bg-[#F5EEDD] transition-transform flex items-center justify-center`} aria-label="Venice Blue Theme" title="Venice Blue">
-                      <div className="w-4 h-4 rounded-full bg-[#16587B]"></div>
-                    </button>
-                    <button onClick={() => setTheme('lagoon')} className={`w-8 h-8 rounded-full border-2 ${theme==='lagoon'?'border-[#008795] scale-110':'border-transparent'} bg-[#F2D4D7] transition-transform flex items-center justify-center`} aria-label="Lagoon Pulse Theme" title="Lagoon Pulse">
-                      <div className="w-4 h-4 rounded-full bg-[#008795]"></div>
-                    </button>
-                    <button onClick={() => setTheme('berry')} className={`w-8 h-8 rounded-full border-2 ${theme==='berry'?'border-[#521845] scale-110':'border-transparent'} bg-[#FFD5EA] transition-transform flex items-center justify-center`} aria-label="Mauve Berry Theme" title="Mauve Berry">
-                      <div className="w-4 h-4 rounded-full bg-[#521845]"></div>
-                    </button>
+                <p className="text-xs font-bold text-header uppercase tracking-wider mb-3">App Theme</p>
+                <div className="flex gap-2 flex-wrap">
+                  <button onClick={() => setTheme('default')} className={`w-10 h-10 rounded-full border-2 ${theme==='default'?'border-primary scale-110':'border-transparent'} bg-[#E8F2EE] transition-transform`} aria-label="Default Mint Theme" title="Default Mint"></button>
+                  <button onClick={() => setTheme('eastbay')} className={`w-10 h-10 rounded-full border-2 ${theme==='eastbay'?'border-[#474C80] scale-110':'border-transparent'} bg-[#F8F7E2] transition-transform flex items-center justify-center`} aria-label="East Bay Theme" title="East Bay">
+                    <div className="w-5 h-5 rounded-full bg-[#474C80]"></div>
+                  </button>
+                  <button onClick={() => setTheme('dolphin')} className={`w-10 h-10 rounded-full border-2 ${theme==='dolphin'?'border-[#655A7C] scale-110':'border-transparent'} bg-[#FDF1E2] transition-transform flex items-center justify-center`} aria-label="Dolphin Theme" title="Dolphin">
+                    <div className="w-5 h-5 rounded-full bg-[#655A7C]"></div>
+                  </button>
+                  <button onClick={() => setTheme('venice')} className={`w-10 h-10 rounded-full border-2 ${theme==='venice'?'border-[#16587B] scale-110':'border-transparent'} bg-[#F5EEDD] transition-transform flex items-center justify-center`} aria-label="Venice Blue Theme" title="Venice Blue">
+                    <div className="w-5 h-5 rounded-full bg-[#16587B]"></div>
+                  </button>
+                  <button onClick={() => setTheme('lagoon')} className={`w-10 h-10 rounded-full border-2 ${theme==='lagoon'?'border-[#008795] scale-110':'border-transparent'} bg-[#F2D4D7] transition-transform flex items-center justify-center`} aria-label="Lagoon Pulse Theme" title="Lagoon Pulse">
+                    <div className="w-5 h-5 rounded-full bg-[#008795]"></div>
+                  </button>
+                  <button onClick={() => setTheme('berry')} className={`w-10 h-10 rounded-full border-2 ${theme==='berry'?'border-[#521845] scale-110':'border-transparent'} bg-[#FFD5EA] transition-transform flex items-center justify-center`} aria-label="Mauve Berry Theme" title="Mauve Berry">
+                    <div className="w-5 h-5 rounded-full bg-[#521845]"></div>
+                  </button>
+                </div>
+              </div>
+
+              <div>
+                <p className="text-xs font-bold text-header uppercase tracking-wider mb-3">Profile Effects</p>
+                <div className="bg-surface border border-primary/20 rounded-xl p-4 flex flex-col gap-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-header text-sm">Nitro Animated Banner</h4>
+                      <p className="text-xs text-body">Animate your profile background.</p>
+                    </div>
+                    <div className="w-10 h-6 bg-primary rounded-full relative shadow-inner">
+                      <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
+                    </div>
+                  </div>
+                  <div className="h-px w-full bg-primary/10"></div>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h4 className="font-bold text-header text-sm">Avatar Glow Ring</h4>
+                      <p className="text-xs text-body">Stand out in searches.</p>
+                    </div>
+                    <div className="w-10 h-6 bg-primary rounded-full relative shadow-inner">
+                      <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
+                    </div>
                   </div>
                 </div>
               </div>
-            ) : (
+            </div>
+          ) : (
+            <div className="mt-8 p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent relative overflow-hidden">
+              <div className="absolute -right-4 -top-4 opacity-10">
+                <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+              </div>
               <div>
                 <h3 className="font-black text-header text-lg">Upgrade to Maxe Pro</h3>
-                <p className="text-xs text-body mt-1">Get the Verified Badge, custom themes, and unlimited offline notes.</p>
+                <p className="text-xs text-body mt-1">Get the Verified Badge, custom themes, and animated profile effects.</p>
                 <button className="mt-3 bg-header text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-header/90 transition-colors">
                   Get Pro for ₹70
                 </button>
               </div>
-            )}
-          </div>
+            </div>
+          )}
         </div>
       ) : (
         <div className="card p-5 space-y-5">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="font-bold" style={{color:'#2D4A3E'}}>Edit Profile</h3>
+            <h3 className="font-bold" className="text-header">Edit Profile</h3>
             <button onClick={() => setIsEditing(false)} className="text-xs font-bold" style={{color:'#DC6B6B'}}>Cancel</button>
           </div>
 
@@ -293,7 +317,7 @@ const loadFollowStats = async () => {
                 style={{background:'rgba(107,168,152,0.12)', border:'2px solid rgba(107,168,152,0.3)'}}>
                 {avatarUrl
                   ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
-                  : <User size={36} style={{color:'#6BA898'}} />}
+                  : <User size={36} className="text-primary" />}
               </div>
               <label className="absolute -bottom-1 -right-1 rounded-xl p-2 cursor-pointer shadow"
                 style={{background:'#6BA898', border:'2px solid #FFFFFF'}}>
@@ -306,7 +330,7 @@ const loadFollowStats = async () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Username</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" className="text-body">Username</label>
             <input className="app-input" placeholder="Your unique username" value={username} onChange={e => {
               let val = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
               if (val.length > 0 && (val[0] === '_' || val[0] === '.')) val = val.substring(1);
@@ -315,12 +339,12 @@ const loadFollowStats = async () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Name</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" className="text-body">Name</label>
             <input className="app-input" placeholder="Your full name" value={name} onChange={e => setName(e.target.value)} />
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>College</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" className="text-body">College</label>
             <select className="app-input" value={college} onChange={e => setCollege(e.target.value)}>
               <option value="">Select college</option>
               {COLLEGES.map(c => <option key={c} value={c}>{c}</option>)}
@@ -328,7 +352,7 @@ const loadFollowStats = async () => {
           </div>
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Branch</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" className="text-body">Branch</label>
             <select className="app-input" value={branch} onChange={e => setBranch(e.target.value)}>
               <option value="">Select branch</option>
               {BRANCHES.map(b => <option key={b} value={b}>{b}</option>)}
@@ -337,7 +361,7 @@ const loadFollowStats = async () => {
 
 
           <div>
-            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" style={{color:'#5E7A6E'}}>Bio</label>
+            <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" className="text-body">Bio</label>
             <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
           </div>
 
@@ -353,10 +377,10 @@ const loadFollowStats = async () => {
 
       {/* Account */}
       <div className="card p-4 space-y-3">
-        <h3 className="font-bold" style={{color:'#2D4A3E'}}>Account</h3>
+        <h3 className="font-bold" className="text-header">Account</h3>
         <div className="card-sm p-3">
           <p className="text-xs font-semibold uppercase tracking-wider" style={{color:'#A8C5B8'}}>Email</p>
-          <p className="text-sm font-medium mt-0.5" style={{color:'#2D4A3E'}}>{session?.user?.email}</p>
+          <p className="text-sm font-medium mt-0.5" className="text-header">{session?.user?.email}</p>
         </div>
         <button
           onClick={() => supabase.auth.signOut()}
@@ -443,7 +467,7 @@ const loadFollowStats = async () => {
               <img src={userProfile?.avatar_url} className="w-full h-full object-cover" alt="avatar" />
             ) : (
               <div className="w-full h-full flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)'}}>
-                <User size={120} style={{color:'#6BA898'}} />
+                <User size={120} className="text-primary" />
               </div>
             )}
             

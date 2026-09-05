@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Flame, FileText, Bot, PlayCircle, CheckCircle } from 'lucide-react';
+import { X, Flame, FileText, Bot, PlayCircle, CheckCircle, Brain, BookOpen } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 
@@ -41,67 +41,46 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
               </button>
             </div>
           ) : (
-            <div className="space-y-6 relative">
+            <div className="flex flex-col items-center pb-8 pt-4">
+              <h4 className="text-xs font-bold text-header uppercase tracking-widest text-center mb-10">Daily Flow</h4>
               
-              {/* Streak Header */}
-              <div className="flex items-center justify-center gap-3">
-                <Flame size={40} className="text-[#FF9D00] drop-shadow-md animate-pulse" />
-                <div>
-                  <div className="text-4xl font-black text-header">12 <span className="text-xl text-body font-bold">Days</span></div>
-                  <p className="text-xs font-bold text-[#FF9D00] uppercase tracking-wide">Current Streak</p>
+              <div className="relative w-56 h-56 flex items-center justify-center">
+                {/* SVG Ring */}
+                <svg className="absolute inset-0 w-full h-full -rotate-90 pointer-events-none" viewBox="0 0 100 100">
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="8" className="text-primary/10" />
+                  <circle cx="50" cy="50" r="45" fill="none" stroke="url(#gradient)" strokeWidth="8" strokeDasharray="282.7" strokeDashoffset="56.54" strokeLinecap="round" className="animate-pulse" />
+                  <defs>
+                    <linearGradient id="gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <stop offset="0%" stopColor="var(--theme-primary)" />
+                      <stop offset="100%" stopColor="var(--theme-accent)" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+
+                {/* Center Content */}
+                <div className="text-center z-10 flex flex-col items-center">
+                  <Flame size={32} className="text-[#FF9D00] drop-shadow-sm mb-1" />
+                  <div className="text-5xl font-black text-header leading-none tracking-tight">12</div>
+                  <p className="text-[10px] font-bold text-body uppercase tracking-wide mt-1">Day Streak</p>
+                </div>
+
+                {/* Orbiting Icons */}
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#E8F2EE] border-2 border-primary flex items-center justify-center shadow-md z-10" title="Read PDFs">
+                  <FileText size={18} className="text-primary" />
+                </div>
+                <div className="absolute top-[14%] right-[4%] translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#FDF1E2] border-2 border-[#FF9D00] flex items-center justify-center shadow-md z-10" title="AI Chat">
+                  <Bot size={18} className="text-[#FF9D00]" />
+                </div>
+                <div className="absolute bottom-[14%] right-[4%] translate-x-1/2 translate-y-1/2 w-10 h-10 rounded-full bg-[#F2D4D7] border-2 border-[#E11D48] flex items-center justify-center shadow-md z-10" title="Watched YT">
+                  <PlayCircle size={18} className="text-[#E11D48]" />
+                </div>
+                <div className="absolute bottom-0 left-1/2 -translate-x-1/2 translate-y-1/2 w-10 h-10 rounded-full bg-[#F5EEDD] border-2 border-[#16587B] flex items-center justify-center shadow-md z-10" title="Research">
+                  <BookOpen size={18} className="text-[#16587B]" />
+                </div>
+                <div className="absolute top-[50%] left-0 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-md z-10" title="Goal Met">
+                  <CheckCircle size={20} className="text-white" />
                 </div>
               </div>
-
-              {/* Flowchart Diagram */}
-              <div className="mt-8 border border-primary/20 rounded-2xl p-6 bg-background/30 relative">
-                <h4 className="text-xs font-bold text-header uppercase tracking-widest text-center mb-6">Today's Flow</h4>
-                
-                <div className="flex flex-col items-center gap-2 relative">
-                  
-                  {/* Vertical Line */}
-                  <div className="absolute top-8 bottom-8 left-1/2 w-0.5 bg-primary/20 -translate-x-1/2"></div>
-                  
-                  {/* Step 1 */}
-                  <div className="flex flex-col items-center gap-1 z-10 relative bg-surface p-2 rounded-full border-2 border-primary shadow-sm hover:scale-105 transition-transform">
-                    <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-                      <FileText size={20} className="text-primary" />
-                    </div>
-                    <span className="text-[10px] font-bold text-body">Read PDFs (2h)</span>
-                  </div>
-                  
-                  <div className="h-6"></div>
-
-                  {/* Step 2 */}
-                  <div className="flex flex-col items-center gap-1 z-10 relative bg-surface p-2 rounded-full border-2 border-[#84B3CE] shadow-sm hover:scale-105 transition-transform">
-                    <div className="w-10 h-10 rounded-full bg-[#84B3CE]/10 flex items-center justify-center">
-                      <PlayCircle size={20} className="text-[#84B3CE]" />
-                    </div>
-                    <span className="text-[10px] font-bold text-body">Watched YT (45m)</span>
-                  </div>
-
-                  <div className="h-6"></div>
-
-                  {/* Step 3 */}
-                  <div className="flex flex-col items-center gap-1 z-10 relative bg-surface p-2 rounded-full border-2 border-[#FFD5EA] shadow-sm hover:scale-105 transition-transform">
-                    <div className="w-10 h-10 rounded-full bg-[#FFD5EA]/30 flex items-center justify-center">
-                      <Bot size={20} className="text-[#521845]" />
-                    </div>
-                    <span className="text-[10px] font-bold text-body">AI Chats (15m)</span>
-                  </div>
-
-                  <div className="h-6"></div>
-
-                  {/* Step 4 */}
-                  <div className="flex flex-col items-center gap-1 z-10 relative">
-                    <div className="w-8 h-8 rounded-full bg-primary flex items-center justify-center text-white shadow-md">
-                      <CheckCircle size={16} />
-                    </div>
-                    <span className="text-[10px] font-bold text-primary">Goal Reached!</span>
-                  </div>
-
-                </div>
-              </div>
-
             </div>
           )}
         </div>
