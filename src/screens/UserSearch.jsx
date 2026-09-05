@@ -173,6 +173,24 @@ export default function UserSearch() {
               <div className="space-y-1">
                 {recentSearches.map((item, index) => {
                   const isText = typeof item === 'string';
+                  
+                  let eff = null;
+                  if (!isText && item.interests && item.interests.startsWith('{')) {
+                    try {
+                      const parsed = JSON.parse(item.interests);
+                      if (parsed.profileEffects) eff = parsed.profileEffects;
+                    } catch(e) {}
+                  }
+                  const hasWallpaper = !isText && item.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
+                  const wallpaperStyle = hasWallpaper ? {
+                    background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
+                                eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
+                                eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
+                                eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
+                    backgroundSize: eff.wallpaper === 'custom' ? 'cover' : eff.wallpaper === 'waves' ? 'auto' : '20px 20px',
+                    backgroundPosition: 'center'
+                  } : {};
+
                   return (
                     <div 
                       key={isText ? item : item.id} 
@@ -185,9 +203,11 @@ export default function UserSearch() {
                           openUserPopup(item);
                         }
                       }} 
-                      className="px-2 py-3 flex items-center gap-3 cursor-pointer hover:bg-black/5 transition-colors"
+                      className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-1 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
+                      style={wallpaperStyle}
                     >
-                      <div className={`w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
+                      {hasWallpaper && <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>}
+                      <div className={`relative z-10 w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden \${isText ? 'bg-transparent' : 'bg-surface'}`}>
                         {isText ? (
                           <Search size={22} className="text-body" />
                         ) : item.avatar_url ? (
@@ -196,7 +216,7 @@ export default function UserSearch() {
                           <User size={24} className="text-body" />
                         )}
                       </div>
-                      <div className="flex-1 min-w-0">
+                      <div className="flex-1 min-w-0 relative z-10">
                         {isText ? (
                           <p className="text-base font-bold text-header truncate">{item}</p>
                         ) : (
@@ -212,7 +232,7 @@ export default function UserSearch() {
                           </>
                         )}
                       </div>
-                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className="p-2 text-body hover:text-header">
+                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className="p-2 text-body hover:text-header relative z-10">
                         <X size={20} />
                       </button>
                     </div>
@@ -250,7 +270,7 @@ export default function UserSearch() {
                 className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden \${hasWallpaper ? 'rounded-xl mb-2 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
                 style={wallpaperStyle}
               >
-                {hasWallpaper && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] pointer-events-none"></div>}
+                {hasWallpaper && <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>}
                 
                 <div className={`relative z-10 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm ${user.is_premium ? 'bg-gradient-to-tr from-primary to-accent p-0.5' : 'bg-surface border border-primary/15'}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
