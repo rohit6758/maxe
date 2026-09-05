@@ -12,6 +12,12 @@ export function AppProvider({ children }) {
   const [activeBranch, setActiveBranch] = useState('');
   const [activeSemester, setActiveSemester] = useState(null);
   const [activeSubject, setActiveSubject] = useState(null);
+  const [theme, setTheme] = useState(localStorage.getItem('maxe_theme') || 'default');
+
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', theme);
+    localStorage.setItem('maxe_theme', theme);
+  }, [theme]);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -56,6 +62,7 @@ export function AppProvider({ children }) {
       session,
       userProfile,
       loading,
+      theme, setTheme,
       activeBranch, setActiveBranch,
       activeSemester, setActiveSemester,
       activeSubject, setActiveSubject,
