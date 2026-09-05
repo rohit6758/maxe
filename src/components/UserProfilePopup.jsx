@@ -113,25 +113,37 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     }
   };
 
+  const isMe = currentUserId === userId;
+  const effectiveTheme = isMe ? useAppContext().theme : (profile?.is_premium ? 'venice' : 'default');
+  const dec = THEME_DECORATIONS[effectiveTheme] || THEME_DECORATIONS.default;
+  const eff = isMe ? profileEffects : (profile?.is_premium ? { banner:'gradient', avatar:'neon-pulse', wallpaper:'waves' } : { banner:'none', avatar:'none', wallpaper:'none' });
+
   return (
-    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-white/40 backdrop-blur-md animate-fade-in" onClick={onClose}>
+    <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       
-      <div className="relative w-full max-w-sm card overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()}>
+      <div className="relative w-full max-w-sm card overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()} style={{
+        ...(profile?.is_premium && eff?.wallpaper !== 'none' ? {
+          background: eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
+                      eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
+                      eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
+          backgroundSize: eff.wallpaper === 'waves' ? 'auto' : '20px 20px'
+        } : {})
+      }}>
         
         {/* Header */}
-        <div className="flex justify-between items-center p-4 border-b border-primary/10">
-          <div className="flex items-center gap-2">
+        <div className="flex justify-between items-center p-4 relative z-50">
+          <div className="flex items-center gap-2 bg-white/50 backdrop-blur-md rounded-full px-2 py-1">
             {viewMode !== 'profile' && (
-              <button onClick={() => setViewMode('profile')} className="p-1 -ml-2 text-primary hover:bg-primary/5 rounded-full transition-colors">
-                <ArrowLeft size={20} />
+              <button onClick={() => setViewMode('profile')} className="p-1 -ml-1 text-primary hover:bg-primary/10 rounded-full transition-colors">
+                <ArrowLeft size={16} />
               </button>
             )}
-            <h3 className="font-bold text-header text-base truncate">
+            <h3 className="font-bold text-header text-sm truncate">
               {viewMode === 'profile' ? `@${profile?.username || 'user'}` : viewMode === 'followers' ? 'Followers' : 'Following'}
             </h3>
           </div>
-          <button onClick={onClose} className="p-1.5 text-body hover:text-primary transition-colors rounded-full bg-primary/5">
-            <X size={20} />
+          <button onClick={onClose} className="p-2 text-white bg-black/20 hover:bg-black/40 backdrop-blur-md transition-colors rounded-full">
+            <X size={18} />
           </button>
         </div>
 
@@ -141,30 +153,38 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
             <p className="text-sm font-semibold text-primary animate-pulse">Loading profile...</p>
           </div>
         ) : viewMode === 'profile' ? (
-          <div className="p-6 relative">
-            {profile?.is_premium && profileEffects?.banner === 'gradient' && (
-              <div className="absolute top-0 left-0 right-0 h-32 nitro-bg opacity-30 pointer-events-none rounded-t-xl" style={{maskImage: 'linear-gradient(to bottom, black, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)'}}></div>
+          <div className="p-6 pt-0 relative">
+            {profile?.is_premium && eff?.banner === 'gradient' && (
+              <div className="absolute top-0 left-0 right-0 h-40 opacity-80 pointer-events-none" style={{background: dec.bg, maskImage: 'linear-gradient(to bottom, black 50%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)'}}></div>
             )}
             
             {/* Top section: Avatar + Stats */}
-            <div className="flex items-center gap-6 mb-6 relative z-10">
+            <div className="flex items-center gap-6 mb-6 relative z-10 mt-6">
               <div 
-                className={`w-24 h-24 rounded-full border-4 ${profile?.is_premium ? 'border-transparent bg-gradient-to-tr from-primary to-accent p-1' : 'border-primary/20'} overflow-hidden flex items-center justify-center shrink-0 cursor-pointer shadow-lg relative`}
+                className="relative w-28 h-28 flex items-center justify-center shrink-0 cursor-pointer"
                 onClick={() => profile?.avatar_url && setViewingAvatar(true)}
               >
-                {profile?.is_premium && profileEffects?.avatar !== 'none' && (
-                  <AvatarDecoration type={profileEffects?.avatar} />
+                {/* Theme-specific decorations */}
+                {profile?.is_premium && (
+                  <div className="absolute inset-0 pointer-events-none scale-[1.3] z-0">
+                    {dec.elements}
+                  </div>
                 )}
-                <div className="w-full h-full rounded-full overflow-hidden bg-primary/5">
+                {/* Fallback old avatar decoration */}
+                {profile?.is_premium && eff?.avatar !== 'none' && (
+                  <AvatarDecoration type={eff?.avatar} />
+                )}
+                <div className="w-24 h-24 rounded-full border-4 overflow-hidden relative z-10 bg-white"
+                  style={{borderColor: profile?.is_premium ? 'color-mix(in srgb, var(--theme-primary) 50%, white)' : 'var(--theme-ring)'}}>
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} className="w-full h-full object-cover" alt="avatar" />
                   ) : (
-                    <User size={40} className="text-primary/50 m-auto mt-4" />
+                    <User size={40} className="text-primary/50 m-auto mt-6" />
                   )}
                 </div>
               </div>
               
-              <div className="flex-1 flex justify-around items-center">
+              <div className="flex-1 flex justify-around items-center bg-white/60 backdrop-blur-sm p-3 rounded-2xl shadow-sm border border-white/50">
                 <div className="flex flex-col items-center cursor-pointer hover:opacity-70 transition-opacity" onClick={() => setViewMode('followers')}>
                   <span className="font-extrabold text-header text-2xl">{followerCount}</span>
                   <span className="text-[11px] font-bold text-body tracking-wider uppercase">Followers</span>
