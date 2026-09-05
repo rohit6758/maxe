@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../lib/supabase';
 import { X, ChevronRight, Sparkles, Palette, Wand2, Image } from 'lucide-react';
 
 // Theme-specific decorations that orbit the profile avatar
@@ -166,7 +167,8 @@ const THEME_DECORATIONS = {
 
 export default function ProSettingsModal({ isOpen, onClose }) {
   const { theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
-  const [view, setView] = useState('main'); // 'main' | 'theme' | 'effects' | 'wallpaper'
+  const [view, setView] = useState('main');
+  const [uploading, setUploading] = useState(false); // 'main' | 'theme' | 'effects' | 'wallpaper'
   const dec = THEME_DECORATIONS[theme] || THEME_DECORATIONS.default;
 
   if (!isOpen) return null;
@@ -335,10 +337,49 @@ export default function ProSettingsModal({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* WALLPAPER */}
+                    {/* WALLPAPER */}
           {view === 'wallpaper' && (
             <div className="space-y-4">
-              <p className="text-xs" style={{color:'var(--theme-body)'}}>Choose a background pattern. This shows on your public profile page.</p>
+              <p className="text-xs" style={{color:'var(--theme-body)'}}>Choose a background pattern or upload your own from gallery.</p>
+              
+              {/* Custom Upload Button */}
+              <label className="w-full relative h-20 rounded-2xl overflow-hidden transition-all flex flex-col items-center justify-center cursor-pointer"
+                style={{
+                  background: profileEffects.wallpaper === 'custom' && profileEffects.customWallpaperUrl ? `url(${profileEffects.customWallpaperUrl})` : 'var(--theme-sidebar)',
+                  backgroundSize: 'cover', backgroundPosition: 'center',
+                  boxShadow: profileEffects.wallpaper === 'custom' ? `0 0 0 3px var(--theme-primary)` : '0 2px 8px rgba(0,0,0,0.1)'
+                }}>
+                <div className="absolute inset-0 bg-black/40"></div>
+                <div className="relative z-10 flex flex-col items-center gap-1">
+                  {uploading ? (
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                  ) : (
+                    <Image size={24} color="#fff" />
+                  )}
+                  <span className="text-xs font-bold text-white shadow-md">
+                    {profileEffects.wallpaper === 'custom' && profileEffects.customWallpaperUrl ? 'Change Custom Wallpaper' : 'Upload from Gallery'}
+                  </span>
+                </div>
+                <input type="file" accept="image/*" className="hidden" disabled={uploading} onChange={async (e) => {
+                  const file = e.target.files[0];
+                  if (!file) return;
+                  setUploading(true);
+                  try {
+                    const { data: { session } } = await supabase.auth.getSession();
+                    const ext = file.name.split('.').pop();
+                    const path = `banners/${session.user.id}-${Date.now()}.${ext}`;
+                    const { error } = await supabase.storage.from('uploads').upload(path, file, { upsert: true, contentType: file.type });
+                    if (error) throw error;
+                    const { data } = supabase.storage.from('uploads').getPublicUrl(path);
+                    setProfileEffects({ ...profileEffects, wallpaper: 'custom', customWallpaperUrl: data.publicUrl });
+                  } catch (err) {
+                    console.error(err);
+                    alert('Failed to upload wallpaper');
+                  }
+                  setUploading(false);
+                }} />
+              </label>
+
               <div className="grid grid-cols-2 gap-3">
                 {[
                   {id:'none', label:'None', preview:'var(--theme-surface)'},
