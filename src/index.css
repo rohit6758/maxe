@@ -1,76 +1,75 @@
 @import "tailwindcss";
 
-
 :root {
-  /* Default — Mint Forest: warm cream bg + deep forest green accents */
-  --theme-bg: #F0F7F0;          /* very light mint bg */
-  --theme-sidebar: #E0EFE7;     /* slightly deeper sidebar bg */
-  --theme-surface: #FFFFFF;     /* card surface */
-  --theme-primary: #2A7A5E;     /* rich forest green — buttons, active */
-  --theme-accent: #5EAB8A;      /* medium mint — hover, icons */
-  --theme-header: #1A3D2E;      /* dark forest — headings */
-  --theme-body: #4A7060;        /* soft body text */
-  --theme-ring: #A8D5C2;        /* rings, borders */
+  /* Default — Mint + Forest Green */
+  --theme-bg: #EAF5EF;         /* mint cream page bg */
+  --theme-sidebar: #D3EDE0;    /* deeper mint sidebar */
+  --theme-surface: #FFFFFF;
+  --theme-primary: #1B7A52;    /* rich forest green — buttons */
+  --theme-accent: #4DAB82;     /* mid green */
+  --theme-header: #0B3D26;     /* very dark forest — headings */
+  --theme-body: #1E5E3E;       /* dark body text — READABLE */
+  --theme-ring: #94D4B6;
 }
 
 [data-theme="eastbay"] {
-  /* East Bay — warm cream bg + indigo/violet accents */
-  --theme-bg: #EFEEFD;          /* very soft periwinkle bg */
-  --theme-sidebar: #E3E1FA;     /* deeper sidebar */
+  /* East Bay — Warm Yellow-Cream + Deep Indigo */
+  --theme-bg: #F2F0E3;         /* warm straw/cream */
+  --theme-sidebar: #E5E2CC;    /* deep cream sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #3B3F91;     /* rich indigo — buttons */
-  --theme-accent: #6264C8;      /* medium purple */
-  --theme-header: #1E204D;      /* dark navy — headings */
-  --theme-body: #555A99;        /* soft indigo body text */
-  --theme-ring: #A8AAE8;        /* rings, borders */
+  --theme-primary: #393EA0;    /* vivid indigo */
+  --theme-accent: #6267CE;     /* medium indigo */
+  --theme-header: #191C55;     /* very dark navy */
+  --theme-body: #3D4296;       /* dark indigo text — READABLE */
+  --theme-ring: #A4A7E0;
 }
 
 [data-theme="dolphin"] {
-  /* Dolphin — warm tan bg + plum/violet accents */
-  --theme-bg: #F5EFF9;          /* light lavender bg */
-  --theme-sidebar: #EDE4F5;     /* deeper sidebar */
+  /* Dolphin — Warm Peach + Deep Plum */
+  --theme-bg: #F7EDE3;         /* peach/tan bg */
+  --theme-sidebar: #EDD9C9;    /* deeper peach sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #6D4C9A;     /* rich plum — buttons */
-  --theme-accent: #9B78C8;      /* medium violet */
-  --theme-header: #3B2659;      /* dark plum — headings */
-  --theme-body: #7C5FA0;        /* soft body text */
-  --theme-ring: #C9ABE6;        /* rings, borders */
+  --theme-primary: #7A3A9A;    /* vivid plum */
+  --theme-accent: #A86EC8;     /* mid violet */
+  --theme-header: #3C1A5A;     /* very dark plum */
+  --theme-body: #6B3490;       /* dark plum text — READABLE */
+  --theme-ring: #C8A0E0;
 }
 
 [data-theme="venice"] {
-  /* Venice — warm sand bg + ocean blue accents */
-  --theme-bg: #EBF3F9;          /* pale sky bg */
-  --theme-sidebar: #DCE9F5;     /* deeper sidebar */
+  /* Venice — Teal-Tinted Cool Grey + Ocean Blue */
+  --theme-bg: #E4EFF7;         /* sky blue bg */
+  --theme-sidebar: #CCDFEE;    /* deeper sky sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #0F5A82;     /* rich ocean blue — buttons */
-  --theme-accent: #3D87B4;      /* medium sky */
-  --theme-header: #082B45;      /* dark navy — headings */
-  --theme-body: #1E6999;        /* soft body text */
-  --theme-ring: #9DC4DE;        /* rings, borders */
+  --theme-primary: #0C5E8A;    /* ocean blue */
+  --theme-accent: #3A8CB4;     /* mid blue */
+  --theme-header: #052D44;     /* very dark navy */
+  --theme-body: #165E84;       /* dark blue text — READABLE */
+  --theme-ring: #8AC0DC;
 }
 
 [data-theme="lagoon"] {
-  /* Lagoon — rose bg + teal accents */
-  --theme-bg: #FDF0F0;          /* very pale rose bg */
-  --theme-sidebar: #F7E2E4;     /* deeper sidebar */
+  /* Lagoon — Rose + Deep Teal (FIXED) */
+  --theme-bg: #FDDFE2;         /* vibrant rose bg — clearly different */
+  --theme-sidebar: #FAC8CC;    /* deeper rose sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #007B8A;     /* rich teal — buttons */
-  --theme-accent: #F87060;      /* coral accent */
-  --theme-header: #00454E;      /* dark teal — headings */
-  --theme-body: #009BAA;        /* soft body text */
-  --theme-ring: #B2E0E6;        /* rings, borders */
+  --theme-primary: #007080;    /* teal */
+  --theme-accent: #E8504A;     /* coral punch */
+  --theme-header: #003840;     /* very dark teal */
+  --theme-body: #005A68;       /* dark teal text — READABLE */
+  --theme-ring: #8ED0D8;
 }
 
 [data-theme="berry"] {
-  /* Berry — blush bg + deep berry accents */
-  --theme-bg: #FDF0F6;          /* pale blush bg */
-  --theme-sidebar: #F5DCF0;     /* deeper sidebar */
+  /* Berry — Blush Pink + Deep Magenta */
+  --theme-bg: #FAD8EE;         /* vibrant blush */
+  --theme-sidebar: #F3BEE2;    /* deeper blush sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #8B1D72;     /* deep berry — buttons */
-  --theme-accent: #C96FB0;      /* medium magenta */
-  --theme-header: #4A0030;      /* very dark plum — headings */
-  --theme-body: #A03888;        /* soft body text */
-  --theme-ring: #E8AED8;        /* rings, borders */
+  --theme-primary: #8A1868;    /* deep berry/magenta */
+  --theme-accent: #C754A4;     /* mid magenta */
+  --theme-header: #420030;     /* very dark plum */
+  --theme-body: #7A1860;       /* dark berry text — READABLE */
+  --theme-ring: #E4A0CE;
 }
 
 @theme {
@@ -99,56 +98,55 @@
     border: none;
     background: transparent;
     text-align: left;
+    width: 100%;
   }
   .nav-item:hover {
-    background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+    background: color-mix(in srgb, var(--theme-primary) 12%, transparent);
     color: var(--theme-header);
   }
   .nav-item-active {
-    background: color-mix(in srgb, var(--theme-primary) 15%, transparent) !important;
+    background: color-mix(in srgb, var(--theme-primary) 18%, transparent) !important;
     color: var(--theme-primary) !important;
+    font-weight: 800 !important;
   }
 
   .text-aberration {
-    text-shadow: 0 0 10px color-mix(in srgb, var(--theme-primary) 40%, transparent), 1px 0 2px color-mix(in srgb, var(--theme-primary) 30%, transparent);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--theme-primary) 30%, transparent);
   }
 
-  /* Main app card */
   .card {
     background: var(--theme-surface);
-    border: 1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 70%, transparent);
     border-radius: 16px;
-    box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary) 6%, transparent);
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary) 8%, transparent);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   .card:hover {
-    box-shadow: 0 8px 32px color-mix(in srgb, var(--theme-primary) 12%, transparent);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--theme-primary) 14%, transparent);
     transform: translateY(-1px);
   }
   
   .card-sm {
     background: var(--theme-surface);
-    border: 1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 70%, transparent);
     border-radius: 12px;
-    box-shadow: 0 2px 10px color-mix(in srgb, var(--theme-primary) 5%, transparent);
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--theme-primary) 6%, transparent);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card-sm:hover {
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 10%, transparent);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 12%, transparent);
     transform: translateY(-1px);
   }
   
-  /* Soft tinted surface */
   .mint {
-    background: color-mix(in srgb, var(--theme-sidebar) 80%, white);
-    border: 1px solid color-mix(in srgb, var(--theme-ring) 40%, transparent);
+    background: color-mix(in srgb, var(--theme-sidebar) 60%, white);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 50%, transparent);
     border-radius: 10px;
   }
   
-  /* Input style */
   .app-input {
-    background: color-mix(in srgb, var(--theme-bg) 60%, white);
-    border: 2px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
+    background: color-mix(in srgb, var(--theme-bg) 40%, white);
+    border: 2px solid color-mix(in srgb, var(--theme-ring) 80%, transparent);
     border-radius: 8px;
     color: var(--theme-header);
     width: 100%;
@@ -161,14 +159,13 @@
   .app-input:focus {
     border-color: var(--theme-primary);
     background: var(--theme-surface);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 12%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 15%, transparent);
   }
   .app-input::placeholder {
     color: var(--theme-body);
-    opacity: 0.5;
+    opacity: 0.45;
   }
   
-  /* Primary button */
   .btn-primary {
     background: var(--theme-primary);
     color: #ffffff;
@@ -177,16 +174,16 @@
     padding: 8px 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 35%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 40%, transparent);
   }
   .btn-primary:hover {
     background: color-mix(in srgb, var(--theme-primary) 85%, black);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-primary) 45%, transparent);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-primary) 50%, transparent);
     transform: translateY(-2px);
   }
   .btn-primary:active {
     transform: translateY(1px);
-    box-shadow: 0 2px 8px color-mix(in srgb, var(--theme-primary) 20%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--theme-primary) 25%, transparent);
   }
   .btn-primary:disabled {
     background: var(--theme-ring);
@@ -196,7 +193,6 @@
     cursor: not-allowed;
   }
   
-  /* Outline button */
   .btn-outline {
     background: var(--theme-surface);
     border: 2px solid var(--theme-ring);
@@ -211,18 +207,16 @@
     background: color-mix(in srgb, var(--theme-primary) 8%, white);
     border-color: var(--theme-primary);
     color: var(--theme-header);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 15%, transparent);
   }
   
-  /* Tag pill */
   .tag {
-    background: color-mix(in srgb, var(--theme-sidebar) 80%, white);
+    background: color-mix(in srgb, var(--theme-sidebar) 70%, white);
     color: var(--theme-body);
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 8px;
-    border: 1px solid color-mix(in srgb, var(--theme-ring) 50%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
     transition: all 0.2s;
   }
   .tag-active {
@@ -233,7 +227,7 @@
     padding: 4px 10px;
     border-radius: 8px;
     border: 1px solid transparent;
-    box-shadow: 0 4px 10px color-mix(in srgb, var(--theme-primary) 30%, transparent);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--theme-primary) 35%, transparent);
   }
 }
 
@@ -242,7 +236,6 @@ body {
   -webkit-font-smoothing: antialiased;
   background-color: var(--theme-bg);
   color: var(--theme-body);
-  
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
@@ -311,7 +304,7 @@ input, textarea, .selectable, [contenteditable] {
   transform: scale(1.05);
 }
 .react-calendar__tile--now {
-  background: color-mix(in srgb, var(--theme-sidebar) 80%, white) !important;
+  background: color-mix(in srgb, var(--theme-sidebar) 60%, white) !important;
   border: 1.5px solid var(--theme-primary) !important;
   color: var(--theme-primary) !important;
 }
@@ -323,12 +316,12 @@ input, textarea, .selectable, [contenteditable] {
 .react-calendar__tile--active:enabled:focus {
   background: var(--theme-primary) !important;
   color: white !important;
-  box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 30%, transparent) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 35%, transparent) !important;
   transform: scale(1.05);
   border: none !important;
 }
 .react-calendar__month-view__days__day--neighboringMonth {
-  opacity: 0.3 !important;
+  opacity: 0.25 !important;
 }
 
 @keyframes gradientBG {
