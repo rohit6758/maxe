@@ -39,8 +39,8 @@ export default function UserSearch() {
     e.stopPropagation();
     setRecentSearches(prev => {
       const updated = prev.filter(u => {
-        if (typeof identifier === 'string') return u !== identifier;
-        return u.id !== identifier;
+        const uId = typeof u === 'string' ? u : u.id;
+        return uId !== identifier;
       });
       localStorage.setItem('maxe_recent_searches', JSON.stringify(updated));
       return updated;
