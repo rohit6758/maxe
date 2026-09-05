@@ -6,40 +6,42 @@ import { X, ChevronRight, Sparkles, Palette, Wand2, Image } from 'lucide-react';
 // Theme-specific decorations that orbit the profile avatar
 const THEME_DECORATIONS = {
   default: {
-    name: 'Nature',
+    name: 'Dinosaurs',
     bg: 'linear-gradient(135deg, #D3EDE0 0%, #A8D5B2 100%)',
     elements: (
       <>
-        {/* Leaf top */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 animate-bounce" style={{animationDuration:'3s'}}>
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="#1B7A52"><path d="M17 8C8 10 5.9 16.17 3.82 21.34L5.71 22l1-2.3A4.49 4.49 0 0 0 8 20C19 20 22 3 22 3c-1 2-8 3-9 4z"/></svg>
+        {/* T-Rex */}
+        <div className="absolute -top-4 -left-2 animate-bounce" style={{animationDuration:'3s', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'}}>
+          <span style={{fontSize: '24px'}}>🦖</span>
         </div>
-        {/* Butterfly right */}
-        <div className="absolute top-1/2 -right-3 -translate-y-1/2 animate-pulse">
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="#4DAB82"><path d="M21.06 3.83C20.64 3.41 20.07 3.17 19.5 3.17c-.95 0-1.78.55-2.17 1.34l-1.91 3.82C13.97 6.58 12.74 6 11.5 6c-1.24 0-2.47.58-3.92 2.33L5.67 4.51C5.28 3.72 4.45 3.17 3.5 3.17c-.57 0-1.14.24-1.56.66C1.36 4.41 1.17 5.18 1.5 5.85l3.68 7.37A5.26 5.26 0 0 0 0 17c0 2.76 2.24 5 5 5s5-2.24 5-5c0-1.13-.38-2.18-1.01-3.01L11.5 8.31l2.51 5.68A5.01 5.01 0 0 0 13 17c0 2.76 2.24 5 5 5s5-2.24 5-5a5.26 5.26 0 0 0-5.18-4.78l3.68-7.37c.33-.67.14-1.44-.44-2.02z"/></svg>
+        {/* Sauropod */}
+        <div className="absolute top-1/2 -right-4 -translate-y-1/2 animate-pulse" style={{animationDuration:'4s', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))'}}>
+          <span style={{fontSize: '22px'}}>🦕</span>
         </div>
-        {/* Flower bottom */}
-        <div className="absolute -bottom-2 left-1/4 animate-pulse" style={{animationDuration:'4s'}}>
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="#94D4B6"><circle cx="12" cy="12" r="4"/><path d="M12 2a2 2 0 0 0-2 2v2a2 2 0 0 0 4 0V4a2 2 0 0 0-2-2zm0 16a2 2 0 0 0-2 2v0a2 2 0 0 0 4 0v0a2 2 0 0 0-2-2zm10-6h-2a2 2 0 0 0 0 4h2a2 2 0 0 0 0-4zm-16 0H4a2 2 0 0 0 0 4h2a2 2 0 0 0 0-4z"/></svg>
+        {/* Volcanos / Leaves */}
+        <div className="absolute -bottom-3 left-1/4 animate-ping" style={{animationDuration:'3s'}}>
+          <span style={{fontSize: '14px'}}>🌋</span>
         </div>
       </>
     )
   },
 
   eastbay: {
-    name: 'Constellation',
+    name: 'Stars',
     bg: 'linear-gradient(135deg, #1C1E50 0%, #35395A 50%, #1C1E50 100%)',
     elements: (
       <>
-        {/* Stars */}
-        {[[-10,-10,'#fff',1.2],[-5,30,'#A4A7E0',0.8],[28,5,'#fff',1],[20,28,'#A4A7E0',0.7],[-12,20,'#fff',0.9]].map(([x,y,c,s],i)=>(
-          <div key={i} className="absolute animate-ping" style={{top:`${y}%`,left:`${x+100}%`,transform:'translate(-50%,-50%)',animationDuration:`${2+i*0.5}s`,animationDelay:`${i*0.3}s`}}>
-            <svg width={8*s} height={8*s} viewBox="0 0 24 24" fill={c}><polygon points="12,2 15,9 22,9 16,14 18,21 12,17 6,21 8,14 2,9 9,9"/></svg>
-          </div>
-        ))}
-        {/* Moon */}
-        <div className="absolute -top-4 right-0 animate-pulse" style={{animationDuration:'4s'}}>
-          <svg width="22" height="22" viewBox="0 0 24 24" fill="#656C9A"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
+        {/* Big Star */}
+        <div className="absolute -top-5 right-0 animate-spin" style={{animationDuration:'8s', filter: 'drop-shadow(0 0 8px rgba(255,255,255,0.8))'}}>
+          <span style={{fontSize: '24px'}}>⭐</span>
+        </div>
+        {/* Sparkles */}
+        <div className="absolute top-1/2 -left-4 -translate-y-1/2 animate-pulse" style={{animationDuration:'2s'}}>
+          <span style={{fontSize: '20px'}}>✨</span>
+        </div>
+        {/* Shooting star */}
+        <div className="absolute -bottom-4 right-1/4 animate-bounce" style={{animationDuration:'4s'}}>
+          <span style={{fontSize: '18px'}}>🌠</span>
         </div>
       </>
     )
@@ -50,115 +52,77 @@ const THEME_DECORATIONS = {
     bg: 'linear-gradient(135deg, #4A425B 0%, #6D4C9A 100%)',
     elements: (
       <>
-        {/* Bubbles */}
-        {[[10,-12,8],[28,10,5],[-8,20,6],[20,28,4],[-5,5,7]].map(([x,y,r],i)=>(
-          <div key={i} className="absolute rounded-full border-2 animate-ping"
-            style={{top:`${y+50}%`,left:`${x+50}%`,width:r*2,height:r*2,borderColor:'rgba(200,160,224,0.6)',animationDuration:`${2+i*0.7}s`,animationDelay:`${i*0.4}s`}}>
-          </div>
-        ))}
         {/* Dolphin */}
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 animate-bounce" style={{animationDuration:'2s'}}>
-          <svg width="28" height="16" viewBox="0 0 100 50" fill="#9B78C8">
-            <path d="M10,30 Q30,5 60,25 Q80,40 90,20 Q95,15 100,10 Q90,35 70,40 Q50,45 30,40 Q15,38 10,30Z"/>
-            <path d="M70,40 Q75,30 80,20 Q70,25 65,35Z" fill="#AB92BF"/>
-          </svg>
+        <div className="absolute -top-4 left-1/2 -translate-x-1/2 animate-bounce" style={{animationDuration:'3s'}}>
+          <span style={{fontSize: '24px'}}>🐬</span>
+        </div>
+        {/* Shell */}
+        <div className="absolute top-1/2 -right-4 -translate-y-1/2 animate-pulse" style={{animationDuration:'4s'}}>
+          <span style={{fontSize: '20px'}}>🐚</span>
+        </div>
+        {/* Wave */}
+        <div className="absolute -bottom-2 left-1/4 animate-ping" style={{animationDuration:'2s'}}>
+          <span style={{fontSize: '16px'}}>🌊</span>
         </div>
       </>
     )
   },
 
   venice: {
-    name: 'Space 🚀',
-    bg: 'linear-gradient(135deg, #052D44 0%, #082B45 50%, #0C3D60 100%)',
+    name: 'Space',
+    bg: 'linear-gradient(135deg, #0f2027 0%, #203a43 50%, #2c5364 100%)',
     elements: (
       <>
-        {/* Stars twinkling */}
-        {[[-12,-15,'6px'],[-8,30,'4px'],[32,0,'5px'],[25,32,'4px'],[-5,-5,'3px'],[30,18,'4px']].map(([x,y,s],i)=>(
-          <div key={i} className="absolute rounded-full bg-white animate-pulse"
-            style={{top:`${y+50}%`,left:`${x+50}%`,width:s,height:s,animationDuration:`${1.5+i*0.4}s`,animationDelay:`${i*0.25}s`}}>
-          </div>
-        ))}
-        {/* Rocket orbiting */}
-        <div className="absolute animate-spin" style={{top:'-14px',left:'50%',transform:'translateX(-50%)',animationDuration:'8s'}}>
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="#3A8CB4">
-            <path d="M12 2C12 2 7 6 7 13H17C17 6 12 2 12 2Z"/>
-            <rect x="10" y="13" width="4" height="4" fill="#0C5E8A"/>
-            <path d="M7 13L5 17L8 16Z" fill="#E74C3C"/>
-            <path d="M17 13L19 17L16 16Z" fill="#E74C3C"/>
-            <circle cx="12" cy="9" r="2" fill="#FFFFFF" opacity="0.8"/>
-          </svg>
+        <div className="absolute -top-6 -right-2 animate-spin" style={{animationDuration:'4s', transformOrigin:'-20px 50px'}}>
+          <span style={{fontSize: '22px', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))'}}>🚀</span>
         </div>
-        {/* Saturn planet */}
-        <div className="absolute bottom-0 right-0 translate-x-1/3 translate-y-1/3 animate-pulse" style={{animationDuration:'3s'}}>
-          <svg width="28" height="18" viewBox="0 0 60 40">
-            <circle cx="30" cy="20" r="12" fill="#84B3CE"/>
-            <ellipse cx="30" cy="20" rx="28" ry="6" fill="none" stroke="#3A8CB4" strokeWidth="2.5" opacity="0.8"/>
-          </svg>
+        <div className="absolute top-1/3 -left-5 animate-pulse" style={{animationDuration:'3s'}}>
+          <span style={{fontSize: '22px', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))'}}>🪐</span>
         </div>
-        {/* Small UFO */}
-        <div className="absolute top-1/2 -left-4 -translate-y-1/2 animate-bounce" style={{animationDuration:'3.5s'}}>
-          <svg width="20" height="14" viewBox="0 0 50 30">
-            <ellipse cx="25" cy="18" rx="20" ry="8" fill="#1E6999"/>
-            <ellipse cx="25" cy="14" rx="12" ry="8" fill="#3A8CB4"/>
-            <ellipse cx="25" cy="13" rx="8" ry="5" fill="#84B3CE" opacity="0.6"/>
-          </svg>
+        <div className="absolute -bottom-4 right-1/4 animate-bounce" style={{animationDuration:'2.5s'}}>
+          <span style={{fontSize: '20px', filter: 'drop-shadow(0 0 5px rgba(255,255,255,0.5))'}}>🛸</span>
         </div>
       </>
     )
   },
 
   lagoon: {
-    name: 'Waves',
-    bg: 'linear-gradient(180deg, #003840 0%, #007080 60%, #FDDFE2 100%)',
+    name: 'Cars',
+    bg: 'linear-gradient(135deg, #2b5876 0%, #4e4376 100%)',
     elements: (
       <>
-        {/* Wave lines */}
-        <div className="absolute bottom-0 left-0 right-0 animate-pulse" style={{animationDuration:'2s'}}>
-          <svg viewBox="0 0 60 12" width="100%" height="12">
-            <path d="M0,6 Q15,0 30,6 Q45,12 60,6" fill="none" stroke="#8ED0D8" strokeWidth="2"/>
-          </svg>
+        {/* Sports Car */}
+        <div className="absolute -top-3 -right-4 animate-bounce" style={{animationDuration:'2s'}}>
+          <span style={{fontSize: '24px'}}>🏎️</span>
         </div>
-        {/* Fish */}
-        <div className="absolute top-1/4 -right-5 animate-pulse" style={{animationDuration:'2.5s'}}>
-          <svg width="22" height="14" viewBox="0 0 60 40">
-            <ellipse cx="32" cy="20" rx="22" ry="12" fill="#007080"/>
-            <path d="M10,20 L0,10 L0,30Z" fill="#00A6B5"/>
-            <circle cx="42" cy="16" r="3" fill="#FFFFFF"/>
-          </svg>
+        {/* Police Car */}
+        <div className="absolute top-1/2 -left-5 -translate-y-1/2 animate-pulse" style={{animationDuration:'1.5s'}}>
+          <span style={{fontSize: '22px'}}>🚓</span>
         </div>
-        {/* Coral */}
-        <div className="absolute -bottom-3 left-1/4 animate-bounce" style={{animationDuration:'3s'}}>
-          <svg width="18" height="22" viewBox="0 0 30 40">
-            <path d="M15,40 L15,20 M15,20 Q10,10 8,5 M15,20 Q20,10 22,5 M15,28 Q7,22 4,20 M15,28 Q23,22 26,20" stroke="#E8504A" strokeWidth="3" fill="none" strokeLinecap="round"/>
-          </svg>
+        {/* Finish Flag */}
+        <div className="absolute -bottom-4 left-1/2 -translate-x-1/2 animate-spin" style={{animationDuration:'6s'}}>
+          <span style={{fontSize: '20px'}}>🏁</span>
         </div>
       </>
     )
   },
 
   berry: {
-    name: 'Blossoms',
-    bg: 'linear-gradient(135deg, #420030 0%, #8A1868 100%)',
+    name: 'Princess',
+    bg: 'linear-gradient(135deg, #ff9a9e 0%, #fecfef 99%, #fecfef 100%)',
     elements: (
       <>
-        {/* Petals */}
-        {[[-12,-8,0],[25,-12,60],[-10,28,-30],[28,20,90],[-5,10,45]].map(([x,y,r],i)=>(
-          <div key={i} className="absolute animate-ping"
-            style={{top:`${y+50}%`,left:`${x+50}%`,animationDuration:`${2+i*0.5}s`,animationDelay:`${i*0.3}s`,transform:`rotate(${r}deg)`}}>
-            <svg width="12" height="16" viewBox="0 0 20 30" fill="#C958A6">
-              <ellipse cx="10" cy="15" rx="8" ry="13"/>
-            </svg>
-          </div>
-        ))}
-        {/* Cherry blossom */}
-        <div className="absolute -top-4 left-1/2 -translate-x-1/2 animate-bounce" style={{animationDuration:'4s'}}>
-          <svg width="26" height="26" viewBox="0 0 50 50">
-            {[0,72,144,216,288].map((angle,i)=>(
-              <ellipse key={i} cx={25+14*Math.cos(angle*Math.PI/180)} cy={25+14*Math.sin(angle*Math.PI/180)} rx="7" ry="10"
-                fill="#E884C4" transform={`rotate(${angle},${25+14*Math.cos(angle*Math.PI/180)},${25+14*Math.sin(angle*Math.PI/180)})`}/>
-            ))}
-            <circle cx="25" cy="25" r="5" fill="#FFD5EA"/>
-          </svg>
+        {/* Crown */}
+        <div className="absolute -top-6 left-1/2 -translate-x-1/2 animate-bounce" style={{animationDuration:'2.5s'}}>
+          <span style={{fontSize: '26px', filter: 'drop-shadow(0 2px 4px rgba(255,105,180,0.4))'}}>👑</span>
+        </div>
+        {/* Magic Wand */}
+        <div className="absolute top-1/3 -right-5 animate-spin" style={{animationDuration:'5s'}}>
+          <span style={{fontSize: '22px'}}>🪄</span>
+        </div>
+        {/* Gem */}
+        <div className="absolute -bottom-3 left-1/4 animate-pulse" style={{animationDuration:'2s'}}>
+          <span style={{fontSize: '18px'}}>💎</span>
         </div>
       </>
     )

@@ -29,14 +29,26 @@ export function AppProvider({ children }) {
     }
   }, []);
 
+  const saveEffectsToDb = async (t, e) => {
+    if (!session?.user?.id) return;
+    try {
+      const payload = JSON.stringify({ theme: t, profileEffects: e });
+      await supabase.from('profiles').update({ interests: payload }).eq('id', session.user.id);
+    } catch(err) {
+      console.error('Failed to sync effects to DB', err);
+    }
+  };
+
   const setTheme = (newTheme) => {
     setThemeState(newTheme);
     localStorage.setItem('maxe_theme', newTheme);
+    saveEffectsToDb(newTheme, profileEffects);
   };
   
   const setProfileEffects = (newEffects) => {
     setProfileEffectsState(newEffects);
     localStorage.setItem('maxe_effects', JSON.stringify(newEffects));
+    saveEffectsToDb(theme, newEffects);
   };
 
   useEffect(() => {

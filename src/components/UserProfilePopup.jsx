@@ -115,9 +115,19 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
   };
 
   const isMe = currentUserId === userId;
-  const effectiveTheme = isMe ? theme : (profile?.is_premium ? 'venice' : 'default');
+  let dbEffects = null;
+  let dbTheme = null;
+  if (profile?.interests && profile?.interests.startsWith('{')) {
+    try {
+      const parsed = JSON.parse(profile.interests);
+      if (parsed.profileEffects) dbEffects = parsed.profileEffects;
+      if (parsed.theme) dbTheme = parsed.theme;
+    } catch(e) {}
+  }
+
+  const effectiveTheme = isMe ? theme : (dbTheme || (profile?.is_premium ? 'venice' : 'default'));
   const dec = THEME_DECORATIONS[effectiveTheme] || THEME_DECORATIONS.default;
-  const eff = isMe ? profileEffects : (profile?.is_premium ? { banner:'gradient', avatar:'neon-pulse', wallpaper:'waves' } : { banner:'none', avatar:'none', wallpaper:'none' });
+  const eff = isMe ? profileEffects : (dbEffects || (profile?.is_premium ? { banner:'gradient', avatar:'neon-pulse', wallpaper:'waves' } : { banner:'none', avatar:'none', wallpaper:'none' }));
 
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>

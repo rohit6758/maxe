@@ -228,14 +228,36 @@ export default function UserSearch() {
         ) : (
           searchResults.map(user => {
             const isFollowing = followingMap[user.id];
+            let eff = null;
+            if (user.interests && user.interests.startsWith('{')) {
+              try {
+                const parsed = JSON.parse(user.interests);
+                if (parsed.profileEffects) eff = parsed.profileEffects;
+              } catch(e) {}
+            }
+            const hasWallpaper = user.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
+            const wallpaperStyle = hasWallpaper ? {
+              background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
+                          eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
+                          eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
+                          eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
+              backgroundSize: eff.wallpaper === 'custom' ? 'cover' : eff.wallpaper === 'waves' ? 'auto' : '20px 20px',
+              backgroundPosition: 'center'
+            } : {};
+
             return (
-              <div key={user.id} onClick={() => openUserPopup(user)} className="px-2 py-3 flex items-center gap-3 cursor-pointer hover:bg-black/5 transition-colors">
-                <div className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm ${user.is_premium ? 'bg-gradient-to-tr from-primary to-accent p-0.5' : 'bg-surface border border-primary/15'}`}>
+              <div key={user.id} onClick={() => openUserPopup(user)} 
+                className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden \${hasWallpaper ? 'rounded-xl mb-2 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
+                style={wallpaperStyle}
+              >
+                {hasWallpaper && <div className="absolute inset-0 bg-white/60 backdrop-blur-[1px] pointer-events-none"></div>}
+                
+                <div className={`relative z-10 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm ${user.is_premium ? 'bg-gradient-to-tr from-primary to-accent p-0.5' : 'bg-surface border border-primary/15'}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
                     {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-primary/50" />}
                   </div>
                 </div>
-                <div className="flex-1 min-w-0">
+                <div className="flex-1 min-w-0 relative z-10">
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <p className="text-sm font-bold text-header flex items-center">
                       {user.name}
@@ -247,7 +269,7 @@ export default function UserSearch() {
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
-                  className={`px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${isFollowing ? 'bg-surface text-header border border-primary/15' : 'bg-primary text-white shadow-sm'}`}
+                  className={`relative z-10 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${isFollowing ? 'bg-surface text-header border border-primary/15' : 'bg-primary text-white shadow-sm'}`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
