@@ -209,33 +209,33 @@ const loadFollowStats = async () => {
           )}
 
           {/* Compact profile row */}
-          <div className="flex items-center gap-3 relative z-10">
+          <div className="flex items-center gap-4 relative z-10 mt-2">
             <div
               onClick={() => setShowAvatarPopup(true)}
-              className="relative w-16 h-16 shrink-0 cursor-pointer hover:scale-105 transition-transform">
-              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center border-2"
+              className="relative w-20 h-20 shrink-0 cursor-pointer hover:scale-105 transition-transform">
+              <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center border-[3px]"
                 style={{borderColor: 'color-mix(in srgb, var(--theme-primary) 35%, transparent)', background:'color-mix(in srgb, var(--theme-sidebar) 60%, white)'}}>
                 {userProfile?.avatar_url
                   ? <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
-                  : <User size={28} style={{color:'var(--theme-primary)'}} />}
+                  : <User size={32} style={{color:'var(--theme-primary)'}} />}
               </div>
             </div>
             
-            <div className="flex-1 min-w-0 bg-white/50 backdrop-blur-sm p-2 rounded-xl">
-              <h2 className="text-sm font-black flex items-center gap-1 truncate" style={{color:'var(--theme-header)'}}>
+            <div className="flex-1 min-w-0 bg-white/60 backdrop-blur-sm p-3 rounded-2xl shadow-sm">
+              <h2 className="text-base font-black flex items-center gap-1.5 truncate" style={{color:'var(--theme-header)'}}>
                 {userProfile?.name || 'Your Name'}
                 {userProfile?.is_premium && <VerifiedBadge />}
               </h2>
-              <p className="text-xs font-semibold" style={{color:'var(--theme-primary)'}}>@{userProfile?.username || 'username'}</p>
-              <p className="text-[11px]" style={{color:'var(--theme-body)'}}>{userProfile?.branch || ''}{userProfile?.college ? ` • ${userProfile.college}` : ''}</p>
-              <div className="flex gap-3 mt-1">
-                <button onClick={() => openNetwork('followers')} className="flex items-center gap-1 hover:opacity-80">
-                  <span className="text-xs font-black" style={{color:'var(--theme-header)'}}>{followerCount}</span>
-                  <span className="text-[10px] font-bold" style={{color:'var(--theme-body)'}}>Followers</span>
+              <p className="text-sm font-bold mt-0.5" style={{color:'var(--theme-primary)'}}>@{userProfile?.username || 'username'}</p>
+              <p className="text-xs font-semibold mt-0.5" style={{color:'var(--theme-body)'}}>{userProfile?.branch || ''}{userProfile?.college ? ` • ${userProfile.college}` : ''}</p>
+              <div className="flex gap-4 mt-2">
+                <button onClick={() => openNetwork('followers')} className="flex items-center gap-1.5 hover:opacity-80">
+                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followerCount}</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider" style={{color:'var(--theme-body)'}}>Followers</span>
                 </button>
-                <button onClick={() => openNetwork('following')} className="flex items-center gap-1 hover:opacity-80">
-                  <span className="text-xs font-black" style={{color:'var(--theme-header)'}}>{followingCount}</span>
-                  <span className="text-[10px] font-bold" style={{color:'var(--theme-body)'}}>Following</span>
+                <button onClick={() => openNetwork('following')} className="flex items-center gap-1.5 hover:opacity-80">
+                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followingCount}</span>
+                  <span className="text-[10px] uppercase font-bold tracking-wider" style={{color:'var(--theme-body)'}}>Following</span>
                 </button>
               </div>
             </div>

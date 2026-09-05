@@ -6,7 +6,7 @@ import AvatarDecoration from './AvatarDecoration';
 import { useAppContext } from '../context/AppContext';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
-  const { profileEffects } = useAppContext();
+  const { profileEffects, theme } = useAppContext();
   const [profile, setProfile] = useState(null);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -114,7 +114,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
   };
 
   const isMe = currentUserId === userId;
-  const effectiveTheme = isMe ? useAppContext().theme : (profile?.is_premium ? 'venice' : 'default');
+  const effectiveTheme = isMe ? theme : (profile?.is_premium ? 'venice' : 'default');
   const dec = THEME_DECORATIONS[effectiveTheme] || THEME_DECORATIONS.default;
   const eff = isMe ? profileEffects : (profile?.is_premium ? { banner:'gradient', avatar:'neon-pulse', wallpaper:'waves' } : { banner:'none', avatar:'none', wallpaper:'none' });
 
