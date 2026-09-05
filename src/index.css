@@ -2,6 +2,7 @@
 
 
 :root {
+  /* Default Mint */
   --theme-bg: #E8F2EE;
   --theme-surface: #FFFFFF;
   --theme-primary: #7BB8A8;
@@ -10,31 +11,49 @@
   --theme-body: #688C83;
 }
 
-[data-theme="midnight"] {
-  --theme-bg: #0F172A;
-  --theme-surface: #1E293B;
-  --theme-primary: #3B82F6;
-  --theme-accent: #60A5FA;
-  --theme-header: #F8FAFC;
-  --theme-body: #94A3B8;
+[data-theme="eastbay"] {
+  --theme-bg: #F8F7E2;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #474C80;
+  --theme-accent: #656C9A;
+  --theme-header: #35395A;
+  --theme-body: #5C6287;
 }
 
-[data-theme="crimson"] {
-  --theme-bg: #4C0519;
-  --theme-surface: #881337;
-  --theme-primary: #F43F5E;
-  --theme-accent: #FB7185;
-  --theme-header: #FFF1F2;
-  --theme-body: #FECDD3;
+[data-theme="dolphin"] {
+  --theme-bg: #FDF1E2;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #655A7C;
+  --theme-accent: #AB92BF;
+  --theme-header: #4A425B;
+  --theme-body: #786C8F;
 }
 
-[data-theme="amoled"] {
-  --theme-bg: #000000;
-  --theme-surface: #111111;
-  --theme-primary: #10B981;
-  --theme-accent: #34D399;
-  --theme-header: #FFFFFF;
-  --theme-body: #A1A1AA;
+[data-theme="venice"] {
+  --theme-bg: #F5EEDD;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #16587B;
+  --theme-accent: #84B3CE;
+  --theme-header: #0E3950;
+  --theme-body: #256B91;
+}
+
+[data-theme="lagoon"] {
+  --theme-bg: #F2D4D7;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #008795;
+  --theme-accent: #F88379;
+  --theme-header: #005A63;
+  --theme-body: #00A6B5;
+}
+
+[data-theme="berry"] {
+  --theme-bg: #FFD5EA;
+  --theme-surface: #FFFFFF;
+  --theme-primary: #521845;
+  --theme-accent: #BFD7F1;
+  --theme-header: #380C2E;
+  --theme-body: #732863;
 }
 
 @theme {
@@ -293,3 +312,24 @@ input, textarea, .selectable, [contenteditable] {
 .react-calendar__month-view__days__day--neighboringMonth {
   color: #C8DBD4 !important;
 }
+
+@keyframes gradientBG {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.nitro-bg {
+  background: linear-gradient(-45deg, var(--theme-primary), var(--theme-accent), var(--theme-header), var(--theme-primary));
+  background-size: 400% 400%;
+  animation: gradientBG 15s ease infinite;
+}
+
+.nitro-text {
+  background: linear-gradient(-45deg, var(--theme-primary), var(--theme-accent), var(--theme-header));
+  background-size: 300% 300%;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradientBG 5s ease infinite;
+}
+

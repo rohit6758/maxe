@@ -138,18 +138,24 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
             <p className="text-sm font-semibold text-primary animate-pulse">Loading profile...</p>
           </div>
         ) : viewMode === 'profile' ? (
-          <div className="p-6">
+          <div className="p-6 relative">
+            {profile?.is_premium && (
+              <div className="absolute top-0 left-0 right-0 h-32 nitro-bg opacity-30 pointer-events-none rounded-t-xl" style={{maskImage: 'linear-gradient(to bottom, black, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)'}}></div>
+            )}
+            
             {/* Top section: Avatar + Stats */}
-            <div className="flex items-center gap-6 mb-6">
+            <div className="flex items-center gap-6 mb-6 relative z-10">
               <div 
-                className="w-24 h-24 rounded-full border-4 border-primary/20 overflow-hidden flex items-center justify-center shrink-0 bg-primary/5 cursor-pointer"
+                className={`w-24 h-24 rounded-full border-4 ${profile?.is_premium ? 'border-transparent bg-gradient-to-tr from-primary to-accent p-1' : 'border-primary/20'} overflow-hidden flex items-center justify-center shrink-0 cursor-pointer shadow-lg`}
                 onClick={() => profile?.avatar_url && setViewingAvatar(true)}
               >
-                {profile?.avatar_url ? (
-                  <img src={profile.avatar_url} className="w-full h-full object-cover" alt="avatar" />
-                ) : (
-                  <User size={40} className="text-primary/50" />
-                )}
+                <div className="w-full h-full rounded-full overflow-hidden bg-primary/5">
+                  {profile?.avatar_url ? (
+                    <img src={profile.avatar_url} className="w-full h-full object-cover" alt="avatar" />
+                  ) : (
+                    <User size={40} className="text-primary/50 m-auto mt-4" />
+                  )}
+                </div>
               </div>
               
               <div className="flex-1 flex justify-around items-center">

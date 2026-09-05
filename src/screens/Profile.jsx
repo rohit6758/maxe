@@ -249,11 +249,23 @@ const loadFollowStats = async () => {
                 
                 <div className="space-y-2 mt-4 pt-4 border-t border-primary/20">
                   <p className="text-xs font-bold text-header uppercase tracking-wider">App Theme</p>
-                  <div className="flex gap-2">
-                    <button onClick={() => setTheme('default')} className={`w-8 h-8 rounded-full border-2 ${theme==='default'?'border-primary scale-110':'border-transparent'} bg-[#E8F2EE] transition-transform`} aria-label="Default Mint Theme"></button>
-                    <button onClick={() => setTheme('midnight')} className={`w-8 h-8 rounded-full border-2 ${theme==='midnight'?'border-primary scale-110':'border-transparent'} bg-[#0F172A] transition-transform`} aria-label="Midnight Blue Theme"></button>
-                    <button onClick={() => setTheme('crimson')} className={`w-8 h-8 rounded-full border-2 ${theme==='crimson'?'border-primary scale-110':'border-transparent'} bg-[#881337] transition-transform`} aria-label="Crimson Red Theme"></button>
-                    <button onClick={() => setTheme('amoled')} className={`w-8 h-8 rounded-full border-2 ${theme==='amoled'?'border-primary scale-110':'border-transparent'} bg-black transition-transform`} aria-label="Amoled Black Theme"></button>
+                  <div className="flex gap-2 flex-wrap">
+                    <button onClick={() => setTheme('default')} className={`w-8 h-8 rounded-full border-2 ${theme==='default'?'border-primary scale-110':'border-transparent'} bg-[#E8F2EE] transition-transform`} aria-label="Default Mint Theme" title="Default Mint"></button>
+                    <button onClick={() => setTheme('eastbay')} className={`w-8 h-8 rounded-full border-2 ${theme==='eastbay'?'border-[#474C80] scale-110':'border-transparent'} bg-[#F8F7E2] transition-transform flex items-center justify-center`} aria-label="East Bay Theme" title="East Bay">
+                      <div className="w-4 h-4 rounded-full bg-[#474C80]"></div>
+                    </button>
+                    <button onClick={() => setTheme('dolphin')} className={`w-8 h-8 rounded-full border-2 ${theme==='dolphin'?'border-[#655A7C] scale-110':'border-transparent'} bg-[#FDF1E2] transition-transform flex items-center justify-center`} aria-label="Dolphin Theme" title="Dolphin">
+                      <div className="w-4 h-4 rounded-full bg-[#655A7C]"></div>
+                    </button>
+                    <button onClick={() => setTheme('venice')} className={`w-8 h-8 rounded-full border-2 ${theme==='venice'?'border-[#16587B] scale-110':'border-transparent'} bg-[#F5EEDD] transition-transform flex items-center justify-center`} aria-label="Venice Blue Theme" title="Venice Blue">
+                      <div className="w-4 h-4 rounded-full bg-[#16587B]"></div>
+                    </button>
+                    <button onClick={() => setTheme('lagoon')} className={`w-8 h-8 rounded-full border-2 ${theme==='lagoon'?'border-[#008795] scale-110':'border-transparent'} bg-[#F2D4D7] transition-transform flex items-center justify-center`} aria-label="Lagoon Pulse Theme" title="Lagoon Pulse">
+                      <div className="w-4 h-4 rounded-full bg-[#008795]"></div>
+                    </button>
+                    <button onClick={() => setTheme('berry')} className={`w-8 h-8 rounded-full border-2 ${theme==='berry'?'border-[#521845] scale-110':'border-transparent'} bg-[#FFD5EA] transition-transform flex items-center justify-center`} aria-label="Mauve Berry Theme" title="Mauve Berry">
+                      <div className="w-4 h-4 rounded-full bg-[#521845]"></div>
+                    </button>
                   </div>
                 </div>
               </div>

@@ -230,8 +230,10 @@ export default function UserSearch() {
             const isFollowing = followingMap[user.id];
             return (
               <div key={user.id} onClick={() => openUserPopup(user)} className="px-2 py-3 flex items-center gap-3 cursor-pointer hover:bg-black/5 transition-colors">
-                <div className="w-12 h-12 rounded-full bg-surface border border-primary/15 overflow-hidden flex items-center justify-center shrink-0">
-                  {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-body" />}
+                <div className={`w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm ${user.is_premium ? 'bg-gradient-to-tr from-primary to-accent p-0.5' : 'bg-surface border border-primary/15'}`}>
+                  <div className="w-full h-full rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
+                    {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-primary/50" />}
+                  </div>
                 </div>
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">

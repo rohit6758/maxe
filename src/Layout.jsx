@@ -1,16 +1,18 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, X, Users, Search } from 'lucide-react';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, X, Users, Search, Flame } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
+import StudyTrackerModal from './screens/StudyTrackerModal';
 import OnboardingPopup from './components/OnboardingPopup';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTodoOpen, setIsTodoOpen] = useState(false);
+  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -126,6 +128,9 @@ export default function Layout() {
             <Download size={18} /> Install App
           </button>
         )}
+        <button onClick={() => { setIsTrackerOpen(true); setSidebarOpen(false); }} className="nav-item w-full" style={{color: userProfile?.is_premium ? '#FF9D00' : 'var(--color-primary)'}}>
+          <Flame size={18} /> Study Tracker
+        </button>
         <button onClick={() => { setIsTodoOpen(true); setSidebarOpen(false); }} className="nav-item w-full">
           <CheckSquare size={18} /> To-Do List
         </button>
@@ -239,6 +244,7 @@ export default function Layout() {
 
       {isCalendarOpen && <CalendarModal onClose={() => setIsCalendarOpen(false)} />}
       {isTodoOpen && <TodoModal onClose={() => setIsTodoOpen(false)} />}
+      <StudyTrackerModal isOpen={isTrackerOpen} onClose={() => setIsTrackerOpen(false)} />
     </div>
   );
 }
