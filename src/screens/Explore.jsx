@@ -396,7 +396,7 @@ export default function Explore() {
         <div className={`w-full md:w-1/3 md:border-r border-primary/15 flex flex-col bg-surface ${selectedCommunity ? 'hidden md:flex' : 'flex'}`}>
           <div className="p-4 border-b border-primary/15 flex items-center justify-between bg-surface z-10">
             <h2 className="text-xl font-bold text-header">Communities</h2>
-            <button onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
+            <button aria-label="Create Community" onClick={() => setShowCreateCommunity(true)} className="btn-primary p-2 rounded-full shadow-lg">
               <Plus size={18} />
             </button>
           </div>
@@ -429,7 +429,7 @@ export default function Explore() {
                     )}
                   </div>
                   {(isAdmin || myMemberships[comm.id] === 'admin') && (
-                    <button onClick={(e) => handleDeleteCommunity(comm.id, e)} className="text-red-400 hover:text-red-600 p-2">
+                    <button aria-label="Delete" onClick={(e) => handleDeleteCommunity(comm.id, e)} className="text-red-400 hover:text-red-600 p-2">
                       <Trash2 size={16} />
                     </button>
                   )}
@@ -448,7 +448,7 @@ export default function Explore() {
             </div>
           ) : !isCurrentMember ? (
             <div className="text-center space-y-3 opacity-60 p-8 flex flex-col items-center justify-center h-full">
-              <button onClick={() => setSelectedCommunity(null)} className="md:hidden p-2 absolute top-4 left-4 text-header bg-surface rounded-full shadow-md">
+              <button aria-label="Back" onClick={() => setSelectedCommunity(null)} className="md:hidden p-2 absolute top-4 left-4 text-header bg-surface rounded-full shadow-md">
                 <ArrowLeft size={20} />
               </button>
               <Lock size={48} className="text-body mb-2" />
@@ -460,7 +460,7 @@ export default function Explore() {
             <>
               {/* Chat Header */}
               <div className="p-4 border-b border-primary/15 bg-surface flex items-center gap-3 z-10 shadow-sm cursor-pointer hover:bg-primary/10 transition-colors" onClick={() => { setEditCommunityName(selectedCommunity.name); setIsEditingName(false); setShowGroupInfo(true); }}>
-                <button onClick={(e) => { e.stopPropagation(); setSelectedCommunity(null); }} className="md:hidden p-2 -ml-2 text-header">
+                <button aria-label="Back" onClick={(e) => { e.stopPropagation(); setSelectedCommunity(null); }} className="md:hidden p-2 -ml-2 text-header">
                   <ArrowLeft size={20} />
                 </button>
                 <div className="w-10 h-10 rounded-full bg-primary flex items-center justify-center shrink-0 overflow-hidden">
@@ -521,7 +521,7 @@ export default function Explore() {
                               Subject: {post.subject_name}
                             </span>
                             {canDelete && (
-                              <button onClick={() => handleDeletePost(post.id)} className="text-red-400 hover:text-red-600 p-1 -mt-1 -mr-1">
+                              <button aria-label="Delete" onClick={() => handleDeletePost(post.id)} className="text-red-400 hover:text-red-600 p-1 -mt-1 -mr-1">
                                 <Trash2 size={14} />
                               </button>
                             )}
@@ -564,7 +564,7 @@ export default function Explore() {
               <h3 className="text-lg font-bold text-header flex items-center gap-2">
                 <Users size={20} className="text-primary"/> Manage Members
               </h3>
-              <button onClick={() => setShowMembersModal(false)}><X size={20}/></button>
+              <button aria-label="Close" onClick={() => setShowMembersModal(false)}><X size={20}/></button>
             </div>
             
             <div className="overflow-y-auto space-y-4">
@@ -629,7 +629,7 @@ export default function Explore() {
                     setMemberSearch(e.target.value);
                     if (!e.target.value.trim()) { setHasSearched(false); setMemberSearchResults([]); }
                   }} />
-                  <button type="submit" className="btn-primary p-2 rounded-xl"><Search size={14}/></button>
+                  <button aria-label="Search" type="submit" className="btn-primary p-2 rounded-xl"><Search size={14}/></button>
                 </form>
 
                 <div className="space-y-2">
@@ -661,7 +661,7 @@ export default function Explore() {
               )}
             </div>
             
-            <button onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
+            <button aria-label="Close" onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
           </div>
         </div>
       )}
@@ -783,7 +783,7 @@ export default function Explore() {
                   </label>
                 )}
                 
-                <button onClick={() => setShowGroupInfo(false)} className="absolute top-4 right-4 p-2 bg-primary/50 text-white rounded-full hover:bg-black/70">
+                <button aria-label="Close" onClick={() => setShowGroupInfo(false)} className="absolute top-4 right-4 p-2 bg-primary/50 text-white rounded-full hover:bg-black/70">
                   <X size={20} />
                 </button>
               </div>

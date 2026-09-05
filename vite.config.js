@@ -35,6 +35,36 @@ export default defineConfig({
         note_taking: {
           new_note_url: '/'
         },
+        shortcuts: [
+          {
+            name: "Search Community",
+            short_name: "Community",
+            description: "Find study materials",
+            url: "/explore",
+            icons: [{ src: "icon-192x192.png", sizes: "192x192", type: "image/png" }]
+          },
+          {
+            name: "My Hub",
+            short_name: "Hub",
+            description: "Open your study hub",
+            url: "/aggregator",
+            icons: [{ src: "icon-192x192.png", sizes: "192x192", type: "image/png" }]
+          }
+        ],
+        screenshots: [
+          {
+            src: 'icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            form_factor: 'wide'
+          },
+          {
+            src: 'icon-512x512.png',
+            sizes: '512x512',
+            type: 'image/png',
+            form_factor: 'narrow'
+          }
+        ],
         launch_handler: {
           client_mode: 'focus-existing'
         },
