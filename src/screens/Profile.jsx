@@ -195,15 +195,7 @@ const loadFollowStats = async () => {
       </div>
 
       {!isEditing ? (
-        <div className="card p-4 relative overflow-hidden" style={{
-          ...(userProfile?.is_premium && profileEffects?.wallpaper && profileEffects?.wallpaper !== 'none' ? {
-            background: profileEffects.wallpaper === 'custom' && profileEffects.customWallpaperUrl ? `url(${profileEffects.customWallpaperUrl})` : 
-                        profileEffects.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
-                        profileEffects.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
-                        profileEffects.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
-            backgroundSize: profileEffects.wallpaper === 'custom' ? 'cover' : profileEffects.wallpaper === 'waves' ? 'auto' : '20px 20px', backgroundPosition: 'center'
-          } : {})
-        }}>
+        <div className="card p-4 relative overflow-hidden">
           {/* Nitro Gradient Banner if active */}
           {userProfile?.is_premium && profileEffects?.banner === 'gradient' && (
             <div className="absolute top-0 left-0 right-0 h-16 opacity-30 pointer-events-none" style={{background: 'linear-gradient(90deg, var(--theme-primary), color-mix(in srgb, var(--theme-ring) 50%, transparent))'}} />
