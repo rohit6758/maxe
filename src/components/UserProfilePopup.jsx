@@ -166,9 +166,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
           </div>
         ) : viewMode === 'profile' ? (
           <div className="p-6 pt-0 relative">
-            {profile?.is_premium && eff?.banner === 'gradient' && (
-              <div className="absolute top-0 left-0 right-0 h-40 opacity-80 pointer-events-none" style={{background: dec.bg, maskImage: 'linear-gradient(to bottom, black 50%, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black 50%, transparent)'}}></div>
-            )}
+            
             
             {/* Top section: Avatar + Stats */}
             <div className="flex items-center gap-6 mb-6 relative z-10 mt-6">
