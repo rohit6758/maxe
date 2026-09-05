@@ -175,10 +175,10 @@ export default function Explore() {
 
       if (shareData.type === 'pdf' || shareData.type === 'question_paper') {
         if (!shareData.file) throw new Error('Please select a file');
-        const filePath = `${session.user.id}/${Date.now()}-${shareData.file.name}`;
-        const { error: uploadError } = await supabase.storage.from('uploads').upload(filePath, shareData.file);
+        const filePath = `community/${session.user.id}/${Date.now()}-${shareData.file.name}`;
+        const { error: uploadError } = await supabase.storage.from('pdfs').upload(filePath, shareData.file);
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.from('pdfs').getPublicUrl(filePath);
         finalUrl = urlData.publicUrl;
         finalSize = (shareData.file.size / 1024 / 1024).toFixed(2) + ' MB';
       }
@@ -287,22 +287,29 @@ export default function Explore() {
     setMemberSearch('');
     setHasSearched(false);
     setMemberSearchResults([]);
-    const { data: membersData } = await supabase.from('community_members').select('*, profiles(name, username, avatar_url)').eq('community_id', selectedCommunity.id);
+
+    // Fetch all member rows
+    const { data: membersData } = await supabase
+      .from('community_members')
+      .select('community_id, user_id, role')
+      .eq('community_id', selectedCommunity.id);
+
     let mems = membersData || [];
-    
-    // Ensure Creator is always visually in the list even if RLS blocked their initial insertion
+
+    // Fetch all member profiles in one query
+    if (mems.length > 0) {
+      const ids = mems.map(m => m.user_id);
+      const { data: profilesData } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', ids);
+      const profileMap = {};
+      (profilesData || []).forEach(p => { profileMap[p.id] = p; });
+      mems = mems.map(m => ({ ...m, profiles: profileMap[m.user_id] || null }));
+    }
+
+    // Ensure Creator is always in the list
     if (selectedCommunity && !mems.some(m => m.user_id === selectedCommunity.created_by)) {
-      const { data: creatorProfile } = await supabase.from('profiles').select('name, username, avatar_url').eq('id', selectedCommunity.created_by).single();
+      const { data: creatorProfile } = await supabase.from('profiles').select('id, name, username, avatar_url').eq('id', selectedCommunity.created_by).maybeSingle();
       if (creatorProfile) {
         mems = [{ user_id: selectedCommunity.created_by, role: 'admin', profiles: creatorProfile }, ...mems];
-      }
-    }
-    
-    // Ensure Super Admin visually appears if they are viewing, so they can manage
-    if (isAdmin && session?.user?.id !== selectedCommunity.created_by && !mems.some(m => m.user_id === session?.user?.id)) {
-      const { data: myProfile } = await supabase.from('profiles').select('name, username, avatar_url').eq('id', session.user.id).single();
-      if (myProfile) {
-        mems = [...mems, { user_id: session.user.id, role: 'admin', profiles: myProfile }];
       }
     }
 
@@ -312,15 +319,6 @@ export default function Explore() {
     const map = {};
     if (myFollowing) myFollowing.forEach(f => map[f.following_id] = true);
     setFollowingMap(map);
-
-    const { data: follows } = await supabase.from('follows').select('follower_id').eq('following_id', session.user.id);
-    if (follows && follows.length > 0) {
-      const followerIds = follows.map(f => f.follower_id);
-      const { data: followersProfiles } = await supabase.from('profiles').select('*').in('id', followerIds);
-      setMyFollowers(followersProfiles || []);
-    } else {
-      setMyFollowers([]);
-    }
     setIsLoadingMembers(false);
   };
 
@@ -777,8 +775,8 @@ export default function Explore() {
                   <span className="text-white font-black text-6xl">{selectedCommunity.name.charAt(0).toUpperCase()}</span>
                 )}
                 
-                {/* Pencil Edit Avatar (Admins only) */}
-                {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && (
+                {/* Pencil Edit Avatar (Any member can edit) */}
+                {isCurrentMember && (
                   <label className="absolute bottom-4 right-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform text-white">
                     {isSavingInfo ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ImageIcon size={20} />}
                     <input type="file" className="hidden" accept="image/*" onChange={handleUpdateGroupAvatar} disabled={isSavingInfo} />
@@ -810,7 +808,7 @@ export default function Explore() {
                       <h2 className="text-2xl font-black text-header leading-tight">{selectedCommunity.name}</h2>
                     )}
                   </div>
-                  {(selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) && !isEditingName && (
+                  {isCurrentMember && !isEditingName && (
                     <button onClick={() => setIsEditingName(true)} className="p-2 bg-surface border border-primary/15 rounded-full text-body hover:text-primary mt-4">
                       <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>
                     </button>
