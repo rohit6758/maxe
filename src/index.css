@@ -2,67 +2,86 @@
 
 
 :root {
-  /* Default Mint */
-  --theme-bg: #E8F2EE;
-  --theme-surface: #FFFFFF;
-  --theme-primary: #7BB8A8;
-  --theme-accent: #A8D1C7;
-  --theme-header: #3F5E56;
-  --theme-body: #688C83;
+  /* Default — Mint Forest: warm cream bg + deep forest green accents */
+  --theme-bg: #F0F7F0;          /* very light mint bg */
+  --theme-sidebar: #E0EFE7;     /* slightly deeper sidebar bg */
+  --theme-surface: #FFFFFF;     /* card surface */
+  --theme-primary: #2A7A5E;     /* rich forest green — buttons, active */
+  --theme-accent: #5EAB8A;      /* medium mint — hover, icons */
+  --theme-header: #1A3D2E;      /* dark forest — headings */
+  --theme-body: #4A7060;        /* soft body text */
+  --theme-ring: #A8D5C2;        /* rings, borders */
 }
 
 [data-theme="eastbay"] {
-  --theme-bg: #F8F7E2;
+  /* East Bay — warm cream bg + indigo/violet accents */
+  --theme-bg: #EFEEFD;          /* very soft periwinkle bg */
+  --theme-sidebar: #E3E1FA;     /* deeper sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #474C80;
-  --theme-accent: #656C9A;
-  --theme-header: #35395A;
-  --theme-body: #5C6287;
+  --theme-primary: #3B3F91;     /* rich indigo — buttons */
+  --theme-accent: #6264C8;      /* medium purple */
+  --theme-header: #1E204D;      /* dark navy — headings */
+  --theme-body: #555A99;        /* soft indigo body text */
+  --theme-ring: #A8AAE8;        /* rings, borders */
 }
 
 [data-theme="dolphin"] {
-  --theme-bg: #FDF1E2;
+  /* Dolphin — warm tan bg + plum/violet accents */
+  --theme-bg: #F5EFF9;          /* light lavender bg */
+  --theme-sidebar: #EDE4F5;     /* deeper sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #655A7C;
-  --theme-accent: #AB92BF;
-  --theme-header: #4A425B;
-  --theme-body: #786C8F;
+  --theme-primary: #6D4C9A;     /* rich plum — buttons */
+  --theme-accent: #9B78C8;      /* medium violet */
+  --theme-header: #3B2659;      /* dark plum — headings */
+  --theme-body: #7C5FA0;        /* soft body text */
+  --theme-ring: #C9ABE6;        /* rings, borders */
 }
 
 [data-theme="venice"] {
-  --theme-bg: #F5EEDD;
+  /* Venice — warm sand bg + ocean blue accents */
+  --theme-bg: #EBF3F9;          /* pale sky bg */
+  --theme-sidebar: #DCE9F5;     /* deeper sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #16587B;
-  --theme-accent: #84B3CE;
-  --theme-header: #0E3950;
-  --theme-body: #256B91;
+  --theme-primary: #0F5A82;     /* rich ocean blue — buttons */
+  --theme-accent: #3D87B4;      /* medium sky */
+  --theme-header: #082B45;      /* dark navy — headings */
+  --theme-body: #1E6999;        /* soft body text */
+  --theme-ring: #9DC4DE;        /* rings, borders */
 }
 
 [data-theme="lagoon"] {
-  --theme-bg: #F2D4D7;
+  /* Lagoon — rose bg + teal accents */
+  --theme-bg: #FDF0F0;          /* very pale rose bg */
+  --theme-sidebar: #F7E2E4;     /* deeper sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #008795;
-  --theme-accent: #F88379;
-  --theme-header: #005A63;
-  --theme-body: #00A6B5;
+  --theme-primary: #007B8A;     /* rich teal — buttons */
+  --theme-accent: #F87060;      /* coral accent */
+  --theme-header: #00454E;      /* dark teal — headings */
+  --theme-body: #009BAA;        /* soft body text */
+  --theme-ring: #B2E0E6;        /* rings, borders */
 }
 
 [data-theme="berry"] {
-  --theme-bg: #FFD5EA;
+  /* Berry — blush bg + deep berry accents */
+  --theme-bg: #FDF0F6;          /* pale blush bg */
+  --theme-sidebar: #F5DCF0;     /* deeper sidebar */
   --theme-surface: #FFFFFF;
-  --theme-primary: #521845;
-  --theme-accent: #BFD7F1;
-  --theme-header: #380C2E;
-  --theme-body: #732863;
+  --theme-primary: #8B1D72;     /* deep berry — buttons */
+  --theme-accent: #C96FB0;      /* medium magenta */
+  --theme-header: #4A0030;      /* very dark plum — headings */
+  --theme-body: #A03888;        /* soft body text */
+  --theme-ring: #E8AED8;        /* rings, borders */
 }
 
 @theme {
-  --color-background: var(--theme-bg); /* Soft pastel mint background */
-  --color-surface: var(--theme-surface);    /* Pure white cards */
-  --color-primary: var(--theme-primary);    /* Bubbly soft mint teal */
-  --color-accent: var(--theme-accent);     /* Lighter mint for hover states */
-  --color-header: var(--theme-header);     /* Soft dark green/grey for headers */
-  --color-body: var(--theme-body);       /* Softer green/grey for body text */
+  --color-background: var(--theme-bg);
+  --color-sidebar: var(--theme-sidebar);
+  --color-surface: var(--theme-surface);
+  --color-primary: var(--theme-primary);
+  --color-accent: var(--theme-accent);
+  --color-header: var(--theme-header);
+  --color-body: var(--theme-body);
+  --color-ring: var(--theme-ring);
 }
 
 @layer utilities {
@@ -73,7 +92,7 @@
     padding: 10px 14px;
     border-radius: 10px;
     font-weight: 700;
-    color: var(--color-body);
+    color: var(--theme-body);
     transition: all 0.2s ease;
     font-size: 14px;
     cursor: pointer;
@@ -82,12 +101,12 @@
     text-align: left;
   }
   .nav-item:hover {
-    background: color-mix(in srgb, var(--theme-primary) 8%, transparent);
-    color: var(--color-header);
+    background: color-mix(in srgb, var(--theme-primary) 10%, transparent);
+    color: var(--theme-header);
   }
   .nav-item-active {
     background: color-mix(in srgb, var(--theme-primary) 15%, transparent) !important;
-    color: var(--color-primary) !important;
+    color: var(--theme-primary) !important;
   }
 
   .text-aberration {
@@ -97,21 +116,21 @@
   /* Main app card */
   .card {
     background: var(--theme-surface);
-    border: 1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent);
-    border-radius: 12px;
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-header) 4%, transparent), 0 2px 8px color-mix(in srgb, var(--theme-header) 2%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
+    border-radius: 16px;
+    box-shadow: 0 4px 20px color-mix(in srgb, var(--theme-primary) 6%, transparent);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   .card:hover {
-    box-shadow: 0 12px 32px color-mix(in srgb, var(--theme-primary) 12%, transparent);
+    box-shadow: 0 8px 32px color-mix(in srgb, var(--theme-primary) 12%, transparent);
     transform: translateY(-1px);
   }
   
   .card-sm {
     background: var(--theme-surface);
-    border: 1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent);
-    border-radius: 10px;
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-header) 3%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
+    border-radius: 12px;
+    box-shadow: 0 2px 10px color-mix(in srgb, var(--theme-primary) 5%, transparent);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card-sm:hover {
@@ -119,17 +138,17 @@
     transform: translateY(-1px);
   }
   
-  /* Soft mint surface */
+  /* Soft tinted surface */
   .mint {
-    background: color-mix(in srgb, var(--theme-bg) 70%, var(--theme-surface));
-    border: 1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
+    background: color-mix(in srgb, var(--theme-sidebar) 80%, white);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 40%, transparent);
     border-radius: 10px;
   }
   
   /* Input style */
   .app-input {
-    background: color-mix(in srgb, var(--theme-bg) 50%, var(--theme-surface));
-    border: 2px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
+    background: color-mix(in srgb, var(--theme-bg) 60%, white);
+    border: 2px solid color-mix(in srgb, var(--theme-ring) 60%, transparent);
     border-radius: 8px;
     color: var(--theme-header);
     width: 100%;
@@ -142,35 +161,36 @@
   .app-input:focus {
     border-color: var(--theme-primary);
     background: var(--theme-surface);
-    box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 15%, transparent);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 12%, transparent);
   }
   .app-input::placeholder {
-    color: #92B5AA;
+    color: var(--theme-body);
+    opacity: 0.5;
   }
   
   /* Primary button */
   .btn-primary {
     background: var(--theme-primary);
-    color: var(--theme-surface);
+    color: #ffffff;
     font-weight: 700;
     border-radius: 8px;
     padding: 8px 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
-    box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 30%, transparent);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 35%, transparent);
   }
   .btn-primary:hover {
-    background: color-mix(in srgb, var(--theme-primary) 80%, white);
-    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-primary) 40%, transparent);
+    background: color-mix(in srgb, var(--theme-primary) 85%, black);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-primary) 45%, transparent);
     transform: translateY(-2px);
   }
   .btn-primary:active {
     transform: translateY(1px);
-    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 20%, transparent);
+    box-shadow: 0 2px 8px color-mix(in srgb, var(--theme-primary) 20%, transparent);
   }
   .btn-primary:disabled {
-    background: #C4DFD7;
-    opacity: 0.7;
+    background: var(--theme-ring);
+    opacity: 0.6;
     transform: none;
     box-shadow: none;
     cursor: not-allowed;
@@ -179,7 +199,7 @@
   /* Outline button */
   .btn-outline {
     background: var(--theme-surface);
-    border: 2px solid #A8D1C7;
+    border: 2px solid var(--theme-ring);
     color: var(--theme-primary);
     font-weight: 700;
     border-radius: 8px;
@@ -188,7 +208,7 @@
     transition: all 0.3s ease;
   }
   .btn-outline:hover {
-    background: color-mix(in srgb, var(--theme-bg) 50%, var(--theme-surface));
+    background: color-mix(in srgb, var(--theme-primary) 8%, white);
     border-color: var(--theme-primary);
     color: var(--theme-header);
     box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 15%, transparent);
@@ -196,18 +216,18 @@
   
   /* Tag pill */
   .tag {
-    background: color-mix(in srgb, var(--theme-bg) 50%, var(--theme-surface));
+    background: color-mix(in srgb, var(--theme-sidebar) 80%, white);
     color: var(--theme-body);
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 8px;
-    border: 1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
+    border: 1px solid color-mix(in srgb, var(--theme-ring) 50%, transparent);
     transition: all 0.2s;
   }
   .tag-active {
     background: var(--theme-primary);
-    color: var(--theme-surface);
+    color: #ffffff;
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
@@ -220,16 +240,14 @@
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
   -webkit-font-smoothing: antialiased;
-  background-color: var(--color-background);
-  color: var(--color-body);
+  background-color: var(--theme-bg);
+  color: var(--theme-body);
   
-  /* Prevent Google Dictionary / text selection prompts on mobile for UI text */
   -webkit-user-select: none;
   user-select: none;
   -webkit-touch-callout: none;
 }
 
-/* Allow text selection in inputs and textareas */
 input, textarea, .selectable, [contenteditable] {
   -webkit-user-select: text;
   user-select: text;
@@ -243,20 +261,19 @@ input, textarea, .selectable, [contenteditable] {
   display: none;
 }
 
-
 /* React Calendar Overrides */
 .react-calendar {
   width: 100% !important;
   background: transparent !important;
   border: none !important;
   font-family: inherit !important;
-  color: var(--color-header) !important;
+  color: var(--theme-header) !important;
 }
 .react-calendar__navigation {
   margin-bottom: 12px !important;
 }
 .react-calendar__navigation button {
-  color: var(--color-primary) !important;
+  color: var(--theme-primary) !important;
   font-weight: 800 !important;
   font-size: 18px !important;
   border-radius: 10px !important;
@@ -270,7 +287,8 @@ input, textarea, .selectable, [contenteditable] {
   background: transparent !important;
 }
 .react-calendar__month-view__weekdays {
-  color: #A8C5B8 !important;
+  color: var(--theme-body) !important;
+  opacity: 0.6;
   font-weight: 800 !important;
   font-size: 11px !important;
   text-decoration: none !important;
@@ -284,7 +302,7 @@ input, textarea, .selectable, [contenteditable] {
   font-weight: 700 !important;
   font-size: 14px !important;
   border-radius: 12px !important;
-  color: var(--color-header) !important;
+  color: var(--theme-header) !important;
   padding: 12px 0 !important;
   transition: all 0.2s ease !important;
 }
@@ -293,12 +311,12 @@ input, textarea, .selectable, [contenteditable] {
   transform: scale(1.05);
 }
 .react-calendar__tile--now {
-  background: #F4FAF8 !important;
-  border: 1.5px solid var(--color-primary) !important;
-  color: var(--color-primary) !important;
+  background: color-mix(in srgb, var(--theme-sidebar) 80%, white) !important;
+  border: 1.5px solid var(--theme-primary) !important;
+  color: var(--theme-primary) !important;
 }
 .react-calendar__tile--now:enabled:hover {
-  background: #E8F2EE !important;
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
 }
 .react-calendar__tile--active,
 .react-calendar__tile--active:enabled:hover,
@@ -310,7 +328,7 @@ input, textarea, .selectable, [contenteditable] {
   border: none !important;
 }
 .react-calendar__month-view__days__day--neighboringMonth {
-  color: #C8DBD4 !important;
+  opacity: 0.3 !important;
 }
 
 @keyframes gradientBG {
@@ -333,3 +351,18 @@ input, textarea, .selectable, [contenteditable] {
   animation: gradientBG 5s ease infinite;
 }
 
+@keyframes animate-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.animate-fade-in {
+  animation: animate-fade-in 0.2s ease forwards;
+}
+
+@keyframes animate-slide-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.animate-slide-up {
+  animation: animate-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+}

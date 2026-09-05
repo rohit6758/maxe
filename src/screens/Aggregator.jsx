@@ -199,11 +199,11 @@ export default function Aggregator() {
 
       {/* ── Funnel ── */}
       <div className="card p-4 space-y-4">
-        <p className="text-xs font-bold uppercase tracking-widest" style={{color: '#6BA898'}}>Select Context</p>
+        <p className="text-xs font-bold uppercase tracking-widest" style={{color: 'var(--theme-primary)'}}>Select Context</p>
 
         {/* Branch */}
         <div>
-          <p className="text-xs font-semibold mb-2" style={{color: '#5E7A6E'}}>① Branch</p>
+          <p className="text-xs font-semibold mb-2" style={{color: 'var(--theme-body)'}}>① Branch</p>
           <div className="flex flex-wrap gap-2">
             {BRANCHES.map(b => (
               <button key={b}
@@ -218,9 +218,9 @@ export default function Aggregator() {
         {activeBranch && (
           <div>
             <div className="flex justify-between items-end mb-2">
-              <p className="text-xs font-semibold" style={{color: '#5E7A6E'}}>② Semester</p>
+              <p className="text-xs font-semibold" style={{color: 'var(--theme-body)'}}>② Semester</p>
               {activeSemester && (
-                <button onClick={() => handleDeleteSemester(activeSemester)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#5E7A6E'}}>
+                <button onClick={() => handleDeleteSemester(activeSemester)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'var(--theme-body)'}}>
                   <Trash2 size={10} /> Delete
                 </button>
               )}
@@ -247,9 +247,9 @@ export default function Aggregator() {
         {activeSemester && (
           <div>
             <div className="flex justify-between items-end mb-2">
-              <p className="text-xs font-semibold" style={{color: '#5E7A6E'}}>③ Subject</p>
+              <p className="text-xs font-semibold" style={{color: 'var(--theme-body)'}}>③ Subject</p>
               {activeSubject && (
-                <button onClick={() => handleDeleteSubject(activeSubject)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'#5E7A6E'}}>
+                <button onClick={() => handleDeleteSubject(activeSubject)} className="text-[10px] flex items-center gap-0.5 opacity-60 hover:opacity-100 transition-opacity" style={{color:'var(--theme-body)'}}>
                   <Trash2 size={10} /> Delete
                 </button>
               )}
@@ -277,15 +277,15 @@ export default function Aggregator() {
       {!activeBranch && (
         <div className="card p-10 text-center">
           <p className="text-3xl mb-3">🎓</p>
-          <p className="font-semibold" style={{color:'#2D4A3E'}}>Select your branch above</p>
-          <p className="text-sm mt-1" style={{color:'#6BA898'}}>CSE · IT · EEE and more</p>
+          <p className="font-semibold" style={{color:'var(--theme-header)'}}>Select your branch above</p>
+          <p className="text-sm mt-1" style={{color:'var(--theme-primary)'}}>CSE · IT · EEE and more</p>
         </div>
       )}
       {activeBranch && !activeSubject && (
         <div className="card p-10 text-center">
           <p className="text-3xl mb-3">📚</p>
-          <p className="font-semibold" style={{color:'#2D4A3E'}}>Pick a subject to load resources</p>
-          <p className="text-sm mt-1" style={{color:'#6BA898'}}>{activeSemester ? 'Use the dropdown above' : 'First choose a semester'}</p>
+          <p className="font-semibold" style={{color:'var(--theme-header)'}}>Pick a subject to load resources</p>
+          <p className="text-sm mt-1" style={{color:'var(--theme-primary)'}}>{activeSemester ? 'Use the dropdown above' : 'First choose a semester'}</p>
         </div>
       )}
 
@@ -296,10 +296,10 @@ export default function Aggregator() {
           <div className="card p-4">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider" style={{color:'#6BA898'}}>{activeBranch} · {semName}</p>
-                <h2 className="text-xl font-bold mt-0.5" style={{color:'#2D4A3E'}}>{subjectName}</h2>
+                <p className="text-xs font-bold uppercase tracking-wider" style={{color:'var(--theme-primary)'}}>{activeBranch} · {semName}</p>
+                <h2 className="text-xl font-bold mt-0.5" style={{color:'var(--theme-header)'}}>{subjectName}</h2>
               </div>
-              <div className="text-right text-xs" style={{color:'#6BA898'}}>
+              <div className="text-right text-xs" style={{color:'var(--theme-primary)'}}>
                 <p>{resources.length} files</p>
                 <p className="mt-0.5">{resources.filter(r => r.type === 'chat').length} AI chats</p>
               </div>
@@ -320,13 +320,13 @@ export default function Aggregator() {
           {activeTab === 'links' && (
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold" style={{color:'#2D4A3E'}}>Links & Videos</h3>
+                <h3 className="font-bold" style={{color:'var(--theme-header)'}}>Links & Videos</h3>
                 <button onClick={() => setShowAddLink(!showAddLink)} className="btn-outline flex items-center gap-1 text-xs">
                   <Plus size={12} /> Add
                 </button>
               </div>
               {showAddLink && (
-                <form onSubmit={handleAddLink} className="space-y-2 p-3 rounded-xl" style={{background:'#F5FAF7', border:'1px solid rgba(107,168,152,0.2)'}}>
+                <form onSubmit={handleAddLink} className="space-y-2 p-3 rounded-xl" style={{background:'var(--theme-surface)', border:'1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)'}}>
                   <input className="app-input" placeholder="Name" value={newLink.title} onChange={e => setNewLink({...newLink, title: e.target.value})} required />
                   <input className="app-input" placeholder="https://..." type="url" value={newLink.url} onChange={e => setNewLink({...newLink, url: e.target.value})} required />
                   <div className="flex gap-2">
@@ -336,16 +336,16 @@ export default function Aggregator() {
                 </form>
               )}
               <div className="space-y-2">
-                {resources.filter(r => r.type === 'link' || r.type === 'youtube').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No links added yet.</p>}
+                {resources.filter(r => r.type === 'link' || r.type === 'youtube').length === 0 && <p className="text-sm" style={{color:'var(--theme-primary)'}}>No links added yet.</p>}
                 {resources.filter(r => r.type === 'link' || r.type === 'youtube').map(res => (
                   <div key={res.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
                     <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                        {res.type === 'youtube' ? <Video size={18} style={{color:'#E57373'}} /> : <LinkIcon size={18} style={{color:'#6BA898'}} />}
+                        {res.type === 'youtube' ? <Video size={18} style={{color:'#E57373'}} /> : <LinkIcon size={18} style={{color:'var(--theme-primary)'}} />}
                       </div>
                       <div className="min-w-0 pr-2">
-                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{res.url}</p>
+                        <p className="font-semibold text-sm truncate" style={{color:'var(--theme-header)'}}>{res.title}</p>
+                        <p className="text-xs truncate mt-0.5" style={{color:'var(--theme-primary)'}}>{res.url}</p>
                       </div>
                     </a>
                     <button onClick={(e) => handleDeleteResource(res.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
@@ -361,23 +361,23 @@ export default function Aggregator() {
           {activeTab === 'notes' && (
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold" style={{color:'#2D4A3E'}}>PDF Notes</h3>
+                <h3 className="font-bold" style={{color:'var(--theme-header)'}}>PDF Notes</h3>
                 <label className="btn-outline flex items-center gap-1 text-xs cursor-pointer">
                   <UploadCloud size={12} /> Upload
                   <input type="file" accept="application/pdf" className="hidden" onChange={e => handleUpload(e.target.files[0], 'pdf')} />
                 </label>
               </div>
               <div className="space-y-2">
-                {resources.filter(r => r.type === 'pdf').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No PDFs uploaded yet.</p>}
+                {resources.filter(r => r.type === 'pdf').length === 0 && <p className="text-sm" style={{color:'var(--theme-primary)'}}>No PDFs uploaded yet.</p>}
                 {resources.filter(r => r.type === 'pdf').map(res => (
                   <div key={res.id} className="card-sm flex items-center gap-2 p-2 pl-3">
                     <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                        <FileText size={18} style={{color:'#6BA898'}} />
+                        <FileText size={18} style={{color:'var(--theme-primary)'}} />
                       </div>
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                        <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
+                        <p className="font-semibold text-sm truncate" style={{color:'var(--theme-header)'}}>{res.title}</p>
+                        <p className="text-xs mt-0.5" style={{color:'var(--theme-primary)'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
                       </div>
                     </a>
                     <button onClick={(e) => handleDeleteResource(res.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
@@ -393,24 +393,24 @@ export default function Aggregator() {
           {activeTab === 'papers' && (
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold" style={{color:'#2D4A3E'}}>Question Papers</h3>
+                <h3 className="font-bold" style={{color:'var(--theme-header)'}}>Question Papers</h3>
                 <label className="btn-outline flex items-center gap-1 text-xs cursor-pointer">
                   <UploadCloud size={12} /> Upload
                   <input type="file" accept="application/pdf,image/*" className="hidden" onChange={e => handleUpload(e.target.files[0], 'question_paper')} />
                 </label>
               </div>
-              <p className="text-xs" style={{color:'#6BA898'}}>Upload previous year / senior question papers.</p>
+              <p className="text-xs" style={{color:'var(--theme-primary)'}}>Upload previous year / senior question papers.</p>
               <div className="space-y-2">
-                {resources.filter(r => r.type === 'question_paper').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No question papers yet.</p>}
+                {resources.filter(r => r.type === 'question_paper').length === 0 && <p className="text-sm" style={{color:'var(--theme-primary)'}}>No question papers yet.</p>}
                 {resources.filter(r => r.type === 'question_paper').map(res => (
                   <div key={res.id} className="card-sm flex items-center gap-2 p-2 pl-3">
                     <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                        <ClipboardList size={18} style={{color:'#6BA898'}} />
+                        <ClipboardList size={18} style={{color:'var(--theme-primary)'}} />
                       </div>
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                        <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
+                        <p className="font-semibold text-sm truncate" style={{color:'var(--theme-header)'}}>{res.title}</p>
+                        <p className="text-xs mt-0.5" style={{color:'var(--theme-primary)'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
                       </div>
                     </a>
                     <button onClick={(e) => handleDeleteResource(res.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>
@@ -426,24 +426,24 @@ export default function Aggregator() {
           {activeTab === 'diagrams' && (
             <div className="space-y-4">
               <div className="flex justify-between items-center">
-                <h3 className="font-bold" style={{color:'#2D4A3E'}}>Diagrams & Flowcharts</h3>
+                <h3 className="font-bold" style={{color:'var(--theme-header)'}}>Diagrams & Flowcharts</h3>
                 <label className="btn-outline flex items-center gap-1 text-xs cursor-pointer">
                   <UploadCloud size={12} /> Upload
                   <input type="file" accept="application/pdf,image/*" className="hidden" onChange={e => handleUpload(e.target.files[0], 'diagram')} />
                 </label>
               </div>
-              <p className="text-xs" style={{color:'#6BA898'}}>Upload system designs, architecture flows, or mind maps.</p>
+              <p className="text-xs" style={{color:'var(--theme-primary)'}}>Upload system designs, architecture flows, or mind maps.</p>
               <div className="space-y-2">
-                {resources.filter(r => r.type === 'diagram').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No diagrams yet.</p>}
+                {resources.filter(r => r.type === 'diagram').length === 0 && <p className="text-sm" style={{color:'var(--theme-primary)'}}>No diagrams yet.</p>}
                 {resources.filter(r => r.type === 'diagram').map(res => (
                   <div key={res.id} className="card-sm flex items-center gap-2 p-2 pl-3">
                     <a href={res.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                        <ImageIcon size={18} style={{color:'#6BA898'}} />
+                        <ImageIcon size={18} style={{color:'var(--theme-primary)'}} />
                       </div>
                       <div className="min-w-0 flex-1 pr-2">
-                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{res.title}</p>
-                        <p className="text-xs mt-0.5" style={{color:'#6BA898'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
+                        <p className="font-semibold text-sm truncate" style={{color:'var(--theme-header)'}}>{res.title}</p>
+                        <p className="text-xs mt-0.5" style={{color:'var(--theme-primary)'}}>{res.size} · {new Date(res.created_at).toLocaleDateString()}</p>
                       </div>
                     </a>
                     <button onClick={() => handleDelete(res.id)} className="text-red-400 hover:text-red-600 p-2"><Trash2 size={16}/></button>
@@ -456,13 +456,13 @@ export default function Aggregator() {
           {activeTab === 'ai' && (
             <div className="card p-4 space-y-3">
               <div className="flex items-center justify-between">
-                <h3 className="font-bold" style={{color:'#2D4A3E'}}>AI Chat History</h3>
+                <h3 className="font-bold" style={{color:'var(--theme-header)'}}>AI Chat History</h3>
                 <button onClick={() => setShowAddChat(!showAddChat)} className="btn-outline flex items-center gap-1 text-xs">
                   <Plus size={12} /> Add Link
                 </button>
               </div>
               {showAddChat && (
-                <form onSubmit={handleAddChat} className="space-y-2 p-3 rounded-xl" style={{background:'#F5FAF7', border:'1px solid rgba(107,168,152,0.2)'}}>
+                <form onSubmit={handleAddChat} className="space-y-2 p-3 rounded-xl" style={{background:'var(--theme-surface)', border:'1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)'}}>
                   <input className="app-input" placeholder="Chat Title (e.g. Unit 1 Summary)" value={newChat.title} onChange={e => setNewChat({...newChat, title: e.target.value})} required />
                   <input className="app-input" placeholder="https://chatgpt.com/share/..." type="text" value={newChat.url} onChange={e => setNewChat({...newChat, url: e.target.value})} required />
                   <div className="flex gap-2">
@@ -472,16 +472,16 @@ export default function Aggregator() {
                 </form>
               )}
               <div className="space-y-2">
-                {resources.filter(r => r.type === 'chat').length === 0 && <p className="text-sm" style={{color:'#6BA898'}}>No AI chats saved. Add a shared link.</p>}
+                {resources.filter(r => r.type === 'chat').length === 0 && <p className="text-sm" style={{color:'var(--theme-primary)'}}>No AI chats saved. Add a shared link.</p>}
                 {resources.filter(r => r.type === 'chat').map(chat => (
                   <div key={chat.id} className="card-sm flex items-center p-3 hover:scale-[1.01] transition-transform">
                     <a href={chat.url} target="_blank" rel="noreferrer" className="flex items-center gap-3 min-w-0 flex-1">
                       <div className="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" style={{background:'rgba(107,168,152,0.12)'}}>
-                        <MessageSquare size={18} style={{color:'#6BA898'}} />
+                        <MessageSquare size={18} style={{color:'var(--theme-primary)'}} />
                       </div>
                       <div className="min-w-0 pr-2">
-                        <p className="font-semibold text-sm truncate" style={{color:'#2D4A3E'}}>{chat.title}</p>
-                        <p className="text-xs truncate mt-0.5" style={{color:'#6BA898'}}>{chat.url}</p>
+                        <p className="font-semibold text-sm truncate" style={{color:'var(--theme-header)'}}>{chat.title}</p>
+                        <p className="text-xs truncate mt-0.5" style={{color:'var(--theme-primary)'}}>{chat.url}</p>
                       </div>
                     </a>
                     <button onClick={(e) => handleDeleteResource(chat.id, e)} className="p-2 shrink-0 opacity-50 hover:opacity-100 transition-opacity" style={{color:'#DC6B6B'}}>

@@ -198,7 +198,7 @@ const loadFollowStats = async () => {
             <div 
               onClick={() => setShowAvatarPopup(true)}
               className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2 cursor-pointer transition-transform hover:scale-105"
-              style={{borderColor: 'rgba(107,168,152,0.3)', background: 'rgba(107,168,152,10%, transparent)'}}>
+              style={{borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)', background: 'rgba(107,168,152,10%, transparent)'}}>
               {userProfile?.avatar_url
                 ? <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                 : <User size={40} className="text-primary" />}
@@ -233,7 +233,7 @@ const loadFollowStats = async () => {
           <button 
             onClick={() => setIsEditing(true)}
             className="w-full mt-6 py-2 rounded-xl text-sm font-bold transition-transform active:scale-95"
-            style={{background: '#EAF4EF', color: 'var(--theme-header)', border: '1px solid rgba(107,168,152,0.2)'}}>
+            style={{background: 'color-mix(in srgb, var(--theme-sidebar) 80%, white)', color: 'var(--theme-header)', border: '1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent)'}}>
             Edit Profile
           </button>
           
@@ -315,7 +315,7 @@ const loadFollowStats = async () => {
           <div className="flex flex-col items-center gap-3">
             <div className="relative">
               <div className="w-24 h-24 rounded-full overflow-hidden flex items-center justify-center"
-                style={{background:'rgba(107,168,152,0.12)', border:'2px solid rgba(107,168,152,0.3)'}}>
+                style={{background:'rgba(107,168,152,0.12)', border:'2px solid color-mix(in srgb, var(--theme-primary) 30%, transparent)'}}>
                 {avatarUrl
                   ? <img src={avatarUrl} alt="avatar" className="w-full h-full object-cover" />
                   : <User size={36} className="text-primary" />}

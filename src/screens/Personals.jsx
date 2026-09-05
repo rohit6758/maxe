@@ -5,7 +5,7 @@ import AppDialog from '../components/AppDialog';
 import { CheckCircle2, AlertTriangle, UploadCloud, Plus, Trash2, FileText, ChevronDown, ChevronUp } from 'lucide-react';
 
 const EXAMS = [
-  { id: 'mid1',    label: 'Mid 1',    total: 40,  color: '#6BA898', lightBg: '#EAF4EF', emoji: '📘' },
+  { id: 'mid1',    label: 'Mid 1',    total: 40,  color: 'var(--theme-primary)', lightBg: 'var(--theme-bg)', emoji: '📘' },
   { id: 'mid2',    label: 'Mid 2',    total: 40,  color: '#7B9EC8', lightBg: '#EAF0FA', emoji: '📗' },
 ];
 
@@ -176,8 +176,8 @@ export default function Personals() {
         {dialog && <AppDialog type={dialog.type} title={dialog.title} message={dialog.message} placeholder={dialog.placeholder} danger={dialog.danger} onConfirm={dialog.onConfirm} onCancel={closeDialog} />}
         <div className="card p-10 text-center">
           <p className="text-4xl mb-3">📖</p>
-          <p className="font-bold text-lg" style={{color:'#2D4A3E'}}>No semester selected</p>
-          <p className="text-sm mt-2" style={{color:'#6BA898'}}>
+          <p className="font-bold text-lg" style={{color:'var(--theme-header)'}}>No semester selected</p>
+          <p className="text-sm mt-2" style={{color:'var(--theme-primary)'}}>
             Go to <strong>Home</strong>, pick your branch and semester first.
           </p>
         </div>
@@ -192,13 +192,13 @@ export default function Personals() {
       {/* Header */}
       <div className="card p-4 flex justify-between items-center">
         <div>
-          <h2 className="text-xl font-bold text-aberration" style={{color:'#2D4A3E'}}>Improvements</h2>
-          <p className="text-sm mt-0.5" style={{color:'#6BA898'}}>Select a subject to view exam reflections</p>
+          <h2 className="text-xl font-bold text-aberration" style={{color:'var(--theme-header)'}}>Improvements</h2>
+          <p className="text-sm mt-0.5" style={{color:'var(--theme-primary)'}}>Select a subject to view exam reflections</p>
         </div>
         {localSemesters.length > 0 && (
           <select 
             className="app-input text-xs py-1.5 px-2 bg-background font-bold shadow-sm" 
-            style={{color: '#2D4A3E', borderColor: 'rgba(107,168,152,0.3)', width: 'auto'}}
+            style={{color: 'var(--theme-header)', borderColor: 'color-mix(in srgb, var(--theme-primary) 30%, transparent)', width: 'auto'}}
             value={selectedSemester || ''} 
             onChange={e => setSelectedSemester(e.target.value)}
           >
@@ -218,8 +218,8 @@ export default function Personals() {
       ) : subjects.length === 0 ? (
         <div className="card p-8 text-center">
           <p className="text-3xl mb-2">📝</p>
-          <p className="font-semibold" style={{color:'#2D4A3E'}}>No subjects yet</p>
-          <p className="text-sm mt-1" style={{color:'#6BA898'}}>Add subjects in the Hub tab first.</p>
+          <p className="font-semibold" style={{color:'var(--theme-header)'}}>No subjects yet</p>
+          <p className="text-sm mt-1" style={{color:'var(--theme-primary)'}}>Add subjects in the Hub tab first.</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -234,24 +234,24 @@ export default function Personals() {
                     setOpenExam(null);
                   }}
                   className="w-full flex items-center justify-between p-4 transition-colors"
-                  style={{background: isExpanded ? '#EAF4EF' : '#FFFFFF'}}
+                  style={{background: isExpanded ? 'var(--theme-bg)' : '#FFFFFF'}}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base font-bold" style={{background:'rgba(107,168,152,15%, transparent)', color:'#6BA898'}}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base font-bold" style={{background:'rgba(107,168,152,15%, transparent)', color:'var(--theme-primary)'}}>
                       {subject.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-left">
-                      <p className="font-bold" style={{color:'#2D4A3E'}}>{subject.name}</p>
-                      <p className="text-xs" style={{color:'#6BA898'}}>Tap to view exams</p>
+                      <p className="font-bold" style={{color:'var(--theme-header)'}}>{subject.name}</p>
+                      <p className="text-xs" style={{color:'var(--theme-primary)'}}>Tap to view exams</p>
                     </div>
                   </div>
-                  {isExpanded ? <ChevronUp size={18} style={{color:'#6BA898'}} /> : <ChevronDown size={18} style={{color:'#A8C5B8'}} />}
+                  {isExpanded ? <ChevronUp size={18} style={{color:'var(--theme-primary)'}} /> : <ChevronDown size={18} style={{color:'#A8C5B8'}} />}
                 </button>
 
                 {/* Exam tabs */}
                 {isExpanded && (
                   <div className="border-t" style={{borderColor:'rgba(107,168,152,15%, transparent)'}}>
-                    <div className="flex gap-2 p-3" style={{background:'#F5FAF7'}}>
+                    <div className="flex gap-2 p-3" style={{background:'var(--theme-surface)'}}>
                       {EXAMS.map(exam => {
                         const key = cacheKey(subject.id, exam.id);
                         const log = logCache[key];
@@ -303,7 +303,7 @@ export default function Personals() {
                               </div>
                             </div>
                             <div className="flex-1">
-                              <p className="text-xs font-semibold mb-1.5" style={{color:'#5E7A6E'}}>Marks out of {cfg.total}</p>
+                              <p className="text-xs font-semibold mb-1.5" style={{color:'var(--theme-body)'}}>Marks out of {cfg.total}</p>
                               <input
                                 type="number" min="0" max={cfg.total}
                                 key={`${key}-marks`}
@@ -318,8 +318,8 @@ export default function Personals() {
                           {/* Tips */}
                           <div className="card-sm p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                              <p className="font-bold text-sm flex items-center gap-2" style={{color:'#2D4A3E'}}>
-                                <CheckCircle2 size={15} style={{color:'#6BA898'}} /> Tips & Tricks
+                              <p className="font-bold text-sm flex items-center gap-2" style={{color:'var(--theme-header)'}}>
+                                <CheckCircle2 size={15} style={{color:'var(--theme-primary)'}} /> Tips & Tricks
                               </p>
                               <button onClick={() => addItem(subject.id, examId, 'tip')} className="btn-outline text-xs flex items-center gap-1 py-1 px-2">
                                 <Plus size={11} /> Add
@@ -329,7 +329,7 @@ export default function Personals() {
                               ? <p className="text-xs" style={{color:'#A8C5B8'}}>No tips yet.</p>
                               : examItems.filter(i => i.type === 'tip').map(tip => (
                                 <div key={tip.id} className="flex items-start gap-2 group">
-                                  <CheckCircle2 size={13} className="mt-0.5 shrink-0" style={{color:'#6BA898'}} />
+                                  <CheckCircle2 size={13} className="mt-0.5 shrink-0" style={{color:'var(--theme-primary)'}} />
                                   <p className="text-sm flex-1 leading-relaxed" style={{color:'#3D6B5E'}}>{tip.text}</p>
                                   <button onClick={() => deleteItem(subject.id, examId, tip.id)}
                                     className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}>✕</button>
@@ -341,7 +341,7 @@ export default function Personals() {
                           {/* Challenges */}
                           <div className="card-sm p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                              <p className="font-bold text-sm flex items-center gap-2" style={{color:'#2D4A3E'}}>
+                              <p className="font-bold text-sm flex items-center gap-2" style={{color:'var(--theme-header)'}}>
                                 <AlertTriangle size={15} style={{color:'#E8945A'}} /> Challenges
                               </p>
                               <button onClick={() => addItem(subject.id, examId, 'drawback')} className="btn-outline text-xs flex items-center gap-1 py-1 px-2" style={{color:'#E8945A', borderColor:'rgba(232,148,90,0.3)'}}>
@@ -364,14 +364,14 @@ export default function Personals() {
                           {/* Evidence */}
                           <div className="card-sm p-4 space-y-3">
                             <div className="flex items-center justify-between">
-                              <p className="font-bold text-sm flex items-center gap-2" style={{color:'#2D4A3E'}}>
+                              <p className="font-bold text-sm flex items-center gap-2" style={{color:'var(--theme-header)'}}>
                                 <FileText size={15} style={{color: cfg.color}} /> Answer Papers
                               </p>
                               {uploading && <span className="text-xs animate-pulse" style={{color: cfg.color}}>Uploading...</span>}
                             </div>
                             <div className="grid grid-cols-3 gap-2">
                               {examEvidence.map(ev => (
-                                <div key={ev.id} className="relative group aspect-square rounded-xl overflow-hidden" style={{background:'#EAF4EF', border:`1px solid ${cfg.color}30`}}>
+                                <div key={ev.id} className="relative group aspect-square rounded-xl overflow-hidden" style={{background:'var(--theme-bg)', border:`1px solid ${cfg.color}30`}}>
                                   <a href={ev.image_url} target="_blank" rel="noreferrer" className="w-full h-full flex items-center justify-center">
                                     {ev.image_url.match(/\.pdf$/i)
                                       ? <div className="flex flex-col items-center gap-1"><FileText size={20} style={{color:cfg.color}} /><span className="text-[9px] font-bold" style={{color:cfg.color}}>PDF</span></div>

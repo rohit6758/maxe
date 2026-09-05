@@ -105,11 +105,11 @@ export default function OnboardingPopup() {
                   if (usernameError) setUsernameError(null);
                 }}
                 placeholder="e.g. rohit.67"
-                className={`app-input w-full bg-surface ${usernameError ? 'border-[#2D4A3E]' : ''}`}
+                className={`app-input w-full bg-surface ${usernameError ? 'border-[var(--theme-header)]' : ''}`}
                 maxLength={20}
               />
               {usernameError ? (
-                <p className="text-[11px] font-bold px-1" style={{color: '#2D4A3E'}}>{usernameError}</p>
+                <p className="text-[11px] font-bold px-1" style={{color: 'var(--theme-header)'}}>{usernameError}</p>
               ) : (
                 <p className="text-[10px] text-body/60 px-1">Letters, numbers, underscores, and dots. Must start with letter/number.</p>
               )}

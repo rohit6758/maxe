@@ -65,7 +65,7 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
                 </div>
 
                 {/* Orbiting Icons */}
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#E8F2EE] border-2 border-primary flex items-center justify-center shadow-md z-10" title="Read PDFs">
+                <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[var(--theme-surface)] border-2 border-primary flex items-center justify-center shadow-md z-10" title="Read PDFs">
                   <FileText size={18} className="text-primary" />
                 </div>
                 <div className="absolute top-[14%] right-[4%] translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-[#FDF1E2] border-2 border-[#FF9D00] flex items-center justify-center shadow-md z-10" title="AI Chat">

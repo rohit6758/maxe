@@ -190,7 +190,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
             {currentUserId && currentUserId !== userId && (
               <button 
                 onClick={toggleFollow}
-                className={`w-full py-3.5 rounded-full text-sm font-extrabold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${isFollowing ? 'bg-background text-header border-2 border-primary/20' : 'bg-gradient-to-r from-[#8ED0BF] to-[#7BB8A8] text-white'}`}
+                className={`w-full py-3.5 rounded-full text-sm font-extrabold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${isFollowing ? 'bg-background text-header border-2 border-primary/20' : 'bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary)] text-white'}`}
               >
                 {isFollowing ? 'Following' : 'Follow back'}
               </button>

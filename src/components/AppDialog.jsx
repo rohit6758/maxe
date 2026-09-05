@@ -53,7 +53,7 @@ export default function AppDialog({ type = 'prompt', title, message, placeholder
             onChange={e => setValue(e.target.value)}
             onKeyDown={handleKeyDown}
             placeholder={placeholder}
-            className="w-full bg-[#EDF4F0] border border-transparent focus:bg-white focus:border-primary/30 rounded-xl py-2.5 px-4 text-sm outline-none transition-all selectable"
+            className="w-full bg-[var(--theme-bg)] border border-transparent focus:bg-white focus:border-primary/30 rounded-xl py-2.5 px-4 text-sm outline-none transition-all selectable"
           />
         )}
 

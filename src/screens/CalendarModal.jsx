@@ -54,11 +54,11 @@ export default function CalendarModal({ onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{background:'rgba(45,74,62,0.25)', backdropFilter:'blur(6px)'}}>
       <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl"
-        style={{background:'#F7FBF9', maxHeight:'90vh', overflowY:'auto', border:'1px solid rgba(107,168,152,0.2)'}}>
+        style={{background:'var(--theme-surface)', maxHeight:'90vh', overflowY:'auto', border:'1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)'}}>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sticky top-0" style={{background:'#F7FBF9', borderBottom:'1px solid rgba(107,168,152,0.15)'}}>
-          <h2 className="font-bold text-lg" style={{color:'#2D4A3E'}}>📅 Calendar</h2>
+        <div className="flex items-center justify-between p-4 sticky top-0" style={{background:'var(--theme-surface)', borderBottom:'1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
+          <h2 className="font-bold text-lg" style={{color:'var(--theme-header)'}}>📅 Calendar</h2>
           <button onClick={onClose} className="btn-outline p-1.5 rounded-xl"><X size={16} /></button>
         </div>
 
@@ -71,7 +71,7 @@ export default function CalendarModal({ onClose }) {
               tileContent={({ date }) => {
                 const s = getLocalYMD(date);
                 return eventDates.has(s)
-                  ? <div className="flex justify-center mt-0.5"><div className="w-1.5 h-1.5 rounded-full" style={{background:'#6BA898'}} /></div>
+                  ? <div className="flex justify-center mt-0.5"><div className="w-1.5 h-1.5 rounded-full" style={{background:'var(--theme-primary)'}} /></div>
                   : null;
               }}
             />
@@ -80,7 +80,7 @@ export default function CalendarModal({ onClose }) {
           {/* Day events */}
           <div className="card p-4 space-y-3">
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-sm" style={{color:'#2D4A3E'}}>
+              <h3 className="font-bold text-sm" style={{color:'var(--theme-header)'}}>
                 {selected.toLocaleDateString('en-US', { weekday: 'long', month: 'short', day: 'numeric' })}
               </h3>
               <button onClick={() => setShowForm(!showForm)} className="btn-outline text-xs flex items-center gap-1 py-1 px-2">
@@ -89,7 +89,7 @@ export default function CalendarModal({ onClose }) {
             </div>
 
             {showForm && (
-              <form onSubmit={save} className="space-y-2 pt-2 border-t" style={{borderColor:'rgba(107,168,152,0.15)'}}>
+              <form onSubmit={save} className="space-y-2 pt-2 border-t" style={{borderColor:'color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
                 <input className="app-input" placeholder="Event title" value={form.title} onChange={e => setForm({...form, title: e.target.value})} required />
                 <div className="flex gap-2">
                   <select className="app-input" value={form.type} onChange={e => setForm({...form, type: e.target.value})}>
@@ -112,8 +112,8 @@ export default function CalendarModal({ onClose }) {
                 <div key={ev.id} className="flex items-center gap-2 p-2 rounded-xl group" style={{background:'rgba(107,168,152,0.08)'}}>
                   <span>{typeIcon[ev.type] || '📌'}</span>
                   <div className="flex-1">
-                    <p className="text-sm font-semibold" style={{color:'#2D4A3E'}}>{ev.title}</p>
-                    {ev.marks !== null && <p className="text-xs" style={{color:'#6BA898'}}>Marks: {ev.marks}</p>}
+                    <p className="text-sm font-semibold" style={{color:'var(--theme-header)'}}>{ev.title}</p>
+                    {ev.marks !== null && <p className="text-xs" style={{color:'var(--theme-primary)'}}>Marks: {ev.marks}</p>}
                   </div>
                   <button onClick={() => del(ev.id)} className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}>✕</button>
                 </div>
@@ -124,7 +124,7 @@ export default function CalendarModal({ onClose }) {
           {/* Upcoming */}
           {events.filter(e => e.event_date >= getLocalYMD()).length > 0 && (
             <div className="card p-4 space-y-2">
-              <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style={{color:'#6BA898'}}>
+              <p className="text-xs font-bold uppercase tracking-wider flex items-center gap-1" style={{color:'var(--theme-primary)'}}>
                 <Bell size={12} /> Upcoming
               </p>
               {events
@@ -133,7 +133,7 @@ export default function CalendarModal({ onClose }) {
                 .map(ev => (
                   <div key={ev.id} className="flex items-center gap-2 p-2 rounded-lg" style={{background:'rgba(107,168,152,0.06)'}}>
                     <span className="text-sm">{typeIcon[ev.type] || '📌'}</span>
-                    <p className="flex-1 text-xs font-medium truncate" style={{color:'#2D4A3E'}}>{ev.title}</p>
+                    <p className="flex-1 text-xs font-medium truncate" style={{color:'var(--theme-header)'}}>{ev.title}</p>
                     <p className="text-[10px] shrink-0" style={{color:'#A8C5B8'}}>
                       {new Date(ev.event_date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
                     </p>

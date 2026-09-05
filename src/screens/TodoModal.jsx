@@ -42,14 +42,14 @@ export default function TodoModal({ onClose }) {
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
       style={{background:'rgba(45,74,62,0.25)', backdropFilter:'blur(6px)'}}>
       <div className="w-full max-w-md rounded-2xl overflow-hidden shadow-2xl flex flex-col"
-        style={{background:'#F7FBF9', maxHeight:'90vh', border:'1px solid rgba(107,168,152,0.2)'}}>
+        style={{background:'var(--theme-surface)', maxHeight:'90vh', border:'1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent)'}}>
 
         {/* Header */}
-        <div className="flex items-center justify-between p-4 shrink-0" style={{background:'#F7FBF9', borderBottom:'1px solid rgba(107,168,152,0.15)'}}>
+        <div className="flex items-center justify-between p-4 shrink-0" style={{background:'var(--theme-surface)', borderBottom:'1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
           <div>
-            <h2 className="font-bold text-lg" style={{color:'#2D4A3E'}}>To-Do List</h2>
+            <h2 className="font-bold text-lg" style={{color:'var(--theme-header)'}}>To-Do List</h2>
             <div className="flex gap-4 text-[10px] font-bold uppercase tracking-wider mt-1">
-              <span style={{color:'#6BA898'}}>{pending.length} pending</span>
+              <span style={{color:'var(--theme-primary)'}}>{pending.length} pending</span>
               <span style={{color:'#A8C5B8'}}>{done.length} done</span>
             </div>
           </div>
@@ -67,11 +67,11 @@ export default function TodoModal({ onClose }) {
 
           {pending.length > 0 && (
             <div className="card p-3 space-y-2">
-              <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{color:'#6BA898'}}>Pending</p>
+              <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{color:'var(--theme-primary)'}}>Pending</p>
               {pending.map(todo => (
                 <div key={todo.id} className="card-sm flex items-center gap-3 p-2 group bg-surface">
                   <button onClick={() => toggle(todo)} style={{color:'#A8C5B8', flexShrink:0}}><Square size={16} /></button>
-                  <p className="flex-1 text-sm" style={{color:'#2D4A3E'}}>{todo.text}</p>
+                  <p className="flex-1 text-sm" style={{color:'var(--theme-header)'}}>{todo.text}</p>
                   <button onClick={() => del(todo.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}><Trash2 size={14} /></button>
                 </div>
               ))}
@@ -83,8 +83,8 @@ export default function TodoModal({ onClose }) {
               <p className="text-[10px] font-bold uppercase tracking-wider mb-2" style={{color:'#A8C5B8'}}>Completed</p>
               {done.map(todo => (
                 <div key={todo.id} className="card-sm flex items-center gap-3 p-2 group bg-surface opacity-60">
-                  <button onClick={() => toggle(todo)} style={{color:'#6BA898', flexShrink:0}}><CheckSquare2 size={16} /></button>
-                  <p className="flex-1 text-sm line-through" style={{color:'#5E7A6E'}}>{todo.text}</p>
+                  <button onClick={() => toggle(todo)} style={{color:'var(--theme-primary)', flexShrink:0}}><CheckSquare2 size={16} /></button>
+                  <p className="flex-1 text-sm line-through" style={{color:'var(--theme-body)'}}>{todo.text}</p>
                   <button onClick={() => del(todo.id)} className="opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}><Trash2 size={14} /></button>
                 </div>
               ))}
@@ -93,8 +93,8 @@ export default function TodoModal({ onClose }) {
 
           {todos.length === 0 && (
             <div className="card p-8 text-center bg-surface">
-              <p className="font-semibold text-sm" style={{color:'#2D4A3E'}}>All clear!</p>
-              <p className="text-xs mt-1" style={{color:'#6BA898'}}>Add your first task above.</p>
+              <p className="font-semibold text-sm" style={{color:'var(--theme-header)'}}>All clear!</p>
+              <p className="text-xs mt-1" style={{color:'var(--theme-primary)'}}>Add your first task above.</p>
             </div>
           )}
         </div>

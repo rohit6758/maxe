@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, X, Users, Search, Flame } from 'lucide-react';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
@@ -29,44 +29,13 @@ export default function Layout() {
   }, []);
 
   useEffect(() => {
-    const handler = (e) => { e.preventDefault(); setInstallPrompt(e); };
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
     window.addEventListener('beforeinstallprompt', handler);
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
-
-  useEffect(() => {
-    if ('Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().catch(() => {});
-    }
-
-    const checkReminders = async () => {
-      if (!session) return;
-      if (!('Notification' in window) || Notification.permission !== 'granted') return;
-      
-      // Use local timezone date string to prevent UTC date mismatch
-      const offset = new Date().getTimezoneOffset() * 60000;
-      const today = new Date(Date.now() - offset).toISOString().split('T')[0];
-      
-      const { data } = await supabase.from('calendar_events')
-        .select('*')
-        .eq('user_id', session.user.id)
-        .eq('event_date', today);
-        
-      if (data && data.length > 0) {
-        const notified = localStorage.getItem('notified_' + today);
-        if (!notified) {
-          data.forEach(ev => {
-            new Notification('Maxe Reminder 📅', {
-              body: `You have an event today: ${ev.title}`,
-              icon: '/logo.png'
-            });
-          });
-          localStorage.setItem('notified_' + today, 'true');
-        }
-      }
-    };
-    checkReminders();
-  }, [session]);
 
   const handleInstall = async () => {
     if (!installPrompt) return;
@@ -80,12 +49,6 @@ export default function Layout() {
     window.location.reload();
   };
 
-  const NAV_ITEMS = [
-    { id: 'calendar', label: 'Calendar', icon: <Calendar size={18} /> },
-    { id: 'aggregator', label: 'Hub', icon: <BookOpen size={18} /> },
-    { id: 'personals', label: 'Improvements', icon: <User size={18} /> },
-  ];
-
   const navLinks = [
     { to: '/', icon: <LayoutGrid size={18} />, label: 'Home' },
     { to: '/personals', icon: <BookOpen size={18} />, label: 'Improvements' },
@@ -94,17 +57,17 @@ export default function Layout() {
   ];
 
   const SidebarContent = () => (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col h-full" style={{ background: 'var(--theme-sidebar)' }}>
       {/* Brand */}
-      <div className="p-6 pb-4 border-b border-primary/15">
-        <h1 className="text-xl font-bold text-header">Maxe</h1>
+      <div className="p-6 pb-4 border-b" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
+        <h1 className="text-xl font-black" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
         {activeBranch && (
           <span className="text-xs font-semibold mt-1 inline-block tag">{activeBranch}</span>
         )}
       </div>
 
       {/* Nav */}
-      <nav className="flex flex-1 flex-col p-4 space-y-1 mt-2">
+      <nav className="flex flex-1 flex-col p-3 space-y-0.5 mt-2">
         {navLinks.map(link => (
           <NavLink
             key={link.to}
@@ -120,16 +83,19 @@ export default function Layout() {
           </NavLink>
         ))}
         {/* Study Tracker right under Find */}
-        <button onClick={() => { setIsTrackerOpen(true); setSidebarOpen(false); }} className={`nav-item ${isTrackerOpen ? 'nav-item-active' : ''} text-left`} style={{color: userProfile?.is_premium ? '#FF9D00' : ''}}>
+        <button
+          onClick={() => { setIsTrackerOpen(true); setSidebarOpen(false); }}
+          className={`nav-item text-left w-full ${isTrackerOpen ? 'nav-item-active' : ''} ${userProfile?.is_premium ? 'text-orange-500' : ''}`}
+        >
           <Flame size={18} className={userProfile?.is_premium ? 'animate-pulse' : ''} />
           <span>Study Tracker</span>
         </button>
       </nav>
 
       {/* Bottom actions */}
-      <div className="p-4 space-y-1 border-t mt-auto border-primary/15">
+      <div className="p-3 space-y-0.5 border-t mt-auto" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
         {installPrompt && (
-          <button onClick={handleInstall} className="nav-item w-full font-semibold text-primary">
+          <button onClick={handleInstall} className="nav-item w-full font-semibold">
             <Download size={18} /> Install App
           </button>
         )}
@@ -143,7 +109,7 @@ export default function Layout() {
           <User size={18} />
           <span>{userProfile?.name || 'Profile'}</span>
         </Link>
-        <button onClick={handleLogout} className="nav-item w-full" style={{color: '#DC6B6B'}}>
+        <button onClick={handleLogout} className="nav-item w-full text-red-400 hover:text-red-500">
           <LogOut size={18} /> Sign Out
         </button>
       </div>
@@ -151,20 +117,19 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex min-h-screen" className="bg-background flex min-h-screen">
+    <div className="flex min-h-screen" style={{ background: 'var(--theme-bg)' }}>
       {(!userProfile || !userProfile.username || !userProfile.branch || !userProfile.college) && <OnboardingPopup />}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{background: '#F7FBF9', borderRight: '1px solid rgba(107,168,152,0.18)'}}>
+      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{ boxShadow: '1px 0 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
         <SidebarContent />
       </aside>
 
       {/* Mobile Drawer Overlay */}
       {sidebarOpen && (
-        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)} style={{background: 'rgba(45,74,62,0.3)', backdropFilter: 'blur(4px)'}}>
+        <div className="fixed inset-0 z-40 md:hidden" onClick={() => setSidebarOpen(false)} style={{ background: 'rgba(0,0,0,0.35)' }}>
           <aside
-            className="absolute left-0 top-0 bottom-0 w-64 h-full"
-            className="bg-surface"
+            className="absolute left-0 top-0 bottom-0 w-64 h-full shadow-2xl"
             onClick={e => e.stopPropagation()}
           >
             <SidebarContent />
@@ -176,22 +141,24 @@ export default function Layout() {
       <div className="flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
 
         {/* Mobile Top Bar */}
-        <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3" style={{background: '#F7FBF9', borderBottom: '1px solid rgba(107,168,152,0.15)'}}>
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl" className="text-body">
+        <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3"
+          style={{ background: 'var(--theme-sidebar)', boxShadow: '0 1px 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-body)' }}>
             <Menu size={22} />
           </button>
-          <h1 className="font-bold text-lg text-aberration" className="text-header">Maxe</h1>
+          <h1 className="font-black text-lg" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
           <div className="flex items-center gap-1">
-            <button onClick={() => setIsTodoOpen(true)} className="p-2 rounded-xl" className="text-primary">
+            <button onClick={() => setIsTodoOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-primary)' }}>
               <CheckSquare size={20} />
             </button>
-            <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" className="text-primary">
+            <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-primary)' }}>
               <Calendar size={20} />
             </button>
-            <Link to="/profile" className="w-8 h-8 ml-1 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '1.5px solid rgba(107,168,152,0.3)'}}>
+            <Link to="/profile" className="w-8 h-8 ml-1 rounded-full overflow-hidden flex items-center justify-center border-2"
+              style={{ borderColor: 'var(--theme-ring)', background: 'color-mix(in srgb, var(--theme-sidebar) 80%, white)' }}>
               {userProfile?.avatar_url
                 ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
-                : <User size={16} className="text-primary" />}
+                : <User size={16} style={{ color: 'var(--theme-primary)' }} />}
             </Link>
           </div>
         </header>
@@ -200,29 +167,31 @@ export default function Layout() {
         <header className="hidden md:flex items-center justify-end px-6 py-4">
           <Link to="/profile" className="flex items-center gap-3 hover:scale-[1.02] transition-transform">
             <div className="text-right">
-              <p className="text-sm font-bold text-aberration" className="text-header">{userProfile?.name || 'My Profile'}</p>
-              <p className="text-xs" className="text-primary">{userProfile?.branch || 'Student'}</p>
+              <p className="text-sm font-bold" style={{ color: 'var(--theme-header)' }}>{userProfile?.name || 'My Profile'}</p>
+              <p className="text-xs" style={{ color: 'var(--theme-primary)' }}>{userProfile?.branch || 'Student'}</p>
             </div>
-            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)', border: '2px solid rgba(107,168,152,0.3)'}}>
+            <div className="w-10 h-10 rounded-full overflow-hidden flex items-center justify-center border-2"
+              style={{ borderColor: 'var(--theme-ring)', background: 'color-mix(in srgb, var(--theme-sidebar) 80%, white)' }}>
               {userProfile?.avatar_url
                 ? <img src={userProfile.avatar_url} alt="Me" className="w-full h-full object-cover" />
-                : <User size={20} className="text-primary" />}
+                : <User size={20} style={{ color: 'var(--theme-primary)' }} />}
             </div>
           </Link>
         </header>
 
         <main className="flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
           {/* Offline Banner */}
-        {!isOnline && (
-          <div className="sticky top-0 z-50 bg-yellow-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
-            <span>⚠️ You are offline — PDFs you've viewed are available. Community needs internet.</span>
-          </div>
-        )}
-        <Outlet />
+          {!isOnline && (
+            <div className="sticky top-0 z-50 bg-yellow-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
+              <span>📶 You are offline — PDFs you've viewed are available. Community needs internet.</span>
+            </div>
+          )}
+          <Outlet />
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30 bg-surface border-t border-primary/15">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30"
+          style={{ background: 'var(--theme-sidebar)', boxShadow: '0 -1px 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
           {[
             { to: '/', icon: <LayoutGrid size={22} strokeWidth={2.5} />, label: 'Home' },
             { to: '/explore', icon: <Users size={22} strokeWidth={2.5} />, label: 'Community' },
@@ -231,12 +200,13 @@ export default function Layout() {
             { to: '/profile', icon: <User size={22} strokeWidth={2.5} />, label: 'Profile' },
           ].map(item => (
             <NavLink key={item.to} to={item.to} end={item.to === '/'} className={({ isActive }) =>
-              `flex flex-col items-center justify-center w-12 h-full transition-all ${isActive ? 'scale-110 text-header' : 'opacity-60 hover:opacity-100 text-body'}`
-            }>
+              `flex flex-col items-center justify-center w-12 h-full transition-all`
+            }
+              style={({ isActive }) => ({ color: isActive ? 'var(--theme-primary)' : 'var(--theme-body)', opacity: isActive ? 1 : 0.55, transform: isActive ? 'scale(1.15)' : 'scale(1)' })}
+            >
               {({ isActive }) => (
                 <>
                   <span>{item.icon}</span>
-                  {/* Removed dot as per request */}
                 </>
               )}
             </NavLink>
