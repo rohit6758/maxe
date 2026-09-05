@@ -2,8 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, User, ArrowLeft, UserPlus, Check } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge';
+import AvatarDecoration from './AvatarDecoration';
+import { useAppContext } from '../context/AppContext';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
+  const { profileEffects } = useAppContext();
   const [profile, setProfile] = useState(null);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -139,16 +142,19 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
           </div>
         ) : viewMode === 'profile' ? (
           <div className="p-6 relative">
-            {profile?.is_premium && (
+            {profile?.is_premium && profileEffects?.banner === 'gradient' && (
               <div className="absolute top-0 left-0 right-0 h-32 nitro-bg opacity-30 pointer-events-none rounded-t-xl" style={{maskImage: 'linear-gradient(to bottom, black, transparent)', WebkitMaskImage: 'linear-gradient(to bottom, black, transparent)'}}></div>
             )}
             
             {/* Top section: Avatar + Stats */}
             <div className="flex items-center gap-6 mb-6 relative z-10">
               <div 
-                className={`w-24 h-24 rounded-full border-4 ${profile?.is_premium ? 'border-transparent bg-gradient-to-tr from-primary to-accent p-1' : 'border-primary/20'} overflow-hidden flex items-center justify-center shrink-0 cursor-pointer shadow-lg`}
+                className={`w-24 h-24 rounded-full border-4 ${profile?.is_premium ? 'border-transparent bg-gradient-to-tr from-primary to-accent p-1' : 'border-primary/20'} overflow-hidden flex items-center justify-center shrink-0 cursor-pointer shadow-lg relative`}
                 onClick={() => profile?.avatar_url && setViewingAvatar(true)}
               >
+                {profile?.is_premium && profileEffects?.avatar !== 'none' && (
+                  <AvatarDecoration type={profileEffects?.avatar} />
+                )}
                 <div className="w-full h-full rounded-full overflow-hidden bg-primary/5">
                   {profile?.avatar_url ? (
                     <img src={profile.avatar_url} className="w-full h-full object-cover" alt="avatar" />

@@ -237,7 +237,7 @@ export default function Personals() {
                   style={{background: isExpanded ? '#EAF4EF' : '#FFFFFF'}}
                 >
                   <div className="flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base font-bold" style={{background:'rgba(107,168,152,0.15)', color:'#6BA898'}}>
+                    <div className="w-9 h-9 rounded-xl flex items-center justify-center text-base font-bold" style={{background:'rgba(107,168,152,15%, transparent)', color:'#6BA898'}}>
                       {subject.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="text-left">
@@ -250,7 +250,7 @@ export default function Personals() {
 
                 {/* Exam tabs */}
                 {isExpanded && (
-                  <div className="border-t" style={{borderColor:'rgba(107,168,152,0.15)'}}>
+                  <div className="border-t" style={{borderColor:'rgba(107,168,152,15%, transparent)'}}>
                     <div className="flex gap-2 p-3" style={{background:'#F5FAF7'}}>
                       {EXAMS.map(exam => {
                         const key = cacheKey(subject.id, exam.id);

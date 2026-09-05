@@ -82,56 +82,56 @@
     text-align: left;
   }
   .nav-item:hover {
-    background: rgba(123,184,168,0.08);
+    background: color-mix(in srgb, var(--theme-primary) 8%, transparent);
     color: var(--color-header);
   }
   .nav-item-active {
-    background: rgba(123,184,168,0.15) !important;
+    background: color-mix(in srgb, var(--theme-primary) 15%, transparent) !important;
     color: var(--color-primary) !important;
   }
 
   .text-aberration {
-    text-shadow: 0 0 10px rgba(123,184,168,0.4), 1px 0 2px rgba(123,184,168,0.3);
+    text-shadow: 0 0 10px color-mix(in srgb, var(--theme-primary) 40%, transparent), 1px 0 2px color-mix(in srgb, var(--theme-primary) 30%, transparent);
   }
 
   /* Main app card */
   .card {
-    background: #FFFFFF;
-    border: 1px solid rgba(123,184,168,0.15);
+    background: var(--theme-surface);
+    border: 1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent);
     border-radius: 12px;
-    box-shadow: 0 8px 24px rgba(63,94,86,0.04), 0 2px 8px rgba(63,94,86,0.02);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-header) 4%, transparent), 0 2px 8px color-mix(in srgb, var(--theme-header) 2%, transparent);
     transition: box-shadow 0.3s ease, transform 0.3s ease;
   }
   .card:hover {
-    box-shadow: 0 12px 32px rgba(123,184,168,0.12);
+    box-shadow: 0 12px 32px color-mix(in srgb, var(--theme-primary) 12%, transparent);
     transform: translateY(-1px);
   }
   
   .card-sm {
-    background: #FFFFFF;
-    border: 1px solid rgba(123,184,168,0.15);
+    background: var(--theme-surface);
+    border: 1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent);
     border-radius: 10px;
-    box-shadow: 0 4px 12px rgba(63,94,86,0.03);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-header) 3%, transparent);
     transition: transform 0.2s ease, box-shadow 0.2s ease;
   }
   .card-sm:hover {
-    box-shadow: 0 6px 16px rgba(123,184,168,0.1);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 10%, transparent);
     transform: translateY(-1px);
   }
   
   /* Soft mint surface */
   .mint {
-    background: #F0F7F4;
-    border: 1px solid rgba(123,184,168,0.2);
+    background: color-mix(in srgb, var(--theme-bg) 70%, var(--theme-surface));
+    border: 1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
     border-radius: 10px;
   }
   
   /* Input style */
   .app-input {
-    background: #F4FAF8;
-    border: 2px solid rgba(123,184,168,0.2);
+    background: color-mix(in srgb, var(--theme-bg) 50%, var(--theme-surface));
+    border: 2px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
     border-radius: 8px;
-    color: #3F5E56;
+    color: var(--theme-header);
     width: 100%;
     padding: 10px 14px;
     font-size: 14px;
@@ -140,9 +140,9 @@
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   }
   .app-input:focus {
-    border-color: #7BB8A8;
-    background: #FFFFFF;
-    box-shadow: 0 0 0 4px rgba(123,184,168,0.15);
+    border-color: var(--theme-primary);
+    background: var(--theme-surface);
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--theme-primary) 15%, transparent);
   }
   .app-input::placeholder {
     color: #92B5AA;
@@ -150,23 +150,23 @@
   
   /* Primary button */
   .btn-primary {
-    background: linear-gradient(135deg, #8ED0BF, #7BB8A8);
-    color: #FFFFFF;
+    background: var(--theme-primary);
+    color: var(--theme-surface);
     font-weight: 700;
     border-radius: 8px;
     padding: 8px 16px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
     border: none;
-    box-shadow: 0 6px 16px rgba(123,184,168,0.3);
+    box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 30%, transparent);
   }
   .btn-primary:hover {
-    background: linear-gradient(135deg, #9DE0CF, #8ED0BF);
-    box-shadow: 0 8px 24px rgba(123,184,168,0.4);
+    background: color-mix(in srgb, var(--theme-primary) 80%, white);
+    box-shadow: 0 8px 24px color-mix(in srgb, var(--theme-primary) 40%, transparent);
     transform: translateY(-2px);
   }
   .btn-primary:active {
     transform: translateY(1px);
-    box-shadow: 0 4px 12px rgba(123,184,168,0.2);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 20%, transparent);
   }
   .btn-primary:disabled {
     background: #C4DFD7;
@@ -178,9 +178,9 @@
   
   /* Outline button */
   .btn-outline {
-    background: #FFFFFF;
+    background: var(--theme-surface);
     border: 2px solid #A8D1C7;
-    color: #5BA390;
+    color: var(--theme-primary);
     font-weight: 700;
     border-radius: 8px;
     padding: 4px 10px;
@@ -188,32 +188,32 @@
     transition: all 0.3s ease;
   }
   .btn-outline:hover {
-    background: #F4FAF8;
-    border-color: #7BB8A8;
-    color: #3F5E56;
-    box-shadow: 0 4px 12px rgba(123,184,168,0.15);
+    background: color-mix(in srgb, var(--theme-bg) 50%, var(--theme-surface));
+    border-color: var(--theme-primary);
+    color: var(--theme-header);
+    box-shadow: 0 4px 12px color-mix(in srgb, var(--theme-primary) 15%, transparent);
   }
   
   /* Tag pill */
   .tag {
-    background: #F4FAF8;
-    color: #688C83;
+    background: color-mix(in srgb, var(--theme-bg) 50%, var(--theme-surface));
+    color: var(--theme-body);
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 8px;
-    border: 1px solid rgba(123,184,168,0.2);
+    border: 1px solid color-mix(in srgb, var(--theme-primary) 20%, transparent);
     transition: all 0.2s;
   }
   .tag-active {
-    background: linear-gradient(135deg, #8ED0BF, #7BB8A8);
-    color: #FFFFFF;
+    background: var(--theme-primary);
+    color: var(--theme-surface);
     font-size: 11px;
     font-weight: 700;
     padding: 4px 10px;
     border-radius: 8px;
     border: 1px solid transparent;
-    box-shadow: 0 4px 10px rgba(123,184,168,0.3);
+    box-shadow: 0 4px 10px color-mix(in srgb, var(--theme-primary) 30%, transparent);
   }
 }
 
@@ -264,7 +264,7 @@ input, textarea, .selectable, [contenteditable] {
 }
 .react-calendar__navigation button:enabled:hover,
 .react-calendar__navigation button:enabled:focus {
-  background: rgba(123,184,168,0.1) !important;
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
 }
 .react-calendar__navigation button[disabled] {
   background: transparent !important;
@@ -289,7 +289,7 @@ input, textarea, .selectable, [contenteditable] {
   transition: all 0.2s ease !important;
 }
 .react-calendar__tile:enabled:hover {
-  background: rgba(123,184,168,0.1) !important;
+  background: color-mix(in srgb, var(--theme-primary) 10%, transparent) !important;
   transform: scale(1.05);
 }
 .react-calendar__tile--now {
@@ -303,9 +303,9 @@ input, textarea, .selectable, [contenteditable] {
 .react-calendar__tile--active,
 .react-calendar__tile--active:enabled:hover,
 .react-calendar__tile--active:enabled:focus {
-  background: linear-gradient(135deg, #8ED0BF, #7BB8A8) !important;
+  background: var(--theme-primary) !important;
   color: white !important;
-  box-shadow: 0 6px 16px rgba(123,184,168,0.3) !important;
+  box-shadow: 0 6px 16px color-mix(in srgb, var(--theme-primary) 30%, transparent) !important;
   transform: scale(1.05);
   border: none !important;
 }

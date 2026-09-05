@@ -517,7 +517,7 @@ export default function Explore() {
                             </span>
                           </div>
                         )}
-                        <div className={`max-w-[85%] md:max-w-[70%] card p-3 space-y-2 relative shadow-sm ${isMine ? 'bg-[#EAF4EF] border-[#6BA898]/30' : 'bg-surface'}`}>
+                        <div className={`max-w-[85%] md:max-w-[70%] card p-3 space-y-2 relative shadow-sm ${isMine ? 'bg-[#EAF4EF] border-[var(--theme-primary)]/30' : 'bg-surface'}`}>
                           
                           <div className="flex justify-between items-start gap-4">
                             <span className="text-[10px] uppercase font-bold text-primary tracking-wider px-1.5 py-0.5 rounded bg-primary/10">

@@ -7,7 +7,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
 
 export default function Profile() {
-  const { session, userProfile, setUserProfile, theme, setTheme } = useAppContext();
+  const { session, userProfile, setUserProfile, theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
 
 
   const [name, setName] = useState('');
@@ -198,7 +198,7 @@ const loadFollowStats = async () => {
             <div 
               onClick={() => setShowAvatarPopup(true)}
               className="w-20 h-20 md:w-24 md:h-24 rounded-full overflow-hidden flex items-center justify-center shrink-0 border-2 cursor-pointer transition-transform hover:scale-105"
-              style={{borderColor: 'rgba(107,168,152,0.3)', background: 'rgba(107,168,152,0.1)'}}>
+              style={{borderColor: 'rgba(107,168,152,0.3)', background: 'rgba(107,168,152,10%, transparent)'}}>
               {userProfile?.avatar_url
                 ? <img src={userProfile?.avatar_url} alt="avatar" className="w-full h-full object-cover" />
                 : <User size={40} className="text-primary" />}
@@ -233,7 +233,7 @@ const loadFollowStats = async () => {
           <button 
             onClick={() => setIsEditing(true)}
             className="w-full mt-6 py-2 rounded-xl text-sm font-bold transition-transform active:scale-95"
-            style={{background: '#EAF4EF', color: '#2D4A3E', border: '1px solid rgba(107,168,152,0.2)'}}>
+            style={{background: '#EAF4EF', color: 'var(--theme-header)', border: '1px solid rgba(107,168,152,0.2)'}}>
             Edit Profile
           </button>
           
@@ -245,7 +245,7 @@ const loadFollowStats = async () => {
               <div>
                 <p className="text-xs font-bold text-header uppercase tracking-wider mb-3">App Theme</p>
                 <div className="flex gap-2 flex-wrap">
-                  <button onClick={() => setTheme('default')} className={`w-10 h-10 rounded-full border-2 ${theme==='default'?'border-primary scale-110':'border-transparent'} bg-[#E8F2EE] transition-transform`} aria-label="Default Mint Theme" title="Default Mint"></button>
+                  <button onClick={() => setTheme('default')} className={`w-10 h-10 rounded-full border-2 ${theme==='default'?'border-primary scale-110':'border-transparent'} bg-[var(--theme-bg)] transition-transform`} aria-label="Default Mint Theme" title="Default Mint"></button>
                   <button onClick={() => setTheme('eastbay')} className={`w-10 h-10 rounded-full border-2 ${theme==='eastbay'?'border-[#474C80] scale-110':'border-transparent'} bg-[#F8F7E2] transition-transform flex items-center justify-center`} aria-label="East Bay Theme" title="East Bay">
                     <div className="w-5 h-5 rounded-full bg-[#474C80]"></div>
                   </button>
@@ -267,25 +267,26 @@ const loadFollowStats = async () => {
               <div>
                 <p className="text-xs font-bold text-header uppercase tracking-wider mb-3">Profile Effects</p>
                 <div className="bg-surface border border-primary/20 rounded-xl p-4 flex flex-col gap-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-header text-sm">Nitro Animated Banner</h4>
-                      <p className="text-xs text-body">Animate your profile background.</p>
-                    </div>
-                    <div className="w-10 h-6 bg-primary rounded-full relative shadow-inner">
-                      <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
-                    </div>
-                  </div>
-                  <div className="h-px w-full bg-primary/10"></div>
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-header text-sm">Avatar Glow Ring</h4>
-                      <p className="text-xs text-body">Stand out in searches.</p>
-                    </div>
-                    <div className="w-10 h-6 bg-primary rounded-full relative shadow-inner">
-                      <div className="w-4 h-4 bg-white rounded-full absolute top-1 right-1"></div>
+                  
+                  <div className="flex flex-col gap-2">
+                    <h4 className="font-bold text-header text-sm">Nitro Animated Banner</h4>
+                    <div className="flex gap-2">
+                      <button onClick={() => setProfileEffects({...profileEffects, banner: 'none'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.banner==='none' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>None</button>
+                      <button onClick={() => setProfileEffects({...profileEffects, banner: 'gradient'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.banner==='gradient' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>Nitro Gradient</button>
                     </div>
                   </div>
+                  <div className="h-px w-full bg-primary/10 my-1"></div>
+                  <div className="flex flex-col gap-2">
+                    <h4 className="font-bold text-header text-sm">Avatar Decoration</h4>
+                    <div className="flex flex-wrap gap-2">
+                      <button onClick={() => setProfileEffects({...profileEffects, avatar: 'none'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.avatar==='none' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>None</button>
+                      <button onClick={() => setProfileEffects({...profileEffects, avatar: 'neon-pulse'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.avatar==='neon-pulse' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>Neon Glow</button>
+                      <button onClick={() => setProfileEffects({...profileEffects, avatar: 'spinning-ring'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.avatar==='spinning-ring' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>Spinning Ring</button>
+                      <button onClick={() => setProfileEffects({...profileEffects, avatar: 'fire-aura'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.avatar==='fire-aura' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>Fire Aura</button>
+                      <button onClick={() => setProfileEffects({...profileEffects, avatar: 'skeleton-hands'})} className={`px-3 py-1.5 rounded-lg text-xs font-bold border-2 ${profileEffects.avatar==='skeleton-hands' ? 'border-primary bg-primary/10 text-primary' : 'border-primary/20 text-body hover:bg-surface'}`}>Skeleton Hands</button>
+                    </div>
+                  </div>
+
                 </div>
               </div>
             </div>
@@ -320,7 +321,7 @@ const loadFollowStats = async () => {
                   : <User size={36} className="text-primary" />}
               </div>
               <label className="absolute -bottom-1 -right-1 rounded-xl p-2 cursor-pointer shadow"
-                style={{background:'#6BA898', border:'2px solid #FFFFFF'}}>
+                style={{background:'var(--theme-primary)', border:'2px solid #FFFFFF'}}>
                 {uploading
                   ? <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
                   : <Camera size={14} style={{color:'#FFFFFF'}} />}
@@ -466,12 +467,12 @@ const loadFollowStats = async () => {
             {userProfile?.avatar_url ? (
               <img src={userProfile?.avatar_url} className="w-full h-full object-cover" alt="avatar" />
             ) : (
-              <div className="w-full h-full flex items-center justify-center" style={{background: 'rgba(107,168,152,0.15)'}}>
+              <div className="w-full h-full flex items-center justify-center" style={{background: 'rgba(107,168,152,15%, transparent)'}}>
                 <User size={120} className="text-primary" />
               </div>
             )}
             
-            <label className="absolute bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-primary/10 cursor-pointer hover:scale-105 transition-transform text-white border-2 border-white" style={{background:'#6BA898'}}>
+            <label className="absolute bottom-6 right-6 w-14 h-14 rounded-full flex items-center justify-center shadow-xl shadow-primary/10 cursor-pointer hover:scale-105 transition-transform text-white border-2 border-white" style={{background:'var(--theme-primary)'}}>
               {uploading ? (
                 <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin" />
               ) : (

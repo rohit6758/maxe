@@ -12,11 +12,35 @@ export function AppProvider({ children }) {
   const [activeBranch, setActiveBranch] = useState('');
   const [activeSemester, setActiveSemester] = useState(null);
   const [activeSubject, setActiveSubject] = useState(null);
-  const [theme, setTheme] = useState(localStorage.getItem('maxe_theme') || 'default');
+  const [theme, setThemeState] = useState('default');
+  const [profileEffects, setProfileEffectsState] = useState({
+    banner: 'none',
+    avatar: 'none'
+  });
+
+  useEffect(() => {
+    const savedTheme = localStorage.getItem('maxe_theme');
+    if (savedTheme) setThemeState(savedTheme);
+    const savedEffects = localStorage.getItem('maxe_effects');
+    if (savedEffects) {
+      try {
+        setProfileEffectsState(JSON.parse(savedEffects));
+      } catch(e) {}
+    }
+  }, []);
+
+  const setTheme = (newTheme) => {
+    setThemeState(newTheme);
+    localStorage.setItem('maxe_theme', newTheme);
+  };
+  
+  const setProfileEffects = (newEffects) => {
+    setProfileEffectsState(newEffects);
+    localStorage.setItem('maxe_effects', JSON.stringify(newEffects));
+  };
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('maxe_theme', theme);
   }, [theme]);
 
   useEffect(() => {
@@ -63,6 +87,7 @@ export function AppProvider({ children }) {
       userProfile,
       loading,
       theme, setTheme,
+      profileEffects, setProfileEffects,
       activeBranch, setActiveBranch,
       activeSemester, setActiveSemester,
       activeSubject, setActiveSubject,

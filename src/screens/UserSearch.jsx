@@ -132,7 +132,7 @@ export default function UserSearch() {
         <div className="relative flex-1">
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body/70" />
           <input 
-            className="w-full bg-[#E8F2EE] border border-transparent focus:bg-white focus:border-primary/30 rounded-xl py-2 pl-9 pr-4 text-sm outline-none transition-all" 
+            className="w-full bg-[var(--theme-bg)] border border-transparent focus:bg-white focus:border-primary/30 rounded-xl py-2 pl-9 pr-4 text-sm outline-none transition-all" 
             placeholder="Search" 
             value={searchQuery} 
             onChange={e => setSearchQuery(e.target.value)}
@@ -223,7 +223,7 @@ export default function UserSearch() {
           </div>
         ) : searchResults.length === 0 ? (
           <div className="card p-8 text-center text-body text-sm mt-2">
-            <span className="font-bold" style={{color: '#2D4A3E'}}>User not found</span>
+            <span className="font-bold" style={{color: 'var(--theme-header)'}}>User not found</span>
           </div>
         ) : (
           searchResults.map(user => {
