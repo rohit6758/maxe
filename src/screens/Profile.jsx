@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { BRANCHES, COLLEGES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import { User, Save, UploadCloud, LogOut, Camera, Users, X } from 'lucide-react';
+import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
 
 export default function Profile() {
@@ -203,7 +204,10 @@ const loadFollowStats = async () => {
                 : <User size={40} style={{color:'#6BA898'}} />}
             </div>
             <div className="flex-1 min-w-0">
-              <h2 className="text-lg md:text-xl font-bold truncate" style={{color:'#2D4A3E'}}>{userProfile?.name || 'Your Name'}</h2>
+              <h2 className="text-lg md:text-xl font-bold truncate flex items-center" style={{color:'#2D4A3E'}}>
+                {userProfile?.name || 'Your Name'}
+                {userProfile?.is_premium && <VerifiedBadge />}
+              </h2>
               <p className="text-xs font-semibold mt-0.5" style={{color:'#6BA898'}}>@{userProfile?.username || 'username'}</p>
               <p className="text-xs md:text-sm font-semibold mt-0.5" style={{color:'#6BA898'}}>{userProfile?.college ? `${userProfile.college} • ${userProfile.branch}` : (userProfile?.branch || 'No branch selected')}</p>
               
@@ -232,6 +236,28 @@ const loadFollowStats = async () => {
             style={{background: '#EAF4EF', color: '#2D4A3E', border: '1px solid rgba(107,168,152,0.2)'}}>
             Edit Profile
           </button>
+          
+          {/* MAXE PRO SECTION */}
+          <div className="mt-4 p-4 rounded-xl border border-primary/20 bg-gradient-to-r from-primary/5 to-transparent relative overflow-hidden">
+            <div className="absolute -right-4 -top-4 opacity-10">
+              <svg width="100" height="100" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"/></svg>
+            </div>
+            {userProfile?.is_premium ? (
+              <div>
+                <h3 className="font-black text-primary text-lg flex items-center gap-1">Maxe Pro <VerifiedBadge className="w-5 h-5 text-primary" /></h3>
+                <p className="text-xs text-body mt-1">You are a Pro member! Enjoy your exclusive features.</p>
+                <button className="mt-3 text-xs font-bold text-primary hover:underline">Manage Subscription</button>
+              </div>
+            ) : (
+              <div>
+                <h3 className="font-black text-header text-lg">Upgrade to Maxe Pro</h3>
+                <p className="text-xs text-body mt-1">Get the Verified Badge, custom themes, and unlimited offline notes.</p>
+                <button className="mt-3 bg-header text-white px-4 py-2 rounded-lg text-xs font-bold shadow-md hover:bg-header/90 transition-colors">
+                  Get Pro for ₹69
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       ) : (
         <div className="card p-5 space-y-5">

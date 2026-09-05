@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { X, User, ArrowLeft, UserPlus, Check } from 'lucide-react';
+import VerifiedBadge from './VerifiedBadge';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
   const [profile, setProfile] = useState(null);
@@ -165,7 +166,10 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
             {/* Middle section: Info */}
             <div className="space-y-1.5 mb-6">
-              <h2 className="text-lg font-bold text-header">{profile?.name || 'Unknown User'}</h2>
+              <h2 className="text-lg font-bold text-header flex items-center">
+                {profile?.name || 'Unknown User'}
+                {profile?.is_premium && <VerifiedBadge />}
+              </h2>
               {profile?.branch && <p className="text-sm font-bold text-primary">{profile.branch}</p>}
               {profile?.bio && <p className="text-sm text-body whitespace-pre-wrap mt-3 leading-relaxed">{profile.bio}</p>}
             </div>

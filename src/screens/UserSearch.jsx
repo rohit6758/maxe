@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Search, User, UserPlus, Check, X } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
+import VerifiedBadge from '../components/VerifiedBadge';
 
 export default function UserSearch() {
   const { session, userProfile } = useAppContext();
@@ -200,8 +201,11 @@ export default function UserSearch() {
                           <p className="text-base font-bold text-header truncate">{item}</p>
                         ) : (
                           <>
-                            <div className="flex items-center gap-1.5">
-                              <p className="text-base font-bold text-header truncate">{item.name}</p>
+                            <div className="flex items-center gap-1.5 flex-wrap">
+                              <p className="text-base font-bold text-header flex items-center">
+                                {item.name}
+                                {item.is_premium && <VerifiedBadge />}
+                              </p>
                               {item.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{item.college}</span>}
                             </div>
                             <p className="text-sm text-body truncate">@{item.username || 'user'} {item.branch ? `• ${item.branch}` : ''}</p>
@@ -230,8 +234,11 @@ export default function UserSearch() {
                   {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-body" />}
                 </div>
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-1.5">
-                    <p className="text-sm font-bold text-header truncate">{user.name}</p>
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    <p className="text-sm font-bold text-header flex items-center">
+                      {user.name}
+                      {user.is_premium && <VerifiedBadge />}
+                    </p>
                     {user.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{user.college}</span>}
                   </div>
                   <p className="text-xs text-body truncate">@{user.username || 'user'} {user.branch ? `• ${user.branch}` : ''}</p>

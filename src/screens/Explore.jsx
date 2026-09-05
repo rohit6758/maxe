@@ -511,7 +511,10 @@ export default function Explore() {
                             <div className="w-5 h-5 rounded-full bg-surface overflow-hidden flex items-center justify-center shrink-0 border border-primary/15">
                               {post.profiles?.avatar_url ? <img src={post.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={10} />}
                             </div>
-                            <span className="text-[11px] font-bold text-body">{post.profiles?.name || 'Unknown'}</span>
+                            <span className="text-[11px] font-bold text-body flex items-center">
+                              {post.profiles?.name || 'Unknown'}
+                              {post.profiles?.is_premium && <VerifiedBadge className="w-3 h-3 text-primary ml-1" />}
+                            </span>
                           </div>
                         )}
                         <div className={`max-w-[85%] md:max-w-[70%] card p-3 space-y-2 relative shadow-sm ${isMine ? 'bg-[#EAF4EF] border-[#6BA898]/30' : 'bg-surface'}`}>
@@ -586,7 +589,10 @@ export default function Explore() {
                           {m.profiles?.avatar_url ? <img src={m.profiles.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={14} />}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold text-header truncate">{m.profiles?.name || 'Unknown'}</p>
+                          <p className="text-sm font-semibold text-header truncate flex items-center">
+                            {m.profiles?.name || 'Unknown'}
+                            {m.profiles?.is_premium && <VerifiedBadge className="w-3.5 h-3.5 text-primary ml-1" />}
+                          </p>
                           <div className="flex gap-2 items-center">
                             <p className="text-[10px] text-primary font-bold truncate">@{m.profiles?.username || 'user'}</p>
                             {m.role === 'admin' && <span className="text-[9px] bg-primary/20 text-primary px-1.5 py-0.5 rounded font-bold uppercase shrink-0">Admin</span>}
