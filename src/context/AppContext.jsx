@@ -56,6 +56,17 @@ export function AppProvider({ children }) {
     document.documentElement.setAttribute('data-theme', theme);
   }, [theme]);
 
+  // Ensure DB always has latest effects from local storage
+  useEffect(() => {
+    if (userProfile && session) {
+      const dbInterests = userProfile.interests;
+      const currentPayload = JSON.stringify({ theme, profileEffects });
+      if (dbInterests !== currentPayload) {
+        saveEffectsToDb(theme, profileEffects);
+      }
+    }
+  }, [userProfile, theme, profileEffects, session]);
+
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);

@@ -518,7 +518,7 @@ export default function Explore() {
               </div>
 
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start content-start">
                 {isLoadingPosts ? (
                   <div className="flex flex-col items-center justify-center p-8 space-y-3">
                     <div className="w-8 h-8 border-4 border-primary/20 border-t-primary rounded-full animate-spin"></div>
@@ -534,7 +534,7 @@ export default function Explore() {
                     const canDelete = isMine || isAdmin;
 
                     return (
-                      <div key={post.id} className={`flex flex-col ${isMine ? 'items-end' : 'items-start'}`}>
+                      <div key={post.id} className="flex flex-col h-full w-full">
                         {!isMine && (
                           <div 
                             className="flex items-center gap-2 mb-1 ml-1 cursor-pointer hover:opacity-70 transition-opacity"
@@ -549,7 +549,7 @@ export default function Explore() {
                             </span>
                           </div>
                         )}
-                        <div className={`max-w-[85%] md:max-w-[70%] card p-3 space-y-2 relative shadow-sm ${isMine ? 'bg-[var(--theme-bg)] border-[var(--theme-primary)]/30' : 'bg-surface'}`}>
+                        <div className={`w-full flex-1 card p-3 space-y-2 relative shadow-sm flex flex-col ${isMine ? 'bg-[var(--theme-bg)] border-[var(--theme-primary)]/30' : 'bg-surface'}`}>
                           
                           <div className="flex justify-between items-start gap-4">
                             <span className="text-[10px] uppercase font-bold text-primary tracking-wider px-1.5 py-0.5 rounded bg-primary/10">
