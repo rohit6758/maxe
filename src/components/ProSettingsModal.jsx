@@ -301,7 +301,7 @@ export default function ProSettingsModal({ isOpen, onClose }) {
             </div>
           )}
 
-                    {/* WALLPAPER */}
+                  {/* WALLPAPER */}
           {view === 'wallpaper' && (
             <div className="space-y-4">
               <p className="text-xs" style={{color:'var(--theme-body)'}}>Choose a background pattern or upload your own from gallery.</p>
@@ -335,7 +335,11 @@ export default function ProSettingsModal({ isOpen, onClose }) {
                     const { error } = await supabase.storage.from('uploads').upload(path, file, { upsert: true, contentType: file.type });
                     if (error) throw error;
                     const { data } = supabase.storage.from('uploads').getPublicUrl(path);
-                    setProfileEffects({ ...profileEffects, wallpaper: 'custom', customWallpaperUrl: data.publicUrl });
+                    const newEffects = { ...profileEffects, wallpaper: 'custom', customWallpaperUrl: data.publicUrl };
+                    setProfileEffects(newEffects);
+                    // Direct DB save with this session so other users can see it
+                    const payload = JSON.stringify({ theme, profileEffects: newEffects });
+                    await supabase.from('profiles').update({ interests: payload }).eq('id', session.user.id);
                   } catch (err) {
                     console.error(err);
                     alert('Failed to upload wallpaper');
@@ -352,7 +356,18 @@ export default function ProSettingsModal({ isOpen, onClose }) {
                   {id:'waves', label:'Waves', preview:`repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, transparent 1px, transparent 8px)`},
                 ].map(w=>(
                   <button key={w.id}
-                    onClick={()=>setProfileEffects({...profileEffects, wallpaper:w.id})}
+                    onClick={async ()=>{
+                      const newEffects = {...profileEffects, wallpaper:w.id};
+                      setProfileEffects(newEffects);
+                      // Direct DB save
+                      try {
+                        const { data: { session } } = await supabase.auth.getSession();
+                        if (session?.user?.id) {
+                          const payload = JSON.stringify({ theme, profileEffects: newEffects });
+                          await supabase.from('profiles').update({ interests: payload }).eq('id', session.user.id);
+                        }
+                      } catch(err) { console.error('wallpaper save error', err); }
+                    }}
                     className="relative h-20 rounded-2xl overflow-hidden transition-all"
                     style={{background: w.preview, backgroundSize: w.size || 'auto',
                       boxShadow: (profileEffects.wallpaper||'none')===w.id ? `0 0 0 3px var(--theme-primary)` : '0 2px 8px rgba(0,0,0,0.1)'}}>
