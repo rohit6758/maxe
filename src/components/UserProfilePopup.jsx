@@ -134,7 +134,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
       
       <div className="relative w-full max-w-sm card overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()} style={{
         ...(profile?.is_premium && eff?.wallpaper !== 'none' ? {
-          background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` : 
+          background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url('${eff.customWallpaperUrl}')` : 
                         eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                         eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                         eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',

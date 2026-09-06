@@ -4,6 +4,7 @@ import { useAppContext } from '../context/AppContext';
 import VerifiedBadge from '../components/VerifiedBadge';
 
 export default function StudyTrackerModal({ isOpen, onClose }) {
+  const [showHistory, setShowHistory] = React.useState(false);
   const { userProfile } = useAppContext();
   if (!isOpen) return null;
 
@@ -40,8 +41,36 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
                 Upgrade Now
               </button>
             </div>
+          ) : showHistory ? (
+            <div className="flex flex-col h-full animate-fade-in">
+              <div className="flex items-center gap-3 mb-6">
+                <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-black/5 rounded-full">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                </button>
+                <h3 className="text-lg font-bold text-header">Digital Wellbeing</h3>
+              </div>
+              
+              <div className="space-y-4">
+                {[
+                  { day: 'Today', hrs: 3.5, pct: 85 },
+                  { day: 'Yesterday', hrs: 2.1, pct: 50 },
+                  { day: 'Wed', hrs: 4.2, pct: 100 },
+                  { day: 'Tue', hrs: 1.5, pct: 35 },
+                  { day: 'Mon', hrs: 0.8, pct: 20 },
+                ].map((d, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="w-16 text-xs font-bold text-body text-right">{d.day}</div>
+                    <div className="flex-1 h-6 bg-black/5 border border-primary/10 rounded-full overflow-hidden flex items-center">
+                      <div className="h-full bg-primary transition-all duration-1000 ease-out" style={{width: `${d.pct}%`}}></div>
+                    </div>
+                    <div className="w-12 text-xs font-bold text-header">{d.hrs}h</div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-center text-body mt-8 opacity-70">This data represents the time you spent interacting with Maxe AI.</p>
+            </div>
           ) : (
-            <div className="flex flex-col items-center pb-8 pt-4">
+            <div className="flex flex-col items-center pb-2 pt-4">
               <h4 className="text-xs font-bold text-header uppercase tracking-widest text-center mb-10">Daily Flow</h4>
               
               <div className="relative w-56 h-56 flex items-center justify-center">
@@ -80,6 +109,20 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
                 <div className="absolute top-[50%] left-0 -translate-x-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary flex items-center justify-center shadow-md z-10" title="Goal Met">
                   <CheckCircle size={20} className="text-white" />
                 </div>
+              </div>
+
+              <div className="mt-8 text-center cursor-pointer hover:bg-black/5 p-4 rounded-3xl transition-colors border border-primary/5 shadow-sm bg-surface" onClick={() => setShowHistory(true)}>
+                <p className="text-xs font-bold text-body uppercase tracking-wider mb-2">AI Usage Today</p>
+                <div className="flex items-center justify-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Bot size={20} className="text-primary" />
+                  </div>
+                  <div className="flex items-baseline gap-1">
+                    <span className="text-3xl font-black text-header">3.5</span>
+                    <span className="text-sm font-bold text-body">hrs</span>
+                  </div>
+                </div>
+                <p className="text-[10px] font-bold text-primary mt-3 opacity-70 uppercase tracking-widest">Tap to view history</p>
               </div>
             </div>
           )}

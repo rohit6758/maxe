@@ -232,10 +232,10 @@ export default function Explore() {
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `avatar_${selectedCommunity.id}_${Math.random()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('pdfs').upload(`community_avatars/${fileName}`, file);
+      const { error: uploadError } = await supabase.storage.from('uploads').upload(`community_avatars/${fileName}`, file);
       if (uploadError) throw uploadError;
       
-      const { data: { publicUrl } } = supabase.storage.from('pdfs').getPublicUrl(`community_avatars/${fileName}`);
+      const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(`community_avatars/${fileName}`);
       const { data, error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id).select().single();
       if (error) throw error;
       
@@ -364,7 +364,15 @@ export default function Explore() {
   const promoteToAdmin = async (userId) => {
     if (!window.confirm("Make this member an admin?")) return;
     const { error } = await supabase.from('community_members').update({ role: 'admin' }).match({ community_id: selectedCommunity.id, user_id: userId });
-    if (!error) setCommunityMembers(communityMembers.map(m => m.user_id === userId ? { ...m, role: 'admin' } : m));
+    if (error) alert("Failed to make admin: " + error.message);
+    else setCommunityMembers(communityMembers.map(m => m.user_id === userId ? { ...m, role: 'admin' } : m));
+  };
+
+  const demoteFromAdmin = async (userId) => {
+    if (!window.confirm("Remove admin status from this member?")) return;
+    const { error } = await supabase.from('community_members').update({ role: 'member' }).match({ community_id: selectedCommunity.id, user_id: userId });
+    if (error) alert("Failed to remove admin: " + error.message);
+    else setCommunityMembers(communityMembers.map(m => m.user_id === userId ? { ...m, role: 'member' } : m));
   };
 
   const toggleFollow = async (userId) => {
@@ -609,13 +617,20 @@ export default function Explore() {
                             </button>
                           )}
                           
-                          {isCommunityAdmin && !isMe && (
+                          {isCommunityAdmin && m.user_id !== session.user.id && (
                             <>
-                              {m.role !== 'admin' && (
+                              {m.role !== 'admin' ? (
                                 <button onClick={(e) => { e.stopPropagation(); promoteToAdmin(m.user_id); }} className="px-2 py-1 text-[10px] bg-primary/5 rounded hover:bg-primary/10 font-bold text-header">Admin +</button>
+                              ) : (
+                                (selectedCommunity.created_by === session.user.id || isAdmin) && (
+                                  <button onClick={(e) => { e.stopPropagation(); demoteFromAdmin(m.user_id); }} className="px-2 py-1 text-[10px] bg-orange-500/10 text-orange-600 rounded hover:bg-orange-500/20 font-bold">Remove Admin</button>
+                                )
                               )}
                               <button onClick={(e) => { e.stopPropagation(); removeMember(m.user_id); }} className="px-2 py-1 text-[10px] bg-red-500/10 text-red-500 rounded hover:bg-red-500/20 font-bold">Remove</button>
                             </>
+                          )}
+                          {m.user_id === session.user.id && m.role === 'admin' && selectedCommunity.created_by !== session.user.id && (
+                            <button onClick={(e) => { e.stopPropagation(); demoteFromAdmin(m.user_id); }} className="px-2 py-1 text-[10px] bg-orange-500/10 text-orange-600 rounded hover:bg-orange-500/20 font-bold">Step Down</button>
                           )}
                         </div>
                       </div>
