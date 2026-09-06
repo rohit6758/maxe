@@ -203,17 +203,21 @@ export default function UserSearch() {
                           openUserPopup(item);
                         }
                       }} 
-                      className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-1 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
+                      className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-1 border border-white/30 shadow-md' : 'hover:bg-black/5'}`}
                       style={wallpaperStyle}
                     >
-                      {hasWallpaper && <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>}
-                      <div className={`w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
+                      {/* Soft scrim only for custom photo wallpapers */}
+                      {hasWallpaper && eff.wallpaper === 'custom' && (
+                        <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+                      )}
+                      
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 overflow-hidden relative z-10 ${isText ? 'bg-transparent border border-primary/10' : hasWallpaper ? 'shadow-md ring-2 ring-white/70 bg-primary/5' : 'bg-surface border border-primary/15'}`}>
                         {isText ? (
                           <Search size={22} className="text-body" />
                         ) : item.avatar_url ? (
                           <img src={item.avatar_url} className="w-full h-full object-cover" alt="" />
                         ) : (
-                          <User size={24} className="text-body" />
+                          <User size={24} className={hasWallpaper && eff.wallpaper === 'custom' ? 'text-white/80' : 'text-primary/50'} />
                         )}
                       </div>
                       <div className="flex-1 min-w-0 relative z-10">
@@ -222,17 +226,22 @@ export default function UserSearch() {
                         ) : (
                           <>
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className="text-base font-bold text-header flex items-center">
+                              <p className="text-base font-bold flex items-center"
+                                 style={hasWallpaper && eff.wallpaper === 'custom' ? {color:'#fff', textShadow:'0 1px 3px rgba(0,0,0,0.6)'} : {color:'var(--theme-header)'}}>
                                 {item.name}
                                 {item.is_premium && <VerifiedBadge />}
                               </p>
                               {item.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{item.college}</span>}
                             </div>
-                            <p className="text-sm text-body truncate">@{item.username || 'user'} {item.branch ? `• ${item.branch}` : ''}</p>
+                            <p className="text-sm truncate"
+                               style={hasWallpaper && eff.wallpaper === 'custom' ? {color:'rgba(255,255,255,0.85)'} : {color:'var(--theme-body)'}}>
+                              @{item.username || 'user'} {item.branch ? `• ${item.branch}` : ''}
+                            </p>
                           </>
                         )}
                       </div>
-                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className="p-2 text-body hover:text-header relative z-10">
+                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className="p-2 relative z-10 hover:opacity-70 transition-opacity"
+                              style={{color: hasWallpaper && eff.wallpaper === 'custom' ? '#fff' : 'var(--theme-body)'}}>
                         <X size={20} />
                       </button>
                     </div>
