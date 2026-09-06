@@ -120,12 +120,44 @@ export default function Explore() {
 
   const loadPosts = async (communityId) => {
     setIsLoadingPosts(true);
-    const { data } = await supabase
-      .from('community_posts')
-      .select('*, profiles(name, username, avatar_url)')
-      .eq('community_id', communityId)
-      .order('created_at', { ascending: false });
-    setPosts(data || []);
+    try {
+      const { data: postsData, error: postsError } = await supabase
+        .from('community_posts')
+        .select('*')
+        .eq('community_id', communityId)
+        .order('created_at', { ascending: false });
+
+      if (postsError) {
+        console.error(postsError);
+        setPosts([]);
+        setIsLoadingPosts(false);
+        return;
+      }
+
+      let fetchedPosts = postsData || [];
+      if (fetchedPosts.length > 0) {
+        const userIds = [...new Set(fetchedPosts.map(p => p.user_id))];
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('id, name, username, avatar_url')
+          .in('id', userIds);
+          
+        const profileMap = {};
+        if (profilesData) {
+          profilesData.forEach(p => { profileMap[p.id] = p; });
+        }
+        
+        fetchedPosts = fetchedPosts.map(p => ({
+          ...p,
+          profiles: profileMap[p.user_id] || null
+        }));
+      }
+
+      setPosts(fetchedPosts);
+    } catch (e) {
+      console.error(e);
+      setPosts([]);
+    }
     setIsLoadingPosts(false);
   };
 
