@@ -30,10 +30,11 @@ export function AppProvider({ children }) {
   }, []);
 
   const saveEffectsToDb = async (t, e) => {
-    if (!session?.user?.id) return;
     try {
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      if (!currentSession?.user?.id) return;
       const payload = JSON.stringify({ theme: t, profileEffects: e });
-      await supabase.from('profiles').update({ interests: payload }).eq('id', session.user.id);
+      await supabase.from('profiles').update({ interests: payload }).eq('id', currentSession.user.id);
     } catch(err) {
       console.error('Failed to sync effects to DB', err);
     }

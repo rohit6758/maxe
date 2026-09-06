@@ -127,7 +127,8 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
   const effectiveTheme = isMe ? theme : (dbTheme || (profile?.is_premium ? 'venice' : 'default'));
   const dec = THEME_DECORATIONS[effectiveTheme] || THEME_DECORATIONS.default;
-  const eff = isMe ? profileEffects : (dbEffects || (profile?.is_premium ? { banner:'gradient', avatar:'neon-pulse', wallpaper:'waves' } : { banner:'none', avatar:'none', wallpaper:'none' }));
+  // Only use dbEffects if we actually read something from DB; never fake a wallpaper
+  const eff = isMe ? profileEffects : (dbEffects || { banner:'none', avatar:'none', wallpaper:'none' });
 
   return (
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
