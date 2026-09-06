@@ -12,6 +12,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
+  const [isFollowingMe, setIsFollowingMe] = useState(false);
   const [loading, setLoading] = useState(true);
   
   // 'profile' | 'followers' | 'following'
@@ -43,10 +44,13 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
 
-    // Check if current user is following them
+    // Check mutual following status
     if (currentUserId && currentUserId !== userId) {
       const { data: f } = await supabase.from('follows').select('*').match({ follower_id: currentUserId, following_id: userId }).maybeSingle();
       setIsFollowing(!!f);
+
+      const { data: fMe } = await supabase.from('follows').select('*').match({ follower_id: userId, following_id: currentUserId }).maybeSingle();
+      setIsFollowingMe(!!fMe);
     }
     
     // Load my following map so we can show buttons in the lists
@@ -223,7 +227,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
                 onClick={toggleFollow}
                 className={`w-full py-3.5 rounded-full text-sm font-extrabold transition-all active:scale-95 flex items-center justify-center gap-2 shadow-lg ${isFollowing ? 'bg-background text-header border-2 border-primary/20' : 'bg-gradient-to-r from-[var(--theme-primary)] to-[var(--theme-primary)] text-white'}`}
               >
-                {isFollowing ? 'Following' : 'Follow back'}
+                {isFollowing ? 'Following' : (isFollowingMe ? 'Follow back' : 'Follow')}
               </button>
             )}
           </div>
