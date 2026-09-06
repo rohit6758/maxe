@@ -176,9 +176,9 @@ export default function Explore() {
       if (shareData.type === 'pdf' || shareData.type === 'question_paper') {
         if (!shareData.file) throw new Error('Please select a file');
         const filePath = `community/${session.user.id}/${Date.now()}-${shareData.file.name}`;
-        const { error: uploadError } = await supabase.storage.from('pdfs').upload(filePath, shareData.file);
+        const { error: uploadError } = await supabase.storage.from('uploads').upload(filePath, shareData.file);
         if (uploadError) throw uploadError;
-        const { data: urlData } = supabase.storage.from('pdfs').getPublicUrl(filePath);
+        const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
         finalUrl = urlData.publicUrl;
         finalSize = (shareData.file.size / 1024 / 1024).toFixed(2) + ' MB';
       }
