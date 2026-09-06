@@ -251,10 +251,16 @@ const loadFollowStats = async () => {
                 ✨ Pro Settings
               </button>
             ) : (
-              <button onClick={() => setShowProModal(true)}
+              <button onClick={() => {
+                if (session?.user?.email === 'rohitnxtgengw@gmail.com') {
+                  setShowProModal(true);
+                } else {
+                  alert("Pro upgrade is currently locked during testing. Please wait for the official release!");
+                }
+              }}
                 className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md"
                 style={{background:'var(--theme-primary)', color:'#fff'}}>
-                Upgrade ₹70
+                Upgrade ₹40
               </button>
             )}
           </div>
