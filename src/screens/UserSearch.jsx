@@ -183,7 +183,7 @@ export default function UserSearch() {
                   }
                   const hasWallpaper = !isText && item.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
                   const wallpaperStyle = hasWallpaper ? {
-                    background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url('${eff.customWallpaperUrl}')` :
+                    background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
                                 eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                                 eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                                 eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
@@ -206,8 +206,8 @@ export default function UserSearch() {
                       className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-1 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
                       style={wallpaperStyle}
                     >
-                      {hasWallpaper && <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>}
-                      <div className={`relative z-10 w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
+                      {hasWallpaper && <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>}
+                      <div className={`w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
                         {isText ? (
                           <Search size={22} className="text-body" />
                         ) : item.avatar_url ? (
@@ -222,18 +222,18 @@ export default function UserSearch() {
                         ) : (
                           <>
                             <div className="flex items-center gap-1.5 flex-wrap">
-                              <p className={`text-base font-bold flex items-center ${hasWallpaper ? 'text-white drop-shadow-md' : 'text-header'}`}>
+                              <p className="text-base font-bold text-header flex items-center">
                                 {item.name}
                                 {item.is_premium && <VerifiedBadge />}
                               </p>
                               {item.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{item.college}</span>}
                             </div>
-                            <p className={`text-sm truncate ${hasWallpaper ? 'text-white/90 drop-shadow-sm' : 'text-body'}`}>@{item.username || 'user'} {item.branch ? `• ${item.branch}` : ''}</p>
+                            <p className="text-sm text-body truncate">@{item.username || 'user'} {item.branch ? `• ${item.branch}` : ''}</p>
                           </>
                         )}
                       </div>
-                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className={`p-2 relative z-10 ${hasWallpaper ? 'text-white/70 hover:text-white' : 'text-body hover:text-header'}`}>
-                        <X size={20} className={hasWallpaper ? "text-white/80" : ""} />
+                      <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className="p-2 text-body hover:text-header relative z-10">
+                        <X size={20} />
                       </button>
                     </div>
                   );
@@ -257,7 +257,7 @@ export default function UserSearch() {
             }
             const hasWallpaper = user.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
             const wallpaperStyle = hasWallpaper ? {
-              background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url('${eff.customWallpaperUrl}')` :
+              background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
                           eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                           eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                           eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
@@ -267,10 +267,10 @@ export default function UserSearch() {
 
             return (
               <div key={user.id} onClick={() => openUserPopup(user)} 
-                className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-2 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
+                className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden \${hasWallpaper ? 'rounded-xl mb-2 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
                 style={wallpaperStyle}
               >
-                {hasWallpaper && <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>}
+                {hasWallpaper && <div className="absolute inset-0 bg-white/20 backdrop-blur-[1px] pointer-events-none"></div>}
                 
                 <div className={`relative z-10 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm ${user.is_premium ? 'bg-gradient-to-tr from-primary to-accent p-0.5' : 'bg-surface border border-primary/15'}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
@@ -279,13 +279,13 @@ export default function UserSearch() {
                 </div>
                 <div className="flex-1 min-w-0 relative z-10">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className={`text-sm font-bold flex items-center ${hasWallpaper ? 'text-white drop-shadow-md' : 'text-header'}`}>
+                    <p className="text-sm font-bold text-header flex items-center">
                       {user.name}
                       {user.is_premium && <VerifiedBadge />}
                     </p>
                     {user.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{user.college}</span>}
                   </div>
-                  <p className={`text-xs truncate ${hasWallpaper ? 'text-white/90 drop-shadow-sm' : 'text-body'}`}>@{user.username || 'user'} {user.branch ? `• ${user.branch}` : ''}</p>
+                  <p className="text-xs text-body truncate">@{user.username || 'user'} {user.branch ? `• ${user.branch}` : ''}</p>
                 </div>
                 <button 
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
