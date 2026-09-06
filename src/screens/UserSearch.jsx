@@ -17,6 +17,20 @@ export default function UserSearch() {
   const [selectedUser, setSelectedUser] = useState(null); // For Popup
 
   useEffect(() => {
+    // Realtime Sync Fix: Listen to UPDATE events on the profiles table for ALL rows so changes reflect globally
+    const subscription = supabase
+      .channel('global-profiles')
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
+        setSearchResults(prev => prev.map(u => u.id === payload.new.id ? { ...u, ...payload.new } : u));
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(subscription);
+    };
+  }, []);
+
+  useEffect(() => {
     const saved = localStorage.getItem('maxe_recent_searches');
     if (saved) setRecentSearches(JSON.parse(saved));
   }, []);
@@ -264,48 +278,55 @@ export default function UserSearch() {
                 if (parsed.profileEffects) eff = parsed.profileEffects;
               } catch(e) {}
             }
+            
             const hasWallpaper = user.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
-            const wallpaperStyle = hasWallpaper ? {
-              background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
-                          eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
-                          eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
-                          eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, var(--theme-surface) 1px, var(--theme-surface) 8px)' : 'var(--theme-surface)',
-              backgroundSize: eff.wallpaper === 'custom' ? 'cover' : eff.wallpaper === 'waves' ? 'auto' : '20px 20px',
-              backgroundPosition: 'center'
-            } : {};
-
+            const isCustomPhoto = hasWallpaper && eff.wallpaper === 'custom' && eff.customWallpaperUrl;
+            
             return (
               <div key={user.id} onClick={() => openUserPopup(user)}
-                className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-2 border border-white/30 shadow-md' : 'hover:bg-black/5'}`}
-                style={wallpaperStyle}
+                className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden z-0 ${hasWallpaper ? 'rounded-xl mb-2 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.15)] bg-transparent' : 'hover:bg-black/5 border-b border-primary/5'}`}
               >
-                {/* Soft scrim only for custom photo wallpapers */}
-                {hasWallpaper && eff.wallpaper === 'custom' && (
-                  <div className="absolute inset-0 bg-black/20 pointer-events-none" />
+                {/* 1. Background Layer */}
+                {hasWallpaper && (
+                  <div className="absolute inset-0 z-[-1]" style={{
+                    background: isCustomPhoto ? `url('${eff.customWallpaperUrl}')` :
+                                eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, transparent 1px)' :
+                                eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, transparent 1px)' :
+                                eff.wallpaper === 'waves' ? 'repeating-linear-gradient(-45deg, var(--theme-ring), var(--theme-ring) 1px, transparent 1px, transparent 8px)' : 'transparent',
+                    backgroundSize: isCustomPhoto ? 'cover' : eff.wallpaper === 'waves' ? 'auto' : '20px 20px',
+                    backgroundPosition: 'center',
+                    backgroundColor: isCustomPhoto ? 'transparent' : 'var(--theme-surface)'
+                  }} />
                 )}
 
+                {/* 2. Photo Dark Scrim */}
+                {isCustomPhoto && (
+                  <div className="absolute inset-0 bg-black/40 z-[-1]" />
+                )}
+
+                {/* 3. Protected Content */}
                 <div className={`relative z-10 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-md ${user.is_premium ? 'ring-2 ring-white/70' : 'bg-surface border border-primary/15'}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
                     {user.avatar_url ? <img src={user.avatar_url} className="w-full h-full object-cover" alt="" /> : <User size={20} className="text-primary/50" />}
                   </div>
                 </div>
+                
                 <div className="flex-1 min-w-0 relative z-10">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <p className="text-sm font-bold flex items-center"
-                      style={hasWallpaper && eff.wallpaper === 'custom' ? {color:'#fff', textShadow:'0 1px 3px rgba(0,0,0,0.6)'} : {color:'var(--theme-header)'}}>
+                    <p className={`text-sm font-bold flex items-center ${isCustomPhoto ? 'text-white drop-shadow-sm' : 'text-[var(--theme-header)]'}`}>
                       {user.name}
                       {user.is_premium && <VerifiedBadge />}
                     </p>
-                    {user.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap">{user.college}</span>}
+                    {user.college && <span className="text-[9px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full whitespace-nowrap shadow-sm">{user.college}</span>}
                   </div>
-                  <p className="text-xs truncate"
-                    style={hasWallpaper && eff.wallpaper === 'custom' ? {color:'rgba(255,255,255,0.85)'} : {color:'var(--theme-body)'}}>
+                  <p className={`text-xs truncate ${isCustomPhoto ? 'text-white drop-shadow-sm opacity-90' : 'text-[var(--theme-body)]'}`}>
                     @{user.username || 'user'} {user.branch ? `• ${user.branch}` : ''}
                   </p>
                 </div>
+
                 <button
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
-                  className={`relative z-10 px-4 py-1.5 rounded-lg text-xs font-bold transition-colors ${isFollowing ? 'bg-white/80 backdrop-blur-sm text-header border border-primary/15' : 'bg-primary text-white shadow-sm'}`}
+                  className={`relative z-10 px-4 py-1.5 rounded-lg text-xs transition-all ${hasWallpaper ? 'bg-white/80 text-gray-900 backdrop-blur-md hover:bg-white/95 border border-white/40 font-medium' : isFollowing ? 'bg-surface border border-primary/20 text-header font-semibold' : 'bg-primary text-white font-semibold shadow-sm'}`}
                 >
                   {isFollowing ? 'Following' : 'Follow'}
                 </button>
