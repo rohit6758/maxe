@@ -424,8 +424,12 @@ export default function Explore() {
                   onClick={() => setSelectedCommunity(comm)}
                   className={`w-full text-left p-4 border-b border-primary/15 hover:bg-primary/10 transition-colors flex items-center gap-3 ${selectedCommunity?.id === comm.id ? 'bg-primary/15' : ''}`}
                 >
-                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0">
-                    <Layers size={20} className="text-white" />
+                  <div className="w-12 h-12 rounded-full bg-primary flex items-center justify-center shrink-0 overflow-hidden">
+                    {comm.avatar_url ? (
+                      <img src={comm.avatar_url} alt="" className="w-full h-full object-cover" />
+                    ) : (
+                      <Layers size={20} className="text-white" />
+                    )}
                   </div>
                   <div className="flex-1 text-left">
                     <h3 className="font-bold text-header text-sm line-clamp-1">{comm.name}</h3>

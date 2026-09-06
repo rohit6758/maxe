@@ -206,7 +206,7 @@ export default function UserSearch() {
                       className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-1 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
                       style={wallpaperStyle}
                     >
-                      {hasWallpaper && <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-none"></div>}
+                      {hasWallpaper && <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>}
                       <div className={`relative z-10 w-12 h-12 rounded-full border border-primary/10 flex items-center justify-center shrink-0 overflow-hidden ${isText ? 'bg-transparent' : 'bg-surface'}`}>
                         {isText ? (
                           <Search size={22} className="text-body" />
@@ -233,7 +233,7 @@ export default function UserSearch() {
                         )}
                       </div>
                       <button onClick={(e) => removeRecentSearch(isText ? item : item.id, e)} className={`p-2 relative z-10 ${hasWallpaper ? 'text-white/70 hover:text-white' : 'text-body hover:text-header'}`}>
-                        <X size={20} />
+                        <X size={20} className={hasWallpaper ? "text-white/80" : ""} />
                       </button>
                     </div>
                   );
@@ -270,7 +270,7 @@ export default function UserSearch() {
                 className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden ${hasWallpaper ? 'rounded-xl mb-2 border border-primary/20 shadow-sm' : 'hover:bg-black/5'}`}
                 style={wallpaperStyle}
               >
-                {hasWallpaper && <div className="absolute inset-0 bg-black/40 backdrop-blur-[2px] pointer-events-none"></div>}
+                {hasWallpaper && <div className="absolute inset-0 bg-black/40 pointer-events-none"></div>}
                 
                 <div className={`relative z-10 w-12 h-12 rounded-full overflow-hidden flex items-center justify-center shrink-0 shadow-sm ${user.is_premium ? 'bg-gradient-to-tr from-primary to-accent p-0.5' : 'bg-surface border border-primary/15'}`}>
                   <div className="w-full h-full rounded-full overflow-hidden bg-primary/5 flex items-center justify-center">
