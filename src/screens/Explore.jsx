@@ -62,7 +62,7 @@ export default function Explore() {
       loadCommunities();
       loadMySubjects();
       
-      const memberChannel = supabase.channel('my_memberships')
+      const memberChannel = supabase.channel(`my_memberships_${Date.now()}`)
         .on('postgres_changes', { event: '*', schema: 'public', table: 'community_members', filter: `user_id=eq.${session.user.id}` }, payload => {
           if (payload.eventType === 'INSERT' || payload.eventType === 'UPDATE') {
              setMyMemberships(prev => ({ ...prev, [payload.new.community_id]: payload.new.role }));
@@ -86,7 +86,7 @@ export default function Explore() {
       if (isMember) {
         loadPosts(selectedCommunity.id);
         
-        const channel = supabase.channel('community_posts')
+        const channel = supabase.channel(`community_posts_${Date.now()}`)
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
             fetchSinglePost(payload.new.id);
           })
@@ -111,7 +111,7 @@ export default function Explore() {
       };
       checkRequest();
 
-      const channel = supabase.channel('user_request_status')
+      const channel = supabase.channel(`user_request_status_${Date.now()}`)
         .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'community_requests', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
            if (payload.new.user_id === session?.user?.id) {
              setJoinRequestStatus(payload.new.status);

@@ -17,7 +17,7 @@ export default function NotificationsMenu() {
     fetchNotifications();
 
     // Realtime subscription
-    const channel = supabase.channel('my_notifications')
+    const channel = supabase.channel(`my_notifications_${Math.random()}`)
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
