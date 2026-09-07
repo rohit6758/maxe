@@ -397,7 +397,7 @@ const loadFollowStats = async () => {
       {/* Network Modal */}
       {showNetwork && (
         <div className="fixed inset-0 bg-black/30 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="card p-5 w-full max-w-md shadow-xl shadow-primary/10 flex flex-col max-h-[80vh]">
+          <div className="relative card p-5 w-full max-w-md shadow-xl shadow-primary/10 flex flex-col max-h-[80vh]">
             <div className="flex justify-between items-center mb-4">
               <h3 className="text-lg font-bold text-header capitalize flex items-center gap-2">
                 <Users size={20} className="text-primary"/> {networkType}
@@ -428,11 +428,11 @@ const loadFollowStats = async () => {
                       </div>
                       <div className="flex gap-2">
                         {networkType === 'followers' && !isMe && (
-                          <button onClick={(e) => removeFollowerFromNetwork(e, user)} className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors">
+                          <button onClick={(e) => { e.stopPropagation(); setShowRemoveConfirm(user); }} className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors">
                             Remove
                           </button>
                         )}
-                        {!isMe && (
+                        {networkType === 'following' && !isMe && (
                           <button 
                             onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
                             className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-primary/15' : 'bg-primary text-white'}`}
@@ -446,6 +446,20 @@ const loadFollowStats = async () => {
                 })
               )}
             </div>
+
+            {/* Remove Follower Confirmation - layered inside the card */}
+            {showRemoveConfirm && (
+              <div className="absolute inset-0 bg-black/50 backdrop-blur-sm z-20 flex items-center justify-center p-6 rounded-2xl">
+                <div className="bg-surface p-6 rounded-2xl shadow-2xl w-full text-center">
+                  <h4 className="text-header font-bold text-lg mb-2">Remove Follower?</h4>
+                  <p className="text-sm text-body mb-6">Remove <span className="font-bold text-header">@{showRemoveConfirm.username}</span> from your followers?</p>
+                  <div className="flex gap-3">
+                    <button onClick={() => setShowRemoveConfirm(null)} className="flex-1 px-4 py-2 rounded-lg font-bold text-body bg-background border border-primary/10">Cancel</button>
+                    <button onClick={confirmRemoveFollower} className="flex-1 px-4 py-2 rounded-lg font-bold text-white bg-red-500 hover:bg-red-600">Remove</button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
