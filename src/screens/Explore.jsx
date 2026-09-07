@@ -110,6 +110,21 @@ export default function Explore() {
         } catch (err) {}
       };
       checkRequest();
+
+      const channel = supabase.channel('user_request_status')
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'community_requests', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
+           if (payload.new.user_id === session?.user?.id) {
+             setJoinRequestStatus(payload.new.status);
+             if (payload.new.status === 'accepted') {
+                toast("Your join request was accepted!");
+                setMyMemberships(prev => ({ ...prev, [selectedCommunity.id]: 'member' }));
+             } else if (payload.new.status === 'rejected') {
+                toast("Your join request was declined.", "error");
+             }
+           }
+        }).subscribe();
+        
+      return () => { supabase.removeChannel(channel); };
     }
   }, [selectedCommunity, isCurrentMember]);
 
