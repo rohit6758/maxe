@@ -80,6 +80,14 @@ const loadFollowStats = async () => {
     if (showNetwork) loadFollowingMap();
   }, [showNetwork]);
 
+  const removeFollowerFromNetwork = async (e, followerId) => {
+    e.stopPropagation();
+    if (!window.confirm("Remove this follower?")) return;
+    await supabase.from('follows').delete().match({ follower_id: followerId, following_id: session.user.id });
+    setNetworkList(prev => prev.filter(u => u.id !== followerId));
+    setFollowerCount(prev => Math.max(0, prev - 1));
+  };
+
   const toggleFollow = async (userId) => {
     const isFollowing = followingMap[userId];
     if (isFollowing) {
@@ -400,14 +408,21 @@ const loadFollowStats = async () => {
                         <p className="text-sm font-semibold text-header truncate">{user.name}</p>
                         <p className="text-[10px] text-primary font-bold">@{user.username || 'user'}</p>
                       </div>
-                      {!isMe && (
-                        <button 
-                          onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
-                          className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-primary/15' : 'bg-primary text-white'}`}
-                        >
-                          {isFollowing ? 'Following' : 'Follow'}
-                        </button>
-                      )}
+                      <div className="flex gap-2">
+                        {networkType === 'followers' && !isMe && (
+                          <button onClick={(e) => removeFollowerFromNetwork(e, user.id)} className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors">
+                            Remove
+                          </button>
+                        )}
+                        {!isMe && (
+                          <button 
+                            onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
+                            className={`px-3 py-1.5 rounded-lg text-[10px] font-bold transition-colors ${isFollowing ? 'bg-background text-header border border-primary/15' : 'bg-primary text-white'}`}
+                          >
+                            {isFollowing ? 'Following' : 'Follow'}
+                          </button>
+                        )}
+                      </div>
                     </div>
                   );
                 })
