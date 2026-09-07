@@ -439,13 +439,22 @@ export default function Explore() {
     if (myFollowing) myFollowing.forEach(f => map[f.following_id] = true);
     setFollowingMap(map);
     
-    // Fetch pending requests for admins
+    // Fetch pending requests for admins (two-step to avoid FK join issues)
     if (selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) {
-      const { data: reqs } = await supabase.from('community_requests')
-        .select('*, profiles(name, username, avatar_url, is_premium)')
+      const { data: reqs, error: reqErr } = await supabase.from('community_requests')
+        .select('id, community_id, user_id, status, created_at')
         .eq('community_id', selectedCommunity.id)
         .eq('status', 'pending');
-      setCommunityRequests(reqs || []);
+      console.log('[Requests] raw:', reqs, reqErr);
+      if (reqs && reqs.length > 0) {
+        const userIds = reqs.map(r => r.user_id);
+        const { data: reqProfiles } = await supabase.from('profiles').select('id, name, username, avatar_url, is_premium').in('id', userIds);
+        const profileMap = {};
+        (reqProfiles || []).forEach(p => { profileMap[p.id] = p; });
+        setCommunityRequests(reqs.map(r => ({ ...r, profiles: profileMap[r.user_id] || null })));
+      } else {
+        setCommunityRequests([]);
+      }
     } else {
       setCommunityRequests([]);
     }
@@ -458,6 +467,8 @@ export default function Explore() {
     try {
       await supabase.from('community_members').insert([{ community_id: req.community_id, user_id: req.user_id, role: 'member' }]);
       await supabase.from('community_requests').update({ status: 'accepted' }).eq('id', req.id);
+      // Notify the user
+      try { await supabase.from('notifications').insert([{ user_id: req.user_id, content: `Your request to join ${selectedCommunity?.name} was accepted! 🎉` }]); } catch(e) {}
       setCommunityRequests(prev => prev.filter(r => r.id !== req.id));
       toast('Request accepted!');
       openMembersModal(); // reload members
@@ -467,8 +478,10 @@ export default function Explore() {
   const handleRejectRequest = async (req) => {
     try {
       await supabase.from('community_requests').update({ status: 'rejected' }).eq('id', req.id);
+      // Notify the user
+      try { await supabase.from('notifications').insert([{ user_id: req.user_id, content: `Your request to join ${selectedCommunity?.name} was declined.` }]); } catch(e) {}
       setCommunityRequests(prev => prev.filter(r => r.id !== req.id));
-      toast('Request rejected');
+      toast('Request declined.');
     } catch (e) { toast(e.message, 'error'); }
   };
 
@@ -630,6 +643,16 @@ export default function Explore() {
                     <button disabled className="w-full py-3 rounded-xl bg-primary/20 text-primary font-bold text-sm flex items-center justify-center gap-2 cursor-not-allowed">
                       <Check size={18} /> Request Sent
                     </button>
+                  ) : joinRequestStatus === 'rejected' ? (
+                    <>
+                      <p className="text-xs text-red-500 font-bold bg-red-50 border border-red-200 rounded-xl py-2 px-3">❌ Your previous request was declined.</p>
+                      <button 
+                        onClick={() => { setJoinRequestStatus(null); handleRequestJoin(); }}
+                        className="w-full py-3 rounded-xl bg-primary text-white font-bold text-sm shadow-md hover:opacity-90 active:scale-95 transition-all flex items-center justify-center gap-2"
+                      >
+                        <UserPlus size={18} /> Request Again
+                      </button>
+                    </>
                   ) : (
                     <button 
                       onClick={handleRequestJoin}
@@ -637,9 +660,6 @@ export default function Explore() {
                     >
                       <UserPlus size={18} /> Request to Join
                     </button>
-                  )}
-                  {joinRequestStatus === 'rejected' && (
-                    <p className="text-xs text-red-500 font-bold">Your previous request was rejected. You can try again.</p>
                   )}
                 </div>
               </div>
