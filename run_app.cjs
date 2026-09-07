@@ -8,7 +8,7 @@ app.use(express.static('dist'));
 const server = app.listen(3000, async () => {
   console.log('Server running on 3000');
   try {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({ executablePath: 'C:/Users/rohit/.cache/puppeteer/chrome/win64-152.0.7977.75/chrome-win64/chrome.exe' });
     const page = await browser.newPage();
     
     page.on('console', msg => {

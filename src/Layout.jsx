@@ -7,6 +7,7 @@ import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
 import StudyTrackerModal from './screens/StudyTrackerModal';
 import OnboardingPopup from './components/OnboardingPopup';
+import NotificationsMenu from './components/NotificationsMenu';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
