@@ -1,29 +1,24 @@
 import React, { useState, useEffect } from 'react';
 
 // Simple event emitter for global toasts
-class ToastEmitter {
-  constructor() {
-    this.listeners = [];
-  }
-  subscribe(fn) {
-    this.listeners.push(fn);
-    return () => {
-      this.listeners = this.listeners.filter(l => l !== fn);
-    };
-  }
-  emit(message, type) {
-    this.listeners.forEach(fn => fn(message, type));
-  }
+const listeners = new Set();
+
+export function toast(message, type = 'info') {
+  listeners.forEach(fn => fn(message, type));
 }
 
-export const toastEmitter = new ToastEmitter();
-export const toast = (message, type = 'info') => toastEmitter.emit(message, type);
+function subscribe(fn) {
+  listeners.add(fn);
+  return () => {
+    listeners.delete(fn);
+  };
+}
 
 export function ToastContainer() {
   const [toasts, setToasts] = useState([]);
 
   useEffect(() => {
-    const unsubscribe = toastEmitter.subscribe((message, type) => {
+    const unsubscribe = subscribe((message, type) => {
       const id = Math.random().toString(36).substring(2, 9);
       setToasts(prev => [...prev, { id, message, type }]);
       
