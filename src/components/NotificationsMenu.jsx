@@ -102,13 +102,13 @@ export default function NotificationsMenu() {
               <div 
                 key={notif.id} 
                 onClick={() => !notif.is_read && markAsRead(notif.id)}
-                className={\`p-3 rounded-xl cursor-pointer transition-colors flex gap-3 \${notif.is_read ? 'bg-transparent hover:bg-background' : 'bg-primary/5 border border-primary/10'}\`}
+                className={`p-3 rounded-xl cursor-pointer transition-colors flex gap-3 ${notif.is_read ? 'bg-transparent hover:bg-background' : 'bg-primary/5 border border-primary/10'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                   <Bell size={14} className="text-primary" />
                 </div>
                 <div>
-                  <p className={\`text-sm \${notif.is_read ? 'text-body' : 'text-header font-bold'}\`}>
+                  <p className={`text-sm ${notif.is_read ? 'text-body' : 'text-header font-bold'}`}>
                     {notif.content}
                   </p>
                   <p className="text-[10px] text-body mt-1">

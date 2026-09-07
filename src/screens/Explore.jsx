@@ -53,6 +53,9 @@ export default function Explore() {
   const [hasSearched, setHasSearched] = useState(false);
   const [communityRequests, setCommunityRequests] = useState([]);
 
+  const isCurrentMember = selectedCommunity ? (myMemberships[selectedCommunity.id] || isAdmin) : false;
+  const isCommunityAdmin = selectedCommunity ? (selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) : false;
+
 
   useEffect(() => {
     if (session && userProfile?.college) {
@@ -490,8 +493,6 @@ export default function Explore() {
     return <FileText size={16} className="text-primary" />;
   };
 
-  const isCurrentMember = selectedCommunity ? (myMemberships[selectedCommunity.id] || isAdmin) : false;
-  const isCommunityAdmin = selectedCommunity ? (selectedCommunity.created_by === session?.user?.id || myMemberships[selectedCommunity.id] === 'admin' || isAdmin) : false;
 
   return (
     <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-primary/15">
