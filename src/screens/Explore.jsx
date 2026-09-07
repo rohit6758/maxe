@@ -277,6 +277,19 @@ export default function Explore() {
       }]);
 
       if (error) throw error;
+      
+      try {
+        const { data: mems } = await supabase.from('community_members').select('user_id').eq('community_id', selectedCommunity.id);
+        if (mems) {
+          const notifs = mems.filter(m => m.user_id !== session.user.id).map(m => ({
+            user_id: m.user_id,
+            content: `@${userProfile?.username || 'someone'} posted new material in ${selectedCommunity.name}`
+          }));
+          if (notifs.length > 0) {
+            await supabase.from('notifications').insert(notifs);
+          }
+        }
+      } catch (e) { console.error("Notification failed", e); }
       setShowShareModal(false);
       setShareData({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
     } catch (err) {

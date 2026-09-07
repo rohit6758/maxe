@@ -155,6 +155,7 @@ export default function Layout() {
             <button onClick={() => setIsCalendarOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-primary)' }}>
               <Calendar size={20} />
             </button>
+            <NotificationsMenu />
             <Link to="/profile" className="w-8 h-8 ml-1 rounded-full overflow-hidden flex items-center justify-center border-2"
               style={{ borderColor: 'var(--theme-ring)', background: 'color-mix(in srgb, var(--theme-sidebar) 80%, white)' }}>
               {userProfile?.avatar_url
@@ -165,7 +166,8 @@ export default function Layout() {
         </header>
 
         {/* Desktop Top Bar */}
-        <header className="hidden md:flex items-center justify-end px-6 py-4">
+        <header className="hidden md:flex items-center justify-end px-6 py-4 gap-4">
+          <NotificationsMenu />
           <Link to="/profile" className="flex items-center gap-3 hover:scale-[1.02] transition-transform">
             <div className="text-right">
               <p className="text-sm font-bold" style={{ color: 'var(--theme-header)' }}>{userProfile?.name || 'My Profile'}</p>

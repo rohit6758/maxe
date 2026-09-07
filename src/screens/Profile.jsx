@@ -108,6 +108,12 @@ const loadFollowStats = async () => {
       if (networkType === 'following') setFollowingCount(prev => prev - 1);
     } else {
       await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      try {
+        await supabase.from('notifications').insert([{ 
+          user_id: userId, 
+          content: `@${userProfile?.username || 'someone'} started following you!` 
+        }]);
+      } catch (e) { console.error("Notification failed", e); }
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
       if (networkType === 'following') setFollowingCount(prev => prev + 1);
     }
