@@ -36,6 +36,7 @@ export default function Profile() {
   
   const [followingMap, setFollowingMap] = useState({});
   const [selectedUser, setSelectedUser] = useState(null); // For Profile Popup
+  const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
   const [showProModal, setShowProModal] = useState(false);
 
   useEffect(() => {
@@ -80,12 +81,23 @@ const loadFollowStats = async () => {
     if (showNetwork) loadFollowingMap();
   }, [showNetwork]);
 
-  const removeFollowerFromNetwork = async (e, followerId) => {
+  const removeFollowerFromNetwork = (e, user) => {
     e.stopPropagation();
-    if (!window.confirm("Remove this follower?")) return;
-    await supabase.from('follows').delete().match({ follower_id: followerId, following_id: session.user.id });
+    setShowRemoveConfirm(user);
+  };
+
+  const confirmRemoveFollower = async () => {
+    if (!showRemoveConfirm) return;
+    const followerId = showRemoveConfirm.id;
+    
     setNetworkList(prev => prev.filter(u => u.id !== followerId));
     setFollowerCount(prev => Math.max(0, prev - 1));
+    setShowRemoveConfirm(null);
+
+    const { error } = await supabase.from('follows').delete().match({ follower_id: followerId, following_id: session.user.id });
+    if (error) {
+      toast('Could not remove follower: ' + error.message, 'error');
+    }
   };
 
   const toggleFollow = async (userId) => {
@@ -410,7 +422,7 @@ const loadFollowStats = async () => {
                       </div>
                       <div className="flex gap-2">
                         {networkType === 'followers' && !isMe && (
-                          <button onClick={(e) => removeFollowerFromNetwork(e, user.id)} className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors">
+                          <button onClick={(e) => removeFollowerFromNetwork(e, user)} className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-red-500 bg-red-50 border border-red-200 hover:bg-red-100 transition-colors">
                             Remove
                           </button>
                         )}
