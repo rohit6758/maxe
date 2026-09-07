@@ -1,3 +1,4 @@
+import { ToastContainer } from './context/ToastContext';
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import Layout from './Layout';
@@ -72,7 +73,6 @@ function AppRoutes() {
   );
 }
 
-import { ToastContainer } from './context/ToastContext';
 
 function App() {
   return (
