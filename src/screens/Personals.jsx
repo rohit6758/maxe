@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
@@ -148,7 +149,7 @@ export default function Personals() {
     setUploading(true);
     const path = `${session.user.id}/ev-${examId}-${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from('uploads').upload(path, file);
-    if (error) { alert('Upload failed: ' + error.message); setUploading(false); return; }
+    if (error) { toast('Upload failed: ' + error.message); setUploading(false); return; }
     const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(path);
     const { data } = await supabase.from('log_evidence').insert([{ log_id: log.id, image_url: urlData.publicUrl }]).select();
     if (data) setEvidenceCache(p => ({ ...p, [key]: [...(p[key] || []), data[0]] }));

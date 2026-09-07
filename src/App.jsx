@@ -72,13 +72,17 @@ function AppRoutes() {
   );
 }
 
+import { ToastContainer } from './context/ToastContext';
+
 function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <BrowserRouter>
-          <AppRoutes />
-        </BrowserRouter>
+        <ToastContainer />
+          <BrowserRouter>
+            <AppRoutes />
+          </BrowserRouter>
+        
       </AppProvider>
     </ErrorBoundary>
   );

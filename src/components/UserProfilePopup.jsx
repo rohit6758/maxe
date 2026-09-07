@@ -104,6 +104,14 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     }
   };
 
+  const removeFollower = async (e, followerId) => {
+    e.stopPropagation();
+    if (!window.confirm("Remove this follower?")) return;
+    await supabase.from('follows').delete().match({ follower_id: followerId, following_id: currentUserId });
+    setListUsers(prev => prev.filter(u => u.id !== followerId));
+    setFollowerCount(prev => Math.max(0, prev - 1));
+  };
+
   const toggleListFollow = async (e, targetUserId) => {
     e.stopPropagation();
     const isTargetFollowing = myFollowingMap[targetUserId];

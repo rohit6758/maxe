@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
@@ -190,7 +191,7 @@ export default function PostMortemLog() {
                     
                     const { error: uploadError } = await supabase.storage.from('uploads').upload(filePath, file);
                     if (uploadError) {
-                      alert('Error uploading file: ' + uploadError.message);
+                      toast('Error uploading file: ' + uploadError.message);
                       return;
                     }
                     

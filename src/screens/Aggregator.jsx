@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BRANCHES } from '../lib/constants';
@@ -102,7 +103,7 @@ export default function Aggregator() {
     if (!file || !activeSubject) return;
     const filePath = `${session.user.id}/${Date.now()}-${file.name}`;
     const { error } = await supabase.storage.from('uploads').upload(filePath, file);
-    if (error) { alert('Upload failed: ' + error.message); return; }
+    if (error) { toast('Upload failed: ' + error.message); return; }
     const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
     const { data } = await supabase.from('resources').insert([{
       subject_id: activeSubject, title: file.name, url: urlData.publicUrl, type,
@@ -123,7 +124,7 @@ export default function Aggregator() {
     if (!newChat.title || !newChat.url) return;
     const { data, error } = await supabase.from('resources').insert([{ subject_id: activeSubject, title: newChat.title, url: newChat.url, type: 'chat' }]).select();
     if (error) {
-      alert('Error saving chat: ' + error.message);
+      toast('Error saving chat: ' + error.message);
       return;
     }
     if (data) { setResources(p => [data[0], ...p]); setShowAddChat(false); setNewChat({ title: '', url: '' }); }

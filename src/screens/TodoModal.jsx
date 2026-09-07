@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
@@ -19,19 +20,19 @@ export default function TodoModal({ onClose }) {
     e.preventDefault();
     if (!text.trim()) return;
     const { data, error } = await supabase.from('todos').insert([{ user_id: session.user.id, text: text.trim(), completed: false }]).select();
-    if (error) alert('Error adding task: ' + error.message);
+    if (error) toast('Error adding task: ' + error.message);
     else if (data) { setTodos(p => [data[0], ...p]); setText(''); }
   };
 
   const toggle = async (todo) => {
     const { data, error } = await supabase.from('todos').update({ completed: !todo.completed }).eq('id', todo.id).select().single();
-    if (error) alert('Error updating task: ' + error.message);
+    if (error) toast('Error updating task: ' + error.message);
     else if (data) setTodos(p => p.map(t => t.id === todo.id ? data : t));
   };
 
   const del = async (id) => {
     const { error } = await supabase.from('todos').delete().eq('id', id);
-    if (error) alert('Error deleting task: ' + error.message);
+    if (error) toast('Error deleting task: ' + error.message);
     else setTodos(p => p.filter(t => t.id !== id));
   };
 

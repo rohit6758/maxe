@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
@@ -31,7 +32,7 @@ export default function CalendarModal({ onClose }) {
       event_date: getLocalYMD(selected)
     }]).select();
     if (error) {
-      alert('Failed to save event: ' + error.message);
+      toast('Failed to save event: ' + error.message);
     } else if (data) {
       setEvents(p => [...p, data[0]]);
       setForm({ title: '', type: 'exam', marks: '' });
@@ -41,7 +42,7 @@ export default function CalendarModal({ onClose }) {
 
   const del = async (id) => {
     const { error } = await supabase.from('calendar_events').delete().eq('id', id);
-    if (error) alert('Failed to delete event: ' + error.message);
+    if (error) toast('Failed to delete event: ' + error.message);
     else setEvents(p => p.filter(e => e.id !== id));
   };
 

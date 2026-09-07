@@ -1,8 +1,10 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon, Search } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
+import ImageCropper from '../components/ImageCropper';
 
 export default function Explore() {
   const { session, userProfile } = useAppContext();
@@ -23,6 +25,7 @@ export default function Explore() {
   const [editCommunityName, setEditCommunityName] = useState('');
   const [isEditingName, setIsEditingName] = useState(false);
   const [isSavingInfo, setIsSavingInfo] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
 
   const [showShareModal, setShowShareModal] = useState(false);
   const [shareData, setShareData] = useState({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
@@ -193,7 +196,7 @@ export default function Explore() {
       created_by: session.user.id,
       college: userProfile?.college 
     }]).select();
-    if (error) alert(error.message);
+    if (error) toast(error.message);
     else {
       await supabase.from('community_members').insert([{
         community_id: data[0].id,
@@ -241,7 +244,7 @@ export default function Explore() {
       setShowShareModal(false);
       setShareData({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
     } catch (err) {
-      alert(err.message);
+      toast(err.message);
     }
     setIsUploading(false);
   };
@@ -249,7 +252,7 @@ export default function Explore() {
   const handleDeletePost = async (postId) => {
     if (!window.confirm('Delete this post?')) return;
     const { error } = await supabase.from('community_posts').delete().eq('id', postId);
-    if (error) alert(error.message);
+    if (error) toast(error.message);
     else setPosts(posts.filter(p => p.id !== postId));
   };
 
@@ -265,27 +268,35 @@ export default function Explore() {
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
       setSelectedCommunity(data);
       setIsEditingName(false);
-    } catch(e) { alert(e.message); }
+    } catch(e) { toast(e.message); }
     setIsSavingInfo(false);
   };
 
-  const handleUpdateGroupAvatar = async (e) => {
+  const handleSelectGroupAvatar = (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => setCropImageSrc(reader.result));
+    reader.readAsDataURL(file);
+    e.target.value = null;
+  };
+
+  const handleUpdateGroupAvatar = async (file) => {
+    setCropImageSrc(null);
     if (!file) return;
     setIsSavingInfo(true);
     try {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `avatar_${selectedCommunity.id}_${Math.random()}.${fileExt}`;
-      const { error: uploadError } = await supabase.storage.from('pdfs').upload(`community_avatars/${fileName}`, file);
+      const fileName = `avatar_${selectedCommunity.id}_${Math.random()}.jpg`;
+      const { error: uploadError } = await supabase.storage.from('uploads').upload(`community_avatars/${fileName}`, file, { contentType: 'image/jpeg' });
       if (uploadError) throw uploadError;
       
-      const { data: { publicUrl } } = supabase.storage.from('pdfs').getPublicUrl(`community_avatars/${fileName}`);
+      const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(`community_avatars/${fileName}`);
       const { data, error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id).select().single();
       if (error) throw error;
       
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
       setSelectedCommunity(data);
-    } catch(err) { alert(err.message); }
+    } catch(err) { toast(err.message); }
     setIsSavingInfo(false);
   };
 
@@ -293,7 +304,7 @@ export default function Explore() {
     e.stopPropagation();
     if (!window.confirm('WARNING: Delete this entire community group and all its posts?')) return;
     const { error } = await supabase.from('communities').delete().eq('id', communityId);
-    if (error) alert(error.message);
+    if (error) toast(error.message);
     else {
       setCommunities(communities.filter(c => c.id !== communityId));
       if (selectedCommunity?.id === communityId) setSelectedCommunity(null);
@@ -307,7 +318,7 @@ export default function Explore() {
   };
 
   const executeImport = async () => {
-    if (!selectedSubjectId) return alert('Select a subject to import to');
+    if (!selectedSubjectId) return toast('Select a subject to import to');
     try {
       const { error } = await supabase.from('resources').insert([{
         subject_id: selectedSubjectId,
@@ -317,10 +328,10 @@ export default function Explore() {
         size: importingPost.size
       }]);
       if (error) throw error;
-      alert('Imported successfully!');
+      toast('Imported successfully!');
       setShowImportModal(false);
     } catch (err) {
-      alert(err.message);
+      toast(err.message);
     }
   };
 
@@ -390,7 +401,7 @@ export default function Explore() {
       const { data: profile } = await supabase.from('profiles').select('name, avatar_url').eq('id', userId).single();
       setCommunityMembers([...communityMembers, { user_id: userId, role: 'member', profiles: profile }]);
     } catch (err) {
-      alert('Could not add member: ' + err.message);
+      toast('Could not add member: ' + err.message);
     }
     setIsAddingMember(false);
   };
@@ -399,7 +410,7 @@ export default function Explore() {
     if (!window.confirm("Remove this member from the community?")) return;
     const { error } = await supabase.from('community_members').delete().match({ community_id: selectedCommunity.id, user_id: userId });
     if (error) {
-      alert("Failed to remove member: " + error.message);
+      toast("Failed to remove member: " + error.message);
     } else {
       setCommunityMembers(prev => prev.filter(m => m.user_id !== userId));
     }
@@ -522,7 +533,7 @@ export default function Explore() {
               <div className="pt-8 relative z-10 w-full max-w-xs space-y-3">
                 <button 
                   onClick={async () => {
-                    alert('Request sent to the admin! They will approve it in their Requests page.');
+                    toast('Request sent to the admin! They will approve it in their Requests page.');
                   }}
                   className="w-full py-4 rounded-xl bg-primary text-white font-black text-sm shadow-xl shadow-primary/30 hover:scale-105 active:scale-95 transition-all flex items-center justify-center gap-2"
                 >
@@ -862,7 +873,7 @@ export default function Explore() {
                 {isCurrentMember && (
                   <label className="absolute bottom-4 right-4 w-12 h-12 bg-primary rounded-full flex items-center justify-center shadow-lg cursor-pointer hover:scale-105 transition-transform text-white">
                     {isSavingInfo ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <ImageIcon size={20} />}
-                    <input type="file" className="hidden" accept="image/*" onChange={handleUpdateGroupAvatar} disabled={isSavingInfo} />
+                    <input type="file" className="hidden" accept="image/*" onChange={handleSelectGroupAvatar} disabled={isSavingInfo} />
                   </label>
                 )}
                 
@@ -923,6 +934,14 @@ export default function Explore() {
         />
       )}
 
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          aspectRatio={1}
+          onCropComplete={handleUpdateGroupAvatar}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
     </div>
   );
 }

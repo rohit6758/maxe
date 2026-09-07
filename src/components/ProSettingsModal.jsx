@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
@@ -342,7 +343,7 @@ export default function ProSettingsModal({ isOpen, onClose }) {
                     await supabase.from('profiles').update({ interests: payload }).eq('id', session.user.id);
                   } catch (err) {
                     console.error(err);
-                    alert('Failed to upload wallpaper');
+                    toast('Failed to upload wallpaper');
                   }
                   setUploading(false);
                 }} />

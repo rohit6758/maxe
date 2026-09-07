@@ -1,3 +1,4 @@
+import { toast } from '../context/ToastContext';
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BRANCHES, COLLEGES } from '../lib/constants';
@@ -53,7 +54,7 @@ export default function Profile() {
     const selectCol = type === 'followers' ? 'follower_id' : 'following_id';
     
     const { data, error } = await supabase.from('follows').select(selectCol).eq(column, session.user.id);
-    if (error) { alert('Error loading network'); setIsLoadingNetwork(false); return; }
+    if (error) { toast('Error loading network'); setIsLoadingNetwork(false); return; }
     if (data && data.length > 0) {
       const ids = data.map(d => d[selectCol]);
       const { data: profiles } = await supabase.from('profiles').select('id, name, username, avatar_url, branch').in('id', ids);
@@ -123,7 +124,7 @@ const loadFollowStats = async () => {
       setAvatarUrl(url);
       
     } catch (err) {
-      alert('Avatar upload failed: ' + err.message);
+      toast('Avatar upload failed: ' + err.message);
     } finally {
       setUploading(false);
     }
@@ -175,9 +176,9 @@ const loadFollowStats = async () => {
 
     if (error) {
       if (error.code === '23505' || error.message.includes('duplicate')) {
-        alert('This username is already taken. Please choose another one.');
+        toast('This username is already taken. Please choose another one.');
       } else {
-        alert('Save failed: ' + error.message);
+        toast('Save failed: ' + error.message);
       }
     } else if (data) {
       setUserProfile(data);
@@ -269,7 +270,7 @@ const loadFollowStats = async () => {
                 if (session?.user?.email === 'rohitnxtgengw@gmail.com') {
                   setShowProModal(true);
                 } else {
-                  alert("Pro upgrade is currently locked during testing. Please wait for the official release!");
+                  toast("Pro upgrade is currently locked during testing. Please wait for the official release!");
                 }
               }}
                 className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md"
