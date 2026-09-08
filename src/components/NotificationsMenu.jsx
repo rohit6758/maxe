@@ -21,8 +21,9 @@ export default function NotificationsMenu() {
         
       if (error && error.code !== 'PGRST205') throw error;
       if (data) {
-        setNotifications(data);
-        setUnreadCount(data.filter(n => !n.is_read).length);
+        const unread = data.filter(n => !n.is_read);
+        setNotifications(unread);
+        setUnreadCount(unread.length);
       }
     } catch (e) {
       console.error(e);
@@ -34,6 +35,7 @@ export default function NotificationsMenu() {
     
     // Initial fetch
     fetchNotifications();
+    const poll = window.setInterval(fetchNotifications, 10000);
 
     // Register one callback before subscribing. A unique name avoids reusing a
     // channel that React Strict Mode may still be removing.
@@ -44,13 +46,16 @@ export default function NotificationsMenu() {
       table: 'notifications',
       filter: `user_id=eq.${session.user.id}`
     }, payload => {
-      if (payload.eventType === 'INSERT') {
+      if (payload.eventType === 'INSERT' && !payload.new.is_read) {
         setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
-        setUnreadCount(prev => prev + (payload.new.is_read ? 0 : 1));
+        setUnreadCount(prev => prev + 1);
         toast('New notification received!');
       } else if (payload.eventType === 'UPDATE') {
-        setNotifications(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
-        fetchNotifications();
+        if (payload.new.is_read) {
+          setNotifications(prev => prev.filter(item => item.id !== payload.new.id));
+        } else {
+          fetchNotifications();
+        }
       } else if (payload.eventType === 'DELETE') {
         setNotifications(prev => prev.filter(item => item.id !== payload.old.id));
       }
@@ -58,14 +63,16 @@ export default function NotificationsMenu() {
     channel.subscribe();
 
     return () => {
+      window.clearInterval(poll);
       supabase.removeChannel(channel);
     };
   }, [session, fetchNotifications]);
 
   const markAsRead = async (id) => {
     try {
-      await supabase.from('notifications').update({ is_read: true }).eq('id', id);
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
+      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
+      if (error) throw error;
+      setNotifications(prev => prev.filter(n => n.id !== id));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (e) {
       console.error('Failed to mark notification as read', e);
@@ -75,8 +82,9 @@ export default function NotificationsMenu() {
 
   const markAllAsRead = async () => {
     try {
-      await supabase.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
-      setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
+      const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
+      if (error) throw error;
+      setNotifications([]);
       setUnreadCount(0);
     } catch (e) {
       console.error('Failed to mark notifications as read', e);
@@ -116,14 +124,14 @@ export default function NotificationsMenu() {
             ) : notifications.map(notif => (
               <div 
                 key={notif.id} 
-                onClick={() => !notif.is_read && markAsRead(notif.id)}
-                className={`p-3 rounded-xl cursor-pointer transition-colors flex gap-3 ${notif.is_read ? 'bg-transparent hover:bg-background' : 'bg-primary/5 border border-primary/10'}`}
+                onClick={() => markAsRead(notif.id)}
+                className="p-3 rounded-xl cursor-pointer transition-colors flex gap-3 bg-primary/5 border border-primary/10 hover:bg-primary/10"
               >
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                   <Bell size={14} className="text-primary" />
                 </div>
                 <div>
-                  <p className={`text-sm ${notif.is_read ? 'text-body' : 'text-header font-bold'}`}>
+                  <p className="text-sm text-header font-bold">
                     {notif.content}
                   </p>
                   <p className="text-[10px] text-body mt-1">

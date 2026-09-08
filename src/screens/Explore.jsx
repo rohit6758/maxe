@@ -233,7 +233,8 @@ export default function Explore() {
         .filter(member => member.user_id !== session.user.id)
         .map(member => ({
           user_id: member.user_id,
-          content: `@${userProfile?.username || 'someone'} sent a message in ${selectedCommunity.name}`
+          content: `@${userProfile?.username || 'someone'} sent a message in ${selectedCommunity.name}`,
+          is_read: false
         }));
       if (notifications.length > 0) {
         const { error: notificationError } = await supabase.from('notifications').insert(notifications);
@@ -357,10 +358,12 @@ export default function Explore() {
         if (mems) {
           const notifs = mems.filter(m => m.user_id !== session.user.id).map(m => ({
             user_id: m.user_id,
-            content: `@${userProfile?.username || 'someone'} posted new material in ${selectedCommunity.name}`
+            content: `@${userProfile?.username || 'someone'} posted new material in ${selectedCommunity.name}`,
+            is_read: false
           }));
           if (notifs.length > 0) {
-            await supabase.from('notifications').insert(notifs);
+            const { error: notificationError } = await supabase.from('notifications').insert(notifs);
+            if (notificationError) throw notificationError;
           }
         }
       } catch (e) { console.error("Notification failed", e); }
@@ -594,7 +597,16 @@ export default function Explore() {
       await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
       setFollowingMap(prev => ({ ...prev, [userId]: false }));
     } else {
-      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      const { error: followError } = await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      if (followError) {
+        console.error('Follow failed', followError);
+        return;
+      }
+      const { error: notificationError } = await supabase.from('notifications').insert([{
+        user_id: userId,
+        content: `@${userProfile?.username || 'someone'} sent you a friend request`
+      }]);
+      if (notificationError) console.error('Notification failed', notificationError);
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
     }
   };
