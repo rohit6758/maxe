@@ -59,7 +59,10 @@ export default function NotificationsMenu() {
       await supabase.from('notifications').update({ is_read: true }).eq('id', id);
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
-    } catch (e) {}
+    } catch (e) {
+      console.error('Failed to mark notification as read', e);
+      toast('Could not update notification');
+    }
   };
 
   const markAllAsRead = async () => {
@@ -67,16 +70,20 @@ export default function NotificationsMenu() {
       await supabase.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })));
       setUnreadCount(0);
-    } catch (e) {}
+    } catch (e) {
+      console.error('Failed to mark notifications as read', e);
+      toast('Could not update notifications');
+    }
   };
 
   return (
     <div className="relative">
       <button 
         onClick={() => setIsOpen(!isOpen)} 
-        className="w-10 h-10 rounded-full flex items-center justify-center bg-surface relative hover:bg-primary/10 transition-colors"
+        aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
+        className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface relative hover:bg-primary/10 transition-colors"
       >
-        <Bell size={20} className="text-header" />
+        <Bell size={16} strokeWidth={2.25} className="text-header" />
         {unreadCount > 0 && (
           <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-surface animate-pulse" />
         )}

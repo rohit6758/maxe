@@ -304,6 +304,12 @@ export default function UserSearch() {
                     backgroundColor: isCustomPhoto ? 'transparent' : 'var(--theme-surface)'
                   }} />
                 )}
+                {user.is_premium && eff?.banner === 'gradient' && (
+                  <div
+                    className="absolute inset-x-0 top-0 h-1.5 z-0"
+                    style={{ background: 'linear-gradient(90deg, var(--theme-primary), var(--theme-accent), var(--theme-ring))' }}
+                  />
+                )}
 
                 {/* 2. Photo Dark Scrim */}
                 {isCustomPhoto && (

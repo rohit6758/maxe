@@ -2,7 +2,7 @@ import { toast } from '../context/ToastContext';
 import React, { useEffect, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { X, ChevronRight, Sparkles, Palette, Wand2, Image } from 'lucide-react';
+import { X, ChevronRight, Sparkles, Palette, Wand2, Image, Crown, Waves, CarFront, Gem, Rocket, CircleDot } from 'lucide-react';
 
 // Theme-specific decorations that orbit the profile avatar
 const THEME_DECORATIONS = {
@@ -130,6 +130,21 @@ const THEME_DECORATIONS = {
   }
 };
 
+// Keep premium motion graphic and icon based so it stays crisp at any size.
+const PREMIUM_GLYPHS = { default: Sparkles, eastbay: CircleDot, dolphin: Waves, venice: Rocket, lagoon: CarFront, berry: Crown };
+Object.entries(THEME_DECORATIONS).forEach(([id, decoration]) => {
+  const Glyph = PREMIUM_GLYPHS[id] || Gem;
+  decoration.elements = (
+    <>
+      <div className="absolute -top-4 -right-2 animate-float-3d" style={{ color: 'rgba(255,255,255,0.95)', filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.25))' }}>
+        <Glyph size={24} strokeWidth={1.75} />
+      </div>
+      <div className="absolute top-1/2 -left-4 -translate-y-1/2 h-4 w-4 rounded-full bg-white/80 shadow-[0_0_14px_rgba(255,255,255,0.9)] animate-pulse" />
+      <div className="absolute -bottom-3 right-1/4 h-3 w-3 rounded-full bg-white/70 shadow-[0_0_10px_rgba(255,255,255,0.8)] animate-float-3d" style={{ animationDelay: '0.8s' }} />
+    </>
+  );
+});
+
 export default function ProSettingsModal({ isOpen, onClose }) {
   const { theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
   const [view, setView] = useState('main');
@@ -164,10 +179,10 @@ export default function ProSettingsModal({ isOpen, onClose }) {
             </button>
           ) : <div />}
           <h2 className="text-base font-black" style={{color:'var(--theme-header)'}}>
-            {view === 'main' && '✨ Maxe Pro'}
-            {view === 'theme' && '🎨 App Theme'}
-            {view === 'effects' && '🌟 Profile Effects'}
-            {view === 'wallpaper' && '🖼 Wallpaper'}
+            {view === 'main' && 'Maxe Pro'}
+            {view === 'theme' && 'App Theme'}
+            {view === 'effects' && 'Profile Effects'}
+            {view === 'wallpaper' && 'Wallpaper'}
           </h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
             style={{background:'color-mix(in srgb, var(--theme-ring) 30%, transparent)', color:'var(--theme-body)'}}>
@@ -284,10 +299,10 @@ export default function ProSettingsModal({ isOpen, onClose }) {
                 <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'var(--theme-header)'}}>Avatar Frame</p>
                 <div className="grid grid-cols-2 gap-2">
                   {[
-                    {v:'none', label:'None', icon:'⭕'},
-                    {v:'neon-pulse', label:'Neon Glow', icon:'💫'},
-                    {v:'spinning-ring', label:'Spin Ring', icon:'🌀'},
-                    {v:'fire-aura', label:'Fire Aura', icon:'🔥'},
+                    {v:'none', label:'None', icon:<CircleDot size={15}/>},
+                    {v:'neon-pulse', label:'Neon Glow', icon:<Sparkles size={15}/>},
+                    {v:'spinning-ring', label:'Spin Ring', icon:<Waves size={15}/>},
+                    {v:'fire-aura', label:'Fire Aura', icon:<Gem size={15}/>},
                   ].map(a=>(
                     <button key={a.v} onClick={()=>setProfileEffects({...profileEffects, avatar:a.v})}
                       className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border-2 transition-colors"

@@ -8,6 +8,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
 import ProSettingsModal, { THEME_DECORATIONS } from '../components/ProSettingsModal';
 import AvatarDecoration from '../components/AvatarDecoration';
+import ImageCropper from '../components/ImageCropper';
 
 export default function Profile() {
   const { session, userProfile, setUserProfile, theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
@@ -38,6 +39,7 @@ export default function Profile() {
   const [selectedUser, setSelectedUser] = useState(null); // For Profile Popup
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
   const [showProModal, setShowProModal] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
 
   useEffect(() => {
     if (session) {
@@ -130,16 +132,24 @@ const loadFollowStats = async () => {
     }
   }, [userProfile, isEditing]);
 
-  const handleAvatarUpload = async (e) => {
+  const handleAvatarUpload = (e) => {
     const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => setCropImageSrc(reader.result));
+    reader.readAsDataURL(file);
+    e.target.value = null;
+  };
+
+  const handleCroppedAvatarUpload = async (file) => {
+    setCropImageSrc(null);
     if (!file || !session) return;
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `avatars/${session.user.id}_${Math.random()}.${ext}`;
+      const path = `avatars/${session.user.id}_${Date.now()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from('uploads')
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, file, { upsert: true, contentType: 'image/jpeg' });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('uploads').getPublicUrl(path);
       const url = `${data.publicUrl}`;
@@ -289,7 +299,7 @@ const loadFollowStats = async () => {
               <button onClick={() => setShowProModal(true)}
                 className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 bg-white/80 backdrop-blur-sm shadow-sm"
                 style={{color:'var(--theme-primary)', border:'1px solid color-mix(in srgb, var(--theme-primary) 40%, transparent)'}}>
-                ✨ Pro Settings
+                Pro Settings
               </button>
             ) : (
               <button onClick={() => {
@@ -502,19 +512,7 @@ const loadFollowStats = async () => {
               ) : (
                 <Camera size={24} />
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                await handleAvatarUpload(e);
-                // Also instantly save to DB so they don't have to click 'Save Changes' in the other form
-                if (session) {
-                  setTimeout(async () => {
-                     const { data } = await supabase.from('profiles').select('avatar_url').eq('id', session.user.id).single();
-                     if (data) {
-                       setUserProfile(prev => ({...prev, avatar_url: data.avatar_url}));
-                       setAvatarUrl(data.avatar_url);
-                     }
-                  }, 1500);
-                }
-              }} disabled={uploading} />
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
             </label>
           </div>
           
@@ -526,7 +524,15 @@ const loadFollowStats = async () => {
         </div>
       )}
 
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          aspectRatio={1}
+          onCropComplete={handleCroppedAvatarUpload}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
+
     </div>
   );
 }
-
