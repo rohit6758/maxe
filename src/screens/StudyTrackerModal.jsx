@@ -1,10 +1,62 @@
-import React from 'react';
-import { X, Flame, FileText, Bot, PlayCircle, CheckCircle, BarChart2, Calendar } from 'lucide-react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { X, Flame, FileText, Bot, PlayCircle, CheckCircle, BarChart2, Calendar, Bell } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import VerifiedBadge from '../components/VerifiedBadge';
+import { supabase } from '../lib/supabase';
 
 export default function StudyTrackerModal({ isOpen, onClose }) {
-  const { userProfile } = useAppContext();
+  const { userProfile, session } = useAppContext();
+  const [activities, setActivities] = useState([]);
+  const [reminderTime, setReminderTime] = useState(() => localStorage.getItem('maxe_study_reminder') || '22:00');
+  const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!isOpen || !session || !userProfile?.is_premium) return;
+    let active = true;
+    setIsLoading(true);
+    supabase.from('study_activity')
+      .select('activity_type, duration_minutes, created_at')
+      .eq('user_id', session.user.id)
+      .gte('created_at', new Date(Date.now() - 90 * 86400000).toISOString())
+      .order('created_at', { ascending: true })
+      .then(({ data, error }) => {
+        if (error && error.code !== 'PGRST205') console.error('Failed to load study activity', error);
+        if (active) setActivities(data || []);
+      })
+      .finally(() => active && setIsLoading(false));
+    return () => { active = false; };
+  }, [isOpen, session, userProfile?.is_premium]);
+
+  const metrics = useMemo(() => {
+    const today = new Date().toISOString().slice(0, 10);
+    const byDay = activities.reduce((map, item) => {
+      const day = item.created_at.slice(0, 10);
+      map[day] = (map[day] || 0) + (Number(item.duration_minutes) || 0);
+      return map;
+    }, {});
+    let streak = 0;
+    const cursor = new Date();
+    while (byDay[cursor.toISOString().slice(0, 10)] > 0) {
+      streak += 1;
+      cursor.setDate(cursor.getDate() - 1);
+    }
+    const total = activities.reduce((sum, item) => sum + (Number(item.duration_minutes) || 0), 0);
+    return {
+      today: byDay[today] || 0,
+      streak,
+      total,
+      pdf: activities.filter(item => item.activity_type === 'pdf').reduce((sum, item) => sum + (Number(item.duration_minutes) || 0), 0),
+      ai: activities.filter(item => item.activity_type === 'ai_chat').reduce((sum, item) => sum + (Number(item.duration_minutes) || 0), 0),
+      days: byDay
+    };
+  }, [activities]);
+
+  const saveReminder = (value) => {
+    setReminderTime(value);
+    localStorage.setItem('maxe_study_reminder', value);
+  };
+
+  const formatMinutes = (value) => `${Math.floor(value / 60)}h ${value % 60}m`;
   if (!isOpen) return null;
 
   return (
@@ -47,9 +99,19 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
               <div className="flex items-center justify-center gap-3">
                 <Flame size={40} className="text-[#FF9D00] drop-shadow-md animate-pulse" />
                 <div>
-                  <div className="text-4xl font-black text-header">12 <span className="text-xl text-body font-bold">Days</span></div>
+                  <div className="text-4xl font-black text-header">{metrics.streak} <span className="text-xl text-body font-bold">Days</span></div>
                   <p className="text-xs font-bold text-[#FF9D00] uppercase tracking-wide">Current Streak</p>
                 </div>
+              </div>
+
+              {/* Reminder */}
+              <div className="rounded-2xl border border-primary/15 bg-primary/5 p-3 flex items-center gap-3">
+                <div className="w-9 h-9 rounded-xl bg-primary/10 flex items-center justify-center text-primary"><Bell size={17} /></div>
+                <div className="flex-1">
+                  <p className="text-xs font-bold text-header">Peak-focus reminder</p>
+                  <p className="text-[11px] text-body">Keep your daily study window visible.</p>
+                </div>
+                <input type="time" value={reminderTime} onChange={e => saveReminder(e.target.value)} className="app-input !w-auto py-1.5 px-2 text-xs" />
               </div>
 
               {/* Weekly/Monthly Stats */}
@@ -60,7 +122,7 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
                   </div>
                   <div>
                     <div className="text-xs font-bold text-body uppercase">This Week</div>
-                    <div className="text-sm font-black text-header">14 hrs 30 min</div>
+                    <div className="text-sm font-black text-header">{formatMinutes(metrics.total)}</div>
                   </div>
                 </div>
                 <div className="bg-[#FF9D00]/5 border border-[#FF9D00]/10 rounded-xl p-3 flex items-center gap-3">
@@ -69,7 +131,33 @@ export default function StudyTrackerModal({ isOpen, onClose }) {
                   </div>
                   <div>
                     <div className="text-xs font-bold text-body uppercase">This Month</div>
-                    <div className="text-sm font-black text-header">58 hrs 10 min</div>
+                    <div className="text-sm font-black text-header">{formatMinutes(metrics.pdf + metrics.ai)}</div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-xl border border-primary/10 bg-surface p-3">
+                      <p className="text-[10px] font-bold uppercase text-body">PDF focus</p>
+                      <p className="text-lg font-black text-header">{formatMinutes(metrics.pdf)}</p>
+                    </div>
+                    <div className="rounded-xl border border-primary/10 bg-surface p-3">
+                      <p className="text-[10px] font-bold uppercase text-body">AI tutor</p>
+                      <p className="text-lg font-black text-header">{formatMinutes(metrics.ai)}</p>
+                    </div>
+                  </div>
+
+                  <div className="rounded-2xl border border-primary/15 p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <h4 className="text-xs font-bold uppercase tracking-widest text-header">90-day consistency</h4>
+                      {isLoading && <span className="text-[10px] text-primary">Syncing...</span>}
+                    </div>
+                    <div className="grid gap-1" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>
+                      {Array.from({ length: 90 }, (_, index) => {
+                        const day = new Date();
+                        day.setDate(day.getDate() - (89 - index));
+                        const value = metrics.days[day.toISOString().slice(0, 10)] || 0;
+                        return <span key={index} title={`${value} minutes`} className="aspect-square rounded-[3px]" style={{ background: value ? `color-mix(in srgb, var(--theme-primary) ${Math.min(90, 20 + value / 3)}%, var(--theme-bg))` : 'var(--theme-bg)' }} />;
+                      })}
+                    </div>
                   </div>
                 </div>
               </div>

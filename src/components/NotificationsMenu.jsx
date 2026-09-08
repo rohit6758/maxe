@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Bell, Check, X, User } from 'lucide-react';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Bell } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { toast } from '../context/ToastContext';
@@ -10,32 +10,7 @@ export default function NotificationsMenu() {
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
 
-  useEffect(() => {
-    if (!session) return;
-    
-    // Initial fetch
-    fetchNotifications();
-
-    // Realtime subscription
-    const channel = supabase.channel(`my_notifications_${Math.random()}`)
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'notifications', 
-        filter: `user_id=eq.${session.user.id}` 
-      }, payload => {
-        setNotifications(prev => [payload.new, ...prev]);
-        setUnreadCount(prev => prev + 1);
-        toast('New notification received!');
-      })
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [session]);
-
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const { data, error } = await supabase
         .from('notifications')
@@ -52,7 +27,41 @@ export default function NotificationsMenu() {
     } catch (e) {
       console.error(e);
     }
-  };
+  }, [session]);
+
+  useEffect(() => {
+    if (!session) return;
+    
+    // Initial fetch
+    fetchNotifications();
+
+    // Realtime subscription
+    const channel = supabase.channel(`my_notifications_${session.user.id}`)
+      .on('postgres_changes', { 
+        event: 'INSERT', 
+        schema: 'public', 
+        table: 'notifications', 
+        filter: `user_id=eq.${session.user.id}` 
+      }, payload => {
+        setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
+        setUnreadCount(prev => prev + (payload.new.is_read ? 0 : 1));
+        toast('New notification received!');
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'notifications',
+        filter: `user_id=eq.${session.user.id}`
+      }, payload => {
+        setNotifications(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
+        fetchNotifications();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [session, fetchNotifications]);
 
   const markAsRead = async (id) => {
     try {

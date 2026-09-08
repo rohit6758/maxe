@@ -368,3 +368,8 @@ input, textarea, .selectable, [contenteditable] {
   animation: float-3d 3.6s ease-in-out infinite;
   transform-style: preserve-3d;
 }
+
+@keyframes banner-motion {
+  0%, 100% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+}

@@ -5,6 +5,7 @@ import { useAppContext } from '../context/AppContext';
 import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon, Search } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
 import ImageCropper from '../components/ImageCropper';
+import VerifiedBadge from '../components/VerifiedBadge';
 
 export default function Explore() {
   const { session, userProfile } = useAppContext();
@@ -16,6 +17,10 @@ export default function Explore() {
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [joinRequestStatus, setJoinRequestStatus] = useState(null);
   const [posts, setPosts] = useState([]);
+  const [communityView, setCommunityView] = useState('resources');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isSendingChat, setIsSendingChat] = useState(false);
   const [myMemberships, setMyMemberships] = useState({});
 
   // Modals / Forms
@@ -85,6 +90,7 @@ export default function Explore() {
       const isMember = myMemberships[selectedCommunity.id] || isAdmin;
       if (isMember) {
         loadPosts(selectedCommunity.id);
+        loadChatMessages(selectedCommunity.id);
         
         const channel = supabase.channel(`community_posts_${Date.now()}`)
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
@@ -92,6 +98,9 @@ export default function Explore() {
           })
           .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_posts' }, payload => {
             setPosts(prev => prev.filter(p => p.id !== payload.old.id));
+          })
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
+            setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
           })
           .subscribe();
           
@@ -168,7 +177,7 @@ export default function Explore() {
     }
     
     
-    const isPublicName = (name) => {
+    const hasBranchName = (name) => {
       const n = (name || '').toLowerCase();
       return n.includes('csm') || n.includes('cse') || n.includes('it') || n.includes('ece') || n.includes('eee') || n.includes('mech') || n.includes('civil') || n.includes('ds');
     };
@@ -176,12 +185,61 @@ export default function Explore() {
     const visibleCommunities = (allCommunities || []).filter(c => {
       if (isAdmin) return true;
       if (map[c.id]) return true; // Member
-      return isPublicName(c.name);
+      return hasBranchName(c.name);
     });
     setCommunities(visibleCommunities);
 
     setMyMemberships(map);
     setIsLoadingCommunities(false);
+  };
+
+  const loadChatMessages = async (communityId) => {
+    const { data, error } = await supabase
+      .from('community_messages')
+      .select('id, community_id, user_id, content, created_at')
+      .eq('community_id', communityId)
+      .order('created_at', { ascending: true })
+      .limit(100);
+    if (error) {
+      if (error.code !== 'PGRST205') console.error('Failed to load community chat', error);
+      setChatMessages([]);
+      return;
+    }
+    setChatMessages(data || []);
+  };
+
+  const sendChatMessage = async (e) => {
+    e.preventDefault();
+    const content = chatInput.trim();
+    if (!content || !selectedCommunity || isSendingChat) return;
+    setIsSendingChat(true);
+    const { data, error } = await supabase.from('community_messages').insert([{
+      community_id: selectedCommunity.id,
+      user_id: session.user.id,
+      content
+    }]).select().single();
+    if (error) {
+      if (error.code === 'PGRST205') toast('Community chat needs the Supabase table setup shown in the deployment notes.', 'error');
+      else toast(`Could not send message: ${error.message}`, 'error');
+    } else if (data) {
+      setChatMessages(prev => [...prev, data]);
+      setChatInput('');
+      const { data: members } = await supabase
+        .from('community_members')
+        .select('user_id')
+        .eq('community_id', selectedCommunity.id);
+      const notifications = (members || [])
+        .filter(member => member.user_id !== session.user.id)
+        .map(member => ({
+          user_id: member.user_id,
+          content: `@${userProfile?.username || 'someone'} sent a message in ${selectedCommunity.name}`
+        }));
+      if (notifications.length > 0) {
+        const { error: notificationError } = await supabase.from('notifications').insert(notifications);
+        if (notificationError) console.error('Failed to notify community members', notificationError);
+      }
+    }
+    setIsSendingChat(false);
   };
 
   const loadPosts = async (communityId) => {
@@ -695,7 +753,58 @@ export default function Explore() {
                 </button>
               </div>
 
-              {/* Chat Messages */}
+              <div className="px-4 pt-3 bg-surface border-b border-primary/10">
+                <div className="flex gap-1 rounded-xl bg-background p-1">
+                  {[
+                    { id: 'resources', label: 'Resources' },
+                    { id: 'chat', label: 'Group chat' }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setCommunityView(tab.id)}
+                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${communityView === tab.id ? 'bg-surface text-primary shadow-sm' : 'text-body'}`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {communityView === 'chat' ? (
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                    {chatMessages.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center text-body text-sm">
+                        <MessageSquare size={32} className="mb-3 text-primary/50" />
+                        <p className="font-bold text-header">Start the group conversation</p>
+                        <p className="mt-1">Ask for PDFs, links, or question papers.</p>
+                      </div>
+                    ) : chatMessages.map(message => (
+                      <div key={message.id} className={`flex ${message.user_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}>
+                        <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${message.user_id === session?.user?.id ? 'bg-primary text-white rounded-br-sm' : 'bg-surface border border-primary/10 text-header rounded-bl-sm'}`}>
+                          <p>{message.content}</p>
+                          <time className="block mt-1 text-[10px] opacity-60">
+                            {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                          </time>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <form onSubmit={sendChatMessage} className="p-3 bg-surface border-t border-primary/10 flex gap-2">
+                    <input
+                      value={chatInput}
+                      onChange={e => setChatInput(e.target.value)}
+                      placeholder="Ask for a PDF, link, or question paper..."
+                      className="app-input flex-1"
+                      maxLength={1000}
+                    />
+                    <button disabled={!chatInput.trim() || isSendingChat} className="btn-primary px-4 disabled:opacity-50">
+                      <Send size={16} />
+                    </button>
+                  </form>
+                </div>
+              ) : (
+              /* Shared resources */
               <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start content-start">
                 {isLoadingPosts ? (
                   <div className="flex flex-col items-center justify-center p-8 space-y-3">
@@ -764,6 +873,7 @@ export default function Explore() {
                   })
                 )}
               </div>
+              )}
             </>
           )}
         </div>

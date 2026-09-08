@@ -5,6 +5,7 @@ import VerifiedBadge from './VerifiedBadge';
 import AvatarDecoration from './AvatarDecoration';
 import { useAppContext } from '../context/AppContext';
 import { THEME_DECORATIONS } from './ProSettingsModal';
+import { getBannerStyle } from '../lib/profileEffects';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
   const { profileEffects, theme } = useAppContext();
@@ -179,6 +180,9 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
           </div>
         ) : viewMode === 'profile' ? (
           <div className="p-6 pt-0 relative">
+            {profile?.is_premium && eff?.banner && eff.banner !== 'none' && (
+              <div className="absolute inset-x-0 top-0 h-24 opacity-80 pointer-events-none" style={getBannerStyle(eff.banner)} />
+            )}
             
             
             {/* Top section: Avatar + Stats */}
