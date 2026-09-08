@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { X, User, ArrowLeft, UserPlus, Check } from 'lucide-react';
+import { X, User, ArrowLeft } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge';
-import AvatarDecoration from './AvatarDecoration';
 import { useAppContext } from '../context/AppContext';
-import { THEME_DECORATIONS } from './ProSettingsModal';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
-  const { profileEffects, theme } = useAppContext();
+  const { profileEffects } = useAppContext();
   const [profile, setProfile] = useState(null);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -141,17 +139,13 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
   const isMe = currentUserId === userId;
   let dbEffects = null;
-  let dbTheme = null;
   if (profile?.interests && profile?.interests.startsWith('{')) {
     try {
       const parsed = JSON.parse(profile.interests);
       if (parsed.profileEffects) dbEffects = parsed.profileEffects;
-      if (parsed.theme) dbTheme = parsed.theme;
     } catch(e) {}
   }
 
-  const effectiveTheme = isMe ? theme : (dbTheme || (profile?.is_premium ? 'venice' : 'default'));
-  const dec = THEME_DECORATIONS[effectiveTheme] || THEME_DECORATIONS.default;
   // Only use dbEffects if we actually read something from DB; never fake a wallpaper
   const eff = isMe ? profileEffects : (dbEffects || { banner:'none', avatar:'none', wallpaper:'none' });
 
@@ -200,16 +194,6 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
                 className="relative w-28 h-28 flex items-center justify-center shrink-0 cursor-pointer"
                 onClick={() => profile?.avatar_url && setViewingAvatar(true)}
               >
-                {/* Theme-specific decorations */}
-                {profile?.is_premium && (
-                  <div className="absolute inset-0 pointer-events-none scale-[1.3] z-0">
-                    {dec.elements}
-                  </div>
-                )}
-                {/* Fallback old avatar decoration */}
-                {profile?.is_premium && eff?.avatar !== 'none' && (
-                  <AvatarDecoration type={eff?.avatar} />
-                )}
                 <div className="w-24 h-24 rounded-full border-4 overflow-hidden relative z-10 bg-white"
                   style={{borderColor: profile?.is_premium ? 'color-mix(in srgb, var(--theme-primary) 50%, white)' : 'var(--theme-ring)'}}>
                   {profile?.avatar_url ? (

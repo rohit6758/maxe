@@ -2,7 +2,7 @@ import { toast } from '../context/ToastContext';
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
-import { X, ChevronRight, Sparkles, Palette, Wand2, Image, Crown, Waves, CarFront, Gem, Rocket, CircleDot } from 'lucide-react';
+import { X, ChevronRight, Sparkles, Palette, Image, Crown, Waves, CarFront, Gem, Rocket, CircleDot } from 'lucide-react';
 
 // Theme-specific decorations that orbit the profile avatar
 const THEME_DECORATIONS = {
@@ -149,7 +149,6 @@ export default function ProSettingsModal({ isOpen, onClose }) {
   const { theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
   const [view, setView] = useState('main');
   const [uploading, setUploading] = useState(false); // 'main' | 'theme' | 'effects' | 'wallpaper'
-  const dec = THEME_DECORATIONS[theme] || THEME_DECORATIONS.default;
 
   if (!isOpen) return null;
 
@@ -181,7 +180,6 @@ export default function ProSettingsModal({ isOpen, onClose }) {
           <h2 className="text-base font-black" style={{color:'var(--theme-header)'}}>
             {view === 'main' && 'Maxe Pro'}
             {view === 'theme' && 'App Theme'}
-            {view === 'effects' && 'Profile Effects'}
             {view === 'wallpaper' && 'Wallpaper'}
           </h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -196,26 +194,19 @@ export default function ProSettingsModal({ isOpen, onClose }) {
           {/* MAIN MENU */}
           {view === 'main' && (
             <div className="space-y-3">
-              {/* Live theme preview with decorations */}
+              {/* Clean theme preview without profile decorations */}
               <div className="relative w-full h-32 rounded-2xl overflow-hidden flex items-center justify-center mb-5"
-                style={{background: dec.bg}}>
-                <div className="relative w-16 h-16">
-                  {dec.elements}
-                  <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-white shadow-xl z-10 relative"
-                    style={{borderWidth:3, borderColor:'rgba(255,255,255,0.8)'}}>
-                    <div className="w-full h-full rounded-full"
-                      style={{background:'color-mix(in srgb, var(--theme-primary) 30%, white)'}}/>
-                  </div>
-                </div>
-                <div className="absolute bottom-2 right-3">
-                  <span className="text-[10px] font-bold text-white opacity-60">{dec.name} theme</span>
-                </div>
+                style={{background:'color-mix(in srgb, var(--theme-primary) 22%, var(--theme-surface))'}}>
+                <div className="w-16 h-16 rounded-full overflow-hidden border-3 border-white shadow-xl"
+                  style={{borderWidth:3, borderColor:'rgba(255,255,255,0.8)', background:'color-mix(in srgb, var(--theme-primary) 30%, white)'}}/>
+                <span className="absolute bottom-2 right-3 text-[10px] font-bold text-white/70">
+                  {themes.find(t=>t.id===theme)?.label || 'Mint Forest'} theme
+                </span>
               </div>
 
               {/* Menu items */}
               {[
                 { icon:<Palette size={18}/>, label:'App Theme', sub:`Active: ${themes.find(t=>t.id===theme)?.label || 'Mint'}`, view:'theme', color:'var(--theme-primary)' },
-                { icon:<Wand2 size={18}/>, label:'Profile Effects', sub:'Avatar decoration & banner', view:'effects', color:'#FF9D00' },
                 { icon:<Image size={18}/>, label:'Wallpaper', sub:'Background for your profile', view:'wallpaper', color:'#E11D48' },
                 { icon:<Sparkles size={18}/>, label:'Verified Badge', sub:'Shows next to your name everywhere', view:null, color:'#7B3FA0', badge:'Active' },
               ].map((item,i) => (
@@ -264,45 +255,7 @@ export default function ProSettingsModal({ isOpen, onClose }) {
             </div>
           )}
 
-          {/* PROFILE EFFECTS */}
-          {view === 'effects' && (
-            <div className="space-y-5">
-              {/* Live preview */}
-              <div className="relative h-28 rounded-2xl overflow-hidden flex items-center justify-center"
-                style={{background: dec.bg}}>
-                <div className="relative w-16 h-16">
-                  {dec.elements}
-                  <div className="w-16 h-16 rounded-full border-3 border-white shadow-xl z-10 relative overflow-hidden"
-                    style={{borderWidth:3, borderColor:'rgba(255,255,255,0.8)'}}>
-                    <div className="w-full h-full" style={{background:'color-mix(in srgb, var(--theme-primary) 30%, white)'}}/>
-                  </div>
-                </div>
-              </div>
-              <p className="text-xs text-center" style={{color:'var(--theme-body)'}}>Decorations are based on your current theme</p>
-
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'var(--theme-header)'}}>Avatar Frame</p>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    {v:'none', label:'None', icon:<CircleDot size={15}/>},
-                    {v:'neon-pulse', label:'Neon Glow', icon:<Sparkles size={15}/>},
-                    {v:'spinning-ring', label:'Spin Ring', icon:<Waves size={15}/>},
-                    {v:'fire-aura', label:'Fire Aura', icon:<Gem size={15}/>},
-                  ].map(a=>(
-                    <button key={a.v} onClick={()=>setProfileEffects({...profileEffects, avatar:a.v})}
-                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold border-2 transition-colors"
-                      style={{borderColor: profileEffects.avatar===a.v ? 'var(--theme-primary)' : 'color-mix(in srgb, var(--theme-ring) 80%, transparent)',
-                        background: profileEffects.avatar===a.v ? 'color-mix(in srgb, var(--theme-primary) 12%, transparent)' : 'transparent',
-                        color: profileEffects.avatar===a.v ? 'var(--theme-primary)' : 'var(--theme-body)'}}>
-                      <span>{a.icon}</span> {a.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </div>
-          )}
-
-                  {/* WALLPAPER */}
+          {/* WALLPAPER */}
           {view === 'wallpaper' && (
             <div className="space-y-4">
               <p className="text-xs" style={{color:'var(--theme-body)'}}>Choose a background pattern or upload your own from gallery.</p>

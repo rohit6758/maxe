@@ -111,7 +111,7 @@ export default function UserSearch() {
       .or(orQuery)
       .limit(15);
       
-    setSearchResults(data || []);
+    setSearchResults((data || []).filter(user => user.id !== session?.user?.id));
     setIsSearching(false);
   };
 
@@ -290,6 +290,7 @@ export default function UserSearch() {
             
             return (
               <div key={user.id} onClick={() => openUserPopup(user)}
+                title={`Open ${user.name || user.username || 'profile'}`}
                 className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden z-0 ${hasWallpaper ? 'rounded-xl mb-2 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.15)] bg-transparent' : 'hover:bg-black/5 border-b border-primary/5'}`}
               >
                 {/* 1. Background Layer */}
@@ -331,6 +332,7 @@ export default function UserSearch() {
                 </div>
 
                 <button
+                  aria-label={isFollowing ? `Unfollow ${user.name || user.username}` : `Follow ${user.name || user.username}`}
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
                   className={`relative z-10 px-4 py-1.5 rounded-lg text-xs transition-all ${hasWallpaper ? 'bg-white/80 text-gray-900 backdrop-blur-md hover:bg-white/95 border border-white/40 font-medium' : isFollowing ? 'bg-surface border border-primary/20 text-header font-semibold' : 'bg-primary text-white font-semibold shadow-sm'}`}
                 >

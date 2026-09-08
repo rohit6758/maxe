@@ -6,12 +6,11 @@ import { useAppContext } from '../context/AppContext';
 import { User, Save, UploadCloud, LogOut, Camera, Users, X } from 'lucide-react';
 import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
-import ProSettingsModal, { THEME_DECORATIONS } from '../components/ProSettingsModal';
-import AvatarDecoration from '../components/AvatarDecoration';
+import ProSettingsModal from '../components/ProSettingsModal';
 import ImageCropper from '../components/ImageCropper';
 
 export default function Profile() {
-  const { session, userProfile, setUserProfile, theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
+  const { session, userProfile, setUserProfile, profileEffects } = useAppContext();
 
 
   const [name, setName] = useState('');
@@ -244,14 +243,6 @@ const loadFollowStats = async () => {
             <div
               onClick={() => setShowAvatarPopup(true)}
               className="relative w-20 h-20 shrink-0 cursor-pointer hover:scale-105 transition-transform">
-              {userProfile?.is_premium && (
-                <div className="absolute inset-0 pointer-events-none scale-[1.3] z-0">
-                  {(THEME_DECORATIONS[theme] || THEME_DECORATIONS.default).elements}
-                </div>
-              )}
-              {userProfile?.is_premium && profileEffects?.avatar !== 'none' && (
-                <AvatarDecoration type={profileEffects?.avatar} />
-              )}
               <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center border-[3px] relative z-10"
                 style={{borderColor: 'color-mix(in srgb, var(--theme-primary) 35%, transparent)', background:'color-mix(in srgb, var(--theme-sidebar) 60%, white)'}}>
                 {userProfile?.avatar_url
