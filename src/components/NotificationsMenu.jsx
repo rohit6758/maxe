@@ -35,28 +35,26 @@ export default function NotificationsMenu() {
     // Initial fetch
     fetchNotifications();
 
-    // Realtime subscription
-    const channel = supabase.channel(`my_notifications_${session.user.id}`);
-    channel
-      .on('postgres_changes', { 
-        event: 'INSERT', 
-        schema: 'public', 
-        table: 'notifications', 
-        filter: `user_id=eq.${session.user.id}` 
-      }, payload => {
+    // Register one callback before subscribing. A unique name avoids reusing a
+    // channel that React Strict Mode may still be removing.
+    const channel = supabase.channel(`my_notifications_${session.user.id}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
+    channel.on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'notifications',
+      filter: `user_id=eq.${session.user.id}`
+    }, payload => {
+      if (payload.eventType === 'INSERT') {
         setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
         setUnreadCount(prev => prev + (payload.new.is_read ? 0 : 1));
         toast('New notification received!');
-      })
-      .on('postgres_changes', {
-        event: 'UPDATE',
-        schema: 'public',
-        table: 'notifications',
-        filter: `user_id=eq.${session.user.id}`
-      }, payload => {
+      } else if (payload.eventType === 'UPDATE') {
         setNotifications(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
         fetchNotifications();
-      });
+      } else if (payload.eventType === 'DELETE') {
+        setNotifications(prev => prev.filter(item => item.id !== payload.old.id));
+      }
+    });
     channel.subscribe();
 
     return () => {
