@@ -114,6 +114,43 @@
   transition: background-color .35s ease, color .35s ease;
 }
 
+.anime-character-layer {
+  position: fixed;
+  z-index: 0;
+  pointer-events: none;
+  right: 0;
+  bottom: 0;
+  width: min(42vw, 560px);
+  height: min(82vh, 820px);
+  overflow: hidden;
+  opacity: .22;
+  mask-image: linear-gradient(to left, black 0%, black 62%, transparent 100%);
+  -webkit-mask-image: linear-gradient(to left, black 0%, black 62%, transparent 100%);
+}
+
+.anime-character-art {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center top;
+  mix-blend-mode: multiply;
+  filter: saturate(.82) contrast(.92);
+}
+
+.anime-character-fade {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, var(--theme-bg) 0%, transparent 48%), linear-gradient(0deg, var(--theme-bg) 0%, transparent 34%);
+}
+
+@media (max-width: 767px) {
+  .anime-character-layer {
+    width: 72vw;
+    height: 58vh;
+    opacity: .14;
+  }
+}
+
 @theme {
   --color-background: var(--theme-bg);
   --color-sidebar: var(--theme-sidebar);

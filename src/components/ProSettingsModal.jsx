@@ -263,10 +263,13 @@ export default function ProSettingsModal({ isOpen, onClose }) {
               <p className="text-xs" style={{color:'var(--theme-body)'}}>
                 Choose an original anime-inspired world. The app changes palette, surfaces, and motion texture; character artwork is not bundled.
               </p>
+              <p className="rounded-xl px-3 py-2 text-[11px]" style={{background:'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color:'var(--theme-body)'}}>
+                The Naruto / Shinobi world uses the character wallpaper pack you supplied. Characters change by page and sit behind the interface.
+              </p>
               <div className="grid grid-cols-2 gap-3">
                 {[
                   { id:'pirate-voyage', label:'Pirate Voyage', hint:'Ocean + treasure', bg:'#C6E6EA', primary:'#0B7285', accent:'#F4A261' },
-                  { id:'shinobi-night', label:'Shinobi Night', hint:'Indigo + neon', bg:'#D9D1EA', primary:'#5B21B6', accent:'#EC4899' },
+                  { id:'shinobi-night', label:'Naruto / Shinobi', hint:'Naruto • Sasuke • Obito • Boruto', bg:'#D9D1EA', primary:'#5B21B6', accent:'#EC4899' },
                   { id:'demon-moon', label:'Demon Moon', hint:'Crimson + emerald', bg:'#E8CACA', primary:'#9F1239', accent:'#15803D' },
                   { id:'saiyan-burst', label:'Saiyan Burst', hint:'Gold + energy blue', bg:'#FFE7A3', primary:'#D97706', accent:'#2563EB' },
                   { id:'striker-arena', label:'Striker Arena', hint:'Blue + cyan', bg:'#C8D9F5', primary:'#1D4ED8', accent:'#06B6D4' },
