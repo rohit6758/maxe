@@ -5,7 +5,6 @@ import VerifiedBadge from './VerifiedBadge';
 import AvatarDecoration from './AvatarDecoration';
 import { useAppContext } from '../context/AppContext';
 import { THEME_DECORATIONS } from './ProSettingsModal';
-import { getBannerStyle } from '../lib/profileEffects';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
   const { profileEffects, theme } = useAppContext();
@@ -25,6 +24,19 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
   useEffect(() => {
     if (userId) loadData();
+  }, [userId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const channel = supabase.channel(`profile_preview_${userId}_${Date.now()}`);
+    channel.on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'profiles',
+      filter: `id=eq.${userId}`
+    }, payload => setProfile(current => ({ ...current, ...payload.new })));
+    channel.subscribe();
+    return () => { supabase.removeChannel(channel); };
   }, [userId]);
 
   useEffect(() => {
@@ -180,9 +192,6 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
           </div>
         ) : viewMode === 'profile' ? (
           <div className="p-6 pt-0 relative">
-            {profile?.is_premium && eff?.banner && eff.banner !== 'none' && (
-              <div className="absolute inset-x-0 top-0 h-24 opacity-80 pointer-events-none" style={getBannerStyle(eff.banner)} />
-            )}
             
             
             {/* Top section: Avatar + Stats */}

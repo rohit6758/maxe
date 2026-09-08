@@ -4,7 +4,6 @@ import { useAppContext } from '../context/AppContext';
 import { Search, User, UserPlus, Check, X } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
 import VerifiedBadge from '../components/VerifiedBadge';
-import { getBannerStyle } from '../lib/profileEffects';
 
 export default function UserSearch() {
   const { session, userProfile } = useAppContext();
@@ -304,12 +303,6 @@ export default function UserSearch() {
                     backgroundPosition: 'center',
                     backgroundColor: isCustomPhoto ? 'transparent' : 'var(--theme-surface)'
                   }} />
-                )}
-                {user.is_premium && eff?.banner && eff.banner !== 'none' && (
-                  <div
-                    className="absolute inset-x-0 top-0 h-10 z-0 opacity-70"
-                    style={getBannerStyle(eff.banner)}
-                  />
                 )}
 
                 {/* 2. Photo Dark Scrim */}

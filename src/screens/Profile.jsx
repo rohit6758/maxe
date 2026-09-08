@@ -9,7 +9,6 @@ import UserProfilePopup from '../components/UserProfilePopup';
 import ProSettingsModal, { THEME_DECORATIONS } from '../components/ProSettingsModal';
 import AvatarDecoration from '../components/AvatarDecoration';
 import ImageCropper from '../components/ImageCropper';
-import { getBannerStyle } from '../lib/profileEffects';
 
 export default function Profile() {
   const { session, userProfile, setUserProfile, theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
@@ -240,11 +239,6 @@ const loadFollowStats = async () => {
             backgroundPosition: 'center',
           } : {})
         }}>
-          {/* Premium banner treatment */}
-          {userProfile?.is_premium && profileEffects?.banner && profileEffects.banner !== 'none' && (
-            <div className="absolute top-0 left-0 right-0 h-24 opacity-80 pointer-events-none" style={getBannerStyle(profileEffects.banner)} />
-          )}
-
           {/* Compact profile row */}
           <div className="flex items-center gap-4 relative z-10 px-4 pt-4">
             <div

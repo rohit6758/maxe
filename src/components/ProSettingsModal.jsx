@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { X, ChevronRight, Sparkles, Palette, Wand2, Image, Crown, Waves, CarFront, Gem, Rocket, CircleDot } from 'lucide-react';
-import { BANNER_PRESETS } from '../lib/profileEffects';
 
 // Theme-specific decorations that orbit the profile avatar
 const THEME_DECORATIONS = {
@@ -280,21 +279,6 @@ export default function ProSettingsModal({ isOpen, onClose }) {
                 </div>
               </div>
               <p className="text-xs text-center" style={{color:'var(--theme-body)'}}>Decorations are based on your current theme</p>
-
-              <div>
-                <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'var(--theme-header)'}}>Banner</p>
-                <div className="flex gap-2">
-                  {BANNER_PRESETS.map(({ id: b, label })=>(
-                    <button key={b} onClick={()=>setProfileEffects({...profileEffects, banner:b})}
-                      className="px-4 py-2 rounded-xl text-xs font-bold border-2 transition-colors"
-                      style={{borderColor: profileEffects.banner===b ? 'var(--theme-primary)' : 'color-mix(in srgb, var(--theme-ring) 80%, transparent)',
-                        background: profileEffects.banner===b ? 'color-mix(in srgb, var(--theme-primary) 12%, transparent)' : 'transparent',
-                        color: profileEffects.banner===b ? 'var(--theme-primary)' : 'var(--theme-body)'}}>
-                      {label}
-                    </button>
-                  ))}
-                </div>
-              </div>
 
               <div>
                 <p className="text-xs font-bold uppercase tracking-wider mb-2" style={{color:'var(--theme-header)'}}>Avatar Frame</p>

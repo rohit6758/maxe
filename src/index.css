@@ -369,6 +369,11 @@ input, textarea, .selectable, [contenteditable] {
   transform-style: preserve-3d;
 }
 
+@keyframes avatar-breathe {
+  0%, 100% { transform: scale(1); opacity: .7; }
+  50% { transform: scale(1.04); opacity: 1; }
+}
+
 @keyframes banner-motion {
   0%, 100% { background-position: 0% 50%; }
   50% { background-position: 100% 50%; }

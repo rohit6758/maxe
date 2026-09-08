@@ -5,7 +5,6 @@ import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
-import StudyTrackerModal from './screens/StudyTrackerModal';
 import OnboardingPopup from './components/OnboardingPopup';
 import NotificationsMenu from './components/NotificationsMenu';
 
@@ -13,7 +12,6 @@ export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTodoOpen, setIsTodoOpen] = useState(false);
-  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
@@ -84,13 +82,14 @@ export default function Layout() {
           </NavLink>
         ))}
         {/* Study Tracker right under Find */}
-        <button
-          onClick={() => { setIsTrackerOpen(true); setSidebarOpen(false); }}
-          className={`nav-item text-left w-full ${isTrackerOpen ? 'nav-item-active' : ''} ${userProfile?.is_premium ? 'text-orange-500' : ''}`}
+        <NavLink
+          to="/study-tracker"
+          onClick={() => setSidebarOpen(false)}
+          className={`nav-item text-left w-full ${userProfile?.is_premium ? 'text-orange-500' : ''}`}
         >
           <Flame size={18} className={userProfile?.is_premium ? 'animate-pulse' : ''} />
           <span>Study Tracker</span>
-        </button>
+        </NavLink>
       </nav>
 
       {/* Bottom actions */}
@@ -219,7 +218,6 @@ export default function Layout() {
 
       {isCalendarOpen && <CalendarModal onClose={() => setIsCalendarOpen(false)} />}
       {isTodoOpen && <TodoModal onClose={() => setIsTodoOpen(false)} />}
-      <StudyTrackerModal isOpen={isTrackerOpen} onClose={() => setIsTrackerOpen(false)} />
     </div>
   );
 }
