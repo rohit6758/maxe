@@ -72,6 +72,48 @@
   --theme-ring: #E4A0CE;
 }
 
+/* Pro anime-inspired worlds use original palettes and abstract motion textures.
+   No character artwork is bundled, so licensed or user-provided art can be added safely. */
+[data-theme="pirate-voyage"] {
+  --theme-bg: #E9F6F8; --theme-sidebar: #C6E6EA; --theme-surface: #FFFFFF;
+  --theme-primary: #0B7285; --theme-accent: #F4A261; --theme-header: #073B4C;
+  --theme-body: #155E75; --theme-ring: #78C8D4;
+  background-image: radial-gradient(circle at 85% 12%, rgba(244,162,97,.22), transparent 24%), linear-gradient(135deg, rgba(11,114,133,.06), transparent 42%);
+}
+
+[data-theme="shinobi-night"] {
+  --theme-bg: #EDEAF6; --theme-sidebar: #D9D1EA; --theme-surface: #FFFFFF;
+  --theme-primary: #5B21B6; --theme-accent: #EC4899; --theme-header: #24113F;
+  --theme-body: #4C1D95; --theme-ring: #B8A2DE;
+  background-image: radial-gradient(circle at 12% 16%, rgba(236,72,153,.18), transparent 22%), linear-gradient(120deg, rgba(91,33,182,.07), transparent 55%);
+}
+
+[data-theme="demon-moon"] {
+  --theme-bg: #F7ECEC; --theme-sidebar: #E8CACA; --theme-surface: #FFFDFC;
+  --theme-primary: #9F1239; --theme-accent: #15803D; --theme-header: #3F0A1D;
+  --theme-body: #881337; --theme-ring: #D99AA9;
+  background-image: radial-gradient(circle at 86% 10%, rgba(21,128,61,.16), transparent 20%), linear-gradient(135deg, rgba(159,18,57,.06), transparent 50%);
+}
+
+[data-theme="saiyan-burst"] {
+  --theme-bg: #FFF7D6; --theme-sidebar: #FFE7A3; --theme-surface: #FFFDF5;
+  --theme-primary: #D97706; --theme-accent: #2563EB; --theme-header: #713F12;
+  --theme-body: #92400E; --theme-ring: #F3C96B;
+  background-image: radial-gradient(circle at 50% 0%, rgba(37,99,235,.13), transparent 26%), linear-gradient(135deg, rgba(217,119,6,.08), transparent 52%);
+}
+
+[data-theme="striker-arena"] {
+  --theme-bg: #E9F1FF; --theme-sidebar: #C8D9F5; --theme-surface: #FFFFFF;
+  --theme-primary: #1D4ED8; --theme-accent: #06B6D4; --theme-header: #172554;
+  --theme-body: #1E40AF; --theme-ring: #91B4ED;
+  background-image: radial-gradient(circle at 8% 88%, rgba(6,182,212,.18), transparent 24%), linear-gradient(145deg, rgba(29,78,216,.07), transparent 50%);
+}
+
+[data-theme-family="anime-inspired"] body {
+  background-attachment: fixed;
+  transition: background-color .35s ease, color .35s ease;
+}
+
 @theme {
   --color-background: var(--theme-bg);
   --color-sidebar: var(--theme-sidebar);
