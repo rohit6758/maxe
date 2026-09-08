@@ -36,7 +36,8 @@ export default function NotificationsMenu() {
     fetchNotifications();
 
     // Realtime subscription
-    const channel = supabase.channel(`my_notifications_${session.user.id}`)
+    const channel = supabase.channel(`my_notifications_${session.user.id}`);
+    channel
       .on('postgres_changes', { 
         event: 'INSERT', 
         schema: 'public', 
@@ -55,8 +56,8 @@ export default function NotificationsMenu() {
       }, payload => {
         setNotifications(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
         fetchNotifications();
-      })
-      .subscribe();
+      });
+    channel.subscribe();
 
     return () => {
       supabase.removeChannel(channel);
