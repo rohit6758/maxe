@@ -19,6 +19,7 @@ export default function Explore() {
   const [posts, setPosts] = useState([]);
   const [communityView, setCommunityView] = useState('resources');
   const [chatMessages, setChatMessages] = useState([]);
+  const [chatProfiles, setChatProfiles] = useState({});
   const [chatInput, setChatInput] = useState('');
   const [isSendingChat, setIsSendingChat] = useState(false);
   const [myMemberships, setMyMemberships] = useState({});
@@ -99,7 +100,9 @@ export default function Explore() {
           .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_posts' }, payload => {
             setPosts(prev => prev.filter(p => p.id !== payload.old.id));
           })
-          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages', filter: `community_id=eq.${selectedCommunity.id}` }, async payload => {
+            const { data: sender } = await supabase.from('profiles').select('id, name, username, avatar_url').eq('id', payload.new.user_id).maybeSingle();
+            if (sender) setChatProfiles(prev => ({ ...prev, [sender.id]: sender }));
             setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
           })
           .subscribe();
@@ -207,6 +210,15 @@ export default function Explore() {
       return;
     }
     setChatMessages(data || []);
+    const senderIds = [...new Set((data || []).map(message => message.user_id))];
+    if (senderIds.length > 0) {
+      const { data: senders } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', senderIds);
+      const profileMap = {};
+      (senders || []).forEach(sender => { profileMap[sender.id] = sender; });
+      setChatProfiles(profileMap);
+    } else {
+      setChatProfiles({});
+    }
   };
 
   const sendChatMessage = async (e) => {
@@ -223,7 +235,8 @@ export default function Explore() {
       if (error.code === 'PGRST205') toast('Community chat needs the Supabase table setup shown in the deployment notes.', 'error');
       else toast(`Could not send message: ${error.message}`, 'error');
     } else if (data) {
-      setChatMessages(prev => [...prev, data]);
+      setChatMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data]);
+      setChatProfiles(prev => ({ ...prev, [session.user.id]: userProfile }));
       setChatInput('');
       const { data: members } = await supabase
         .from('community_members')
@@ -795,6 +808,12 @@ export default function Explore() {
                     ) : chatMessages.map(message => (
                       <div key={message.id} className={`flex ${message.user_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}>
                         <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${message.user_id === session?.user?.id ? 'bg-primary text-white rounded-br-sm' : 'bg-surface border border-primary/10 text-header rounded-bl-sm'}`}>
+                          <p className="mb-1 text-[11px] font-black opacity-80">
+                            {chatProfiles[message.user_id]?.name || chatProfiles[message.user_id]?.username || 'Member'}
+                            {chatProfiles[message.user_id]?.name && chatProfiles[message.user_id]?.username
+                              ? ` · @${chatProfiles[message.user_id].username}`
+                              : ''}
+                          </p>
                           <p>{message.content}</p>
                           <time className="block mt-1 text-[10px] opacity-60">
                             {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
