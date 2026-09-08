@@ -203,7 +203,7 @@ export default function UserSearch() {
                       if (parsed.profileEffects) eff = parsed.profileEffects;
                     } catch(e) {}
                   }
-                  const hasWallpaper = !isText && item.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
+                  const hasWallpaper = !isText && eff && eff.wallpaper && eff.wallpaper !== 'none';
                   const wallpaperStyle = hasWallpaper ? {
                     background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
                                 eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
@@ -287,7 +287,7 @@ export default function UserSearch() {
               } catch(e) {}
             }
             
-            const hasWallpaper = user.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
+            const hasWallpaper = eff && eff.wallpaper && eff.wallpaper !== 'none';
             const isCustomPhoto = hasWallpaper && eff.wallpaper === 'custom' && eff.customWallpaperUrl;
             
             return (

@@ -231,7 +231,7 @@ const loadFollowStats = async () => {
       {!isEditing ? (
         <div className="card relative overflow-hidden" style={{
           padding: 0,
-          ...(userProfile?.is_premium && profileEffects?.wallpaper && profileEffects.wallpaper !== 'none' ? {
+          ...(profileEffects?.wallpaper && profileEffects.wallpaper !== 'none' ? {
             background: profileEffects.wallpaper === 'custom' && profileEffects.customWallpaperUrl ? `url('${profileEffects.customWallpaperUrl}')` :
                         profileEffects.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                         profileEffects.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
@@ -283,25 +283,11 @@ const loadFollowStats = async () => {
               style={{color:'var(--theme-header)', border:'1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent)'}}>
               Edit Profile
             </button>
-            {userProfile?.is_premium ? (
-              <button onClick={() => setShowProModal(true)}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 bg-white/80 backdrop-blur-sm shadow-sm"
-                style={{color:'var(--theme-primary)', border:'1px solid color-mix(in srgb, var(--theme-primary) 40%, transparent)'}}>
-                Pro Settings
-              </button>
-            ) : (
-              <button onClick={() => {
-                if (session?.user?.email === 'rohitnxtgengw@gmail.com') {
-                  setShowProModal(true);
-                } else {
-                  toast("Pro upgrade is currently locked during testing. Please wait for the official release!");
-                }
-              }}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md"
-                style={{background:'var(--theme-primary)', color:'#fff'}}>
-                Upgrade ₹40
-              </button>
-            )}
+            <button onClick={() => setShowProModal(true)}
+              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 bg-white/80 backdrop-blur-sm shadow-sm"
+              style={{color:'var(--theme-primary)', border:'1px solid color-mix(in srgb, var(--theme-primary) 40%, transparent)'}}>
+              Settings
+            </button>
           </div>
         </div>
       ) : (

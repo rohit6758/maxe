@@ -54,11 +54,6 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
-    document.documentElement.setAttribute('data-theme-family',
-      ['pirate-voyage', 'shinobi-night', 'demon-moon', 'saiyan-burst', 'striker-arena'].includes(theme)
-        ? 'anime-inspired'
-        : 'classic'
-    );
   }, [theme]);
 
   // Ensure DB always has latest effects from local storage

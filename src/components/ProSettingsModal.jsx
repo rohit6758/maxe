@@ -146,7 +146,7 @@ Object.entries(THEME_DECORATIONS).forEach(([id, decoration]) => {
 });
 
 export default function ProSettingsModal({ isOpen, onClose }) {
-  const { theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
+  const { theme, setTheme, profileEffects, setProfileEffects, userProfile } = useAppContext();
   const [view, setView] = useState('main');
   const [uploading, setUploading] = useState(false); // 'main' | 'theme' | 'effects' | 'wallpaper'
 
@@ -178,9 +178,8 @@ export default function ProSettingsModal({ isOpen, onClose }) {
             </button>
           ) : <div />}
           <h2 className="text-base font-black" style={{color:'var(--theme-header)'}}>
-            {view === 'main' && 'Maxe Pro'}
+            {view === 'main' && 'Settings'}
             {view === 'theme' && 'App Theme'}
-            {view === 'anime' && 'Anime Worlds'}
             {view === 'wallpaper' && 'Wallpaper'}
           </h2>
           <button onClick={onClose} className="w-8 h-8 rounded-full flex items-center justify-center"
@@ -208,9 +207,8 @@ export default function ProSettingsModal({ isOpen, onClose }) {
               {/* Menu items */}
               {[
                 { icon:<Palette size={18}/>, label:'App Theme', sub:`Active: ${themes.find(t=>t.id===theme)?.label || 'Mint'}`, view:'theme', color:'var(--theme-primary)' },
-                { icon:<Sparkles size={18}/>, label:'Anime Worlds', sub:'Original anime-inspired UI palettes', view:'anime', color:'#F97316' },
                 { icon:<Image size={18}/>, label:'Wallpaper', sub:'Background for your profile', view:'wallpaper', color:'#E11D48' },
-                { icon:<Sparkles size={18}/>, label:'Verified Badge', sub:'Shows next to your name everywhere', view:null, color:'#7B3FA0', badge:'Active' },
+                ...(userProfile?.is_premium ? [{ icon:<Sparkles size={18}/>, label:'Verified Badge', sub:'Premium profile badge', view:null, color:'#7B3FA0', badge:'Active' }] : []),
               ].map((item,i) => (
                 <button key={i} onClick={()=>item.view && setView(item.view)}
                   className="w-full flex items-center gap-4 px-4 py-3 rounded-xl transition-all"
@@ -250,41 +248,6 @@ export default function ProSettingsModal({ isOpen, onClose }) {
                     <div className="px-3 py-2" style={{background:'var(--theme-surface)'}}>
                       <p className="text-xs font-bold" style={{color:'var(--theme-header)'}}>{t.label}</p>
                       {theme===t.id && <p className="text-[10px] font-bold" style={{color:t.primary}}>✓ Active</p>}
-                    </div>
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* ANIME-INSPIRED WORLDS */}
-          {view === 'anime' && (
-            <div className="space-y-4">
-              <p className="text-xs" style={{color:'var(--theme-body)'}}>
-                Choose an original anime-inspired world. The app changes palette, surfaces, and motion texture; character artwork is not bundled.
-              </p>
-              <p className="rounded-xl px-3 py-2 text-[11px]" style={{background:'color-mix(in srgb, var(--theme-primary) 10%, transparent)', color:'var(--theme-body)'}}>
-                The Naruto / Shinobi world uses the character wallpaper pack you supplied. Characters change by page and sit behind the interface.
-              </p>
-              <div className="grid grid-cols-2 gap-3">
-                {[
-                  { id:'pirate-voyage', label:'Pirate Voyage', hint:'Ocean + treasure', bg:'#C6E6EA', primary:'#0B7285', accent:'#F4A261' },
-                  { id:'shinobi-night', label:'Naruto / Shinobi', hint:'Naruto • Sasuke • Obito • Boruto', bg:'#D9D1EA', primary:'#5B21B6', accent:'#EC4899' },
-                  { id:'demon-moon', label:'Demon Moon', hint:'Crimson + emerald', bg:'#E8CACA', primary:'#9F1239', accent:'#15803D' },
-                  { id:'saiyan-burst', label:'Saiyan Burst', hint:'Gold + energy blue', bg:'#FFE7A3', primary:'#D97706', accent:'#2563EB' },
-                  { id:'striker-arena', label:'Striker Arena', hint:'Blue + cyan', bg:'#C8D9F5', primary:'#1D4ED8', accent:'#06B6D4' },
-                ].map(world => (
-                  <button key={world.id} onClick={() => setTheme(world.id)}
-                    className="relative overflow-hidden rounded-2xl text-left transition-transform hover:scale-[1.02]"
-                    style={{background:world.bg, boxShadow:theme===world.id ? `0 0 0 3px ${world.primary}` : '0 2px 8px rgba(0,0,0,.12)'}}>
-                    <div className="h-16 p-3" style={{background:`linear-gradient(135deg, ${world.primary}, ${world.accent})`}}>
-                      <div className="h-2 w-16 rounded-full bg-white/80 mb-2" />
-                      <div className="h-2 w-10 rounded-full bg-white/45" />
-                    </div>
-                    <div className="px-3 py-2">
-                      <p className="text-xs font-black" style={{color:world.primary}}>{world.label}</p>
-                      <p className="text-[10px]" style={{color:world.primary}}>{world.hint}</p>
-                      {theme===world.id && <p className="text-[10px] font-bold mt-1" style={{color:world.primary}}>Active</p>}
                     </div>
                   </button>
                 ))}

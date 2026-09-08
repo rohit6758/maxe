@@ -7,7 +7,6 @@ import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
 import OnboardingPopup from './components/OnboardingPopup';
 import NotificationsMenu from './components/NotificationsMenu';
-import AnimeCharacterLayer from './components/AnimeCharacterLayer';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
@@ -119,7 +118,6 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-screen" style={{ background: 'var(--theme-bg)' }}>
-      <AnimeCharacterLayer />
       {(!userProfile || !userProfile.username || !userProfile.branch || !userProfile.college) && <OnboardingPopup />}
 
       {/* Desktop Sidebar */}

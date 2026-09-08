@@ -160,7 +160,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       
       <div className="relative w-full max-w-sm card overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()} style={{
-        ...(profile?.is_premium && eff?.wallpaper !== 'none' ? {
+        ...(eff?.wallpaper !== 'none' ? {
           background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url('${eff.customWallpaperUrl}')` : 
                         eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                         eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
