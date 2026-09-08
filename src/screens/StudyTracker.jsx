@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { BarChart3, Bell, BookOpen, BrainCircuit, CalendarDays, CheckCircle2, Clock3, Flame, LockKeyhole, Target, Trophy } from 'lucide-react';
+import { BarChart3, Bell, BookOpen, BrainCircuit, CalendarDays, CheckCircle2, Clock3, Flame, LockKeyhole, Target, Trophy, GitCompareArrows, Headphones, Plus, Trash2, Play, Pause, Square } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 
@@ -11,6 +11,16 @@ export default function StudyTracker() {
   const [goal, setGoal] = useState(() => Number(localStorage.getItem('maxe_daily_goal')) || 120);
   const [reminder, setReminder] = useState(() => localStorage.getItem('maxe_study_reminder') || '22:00');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
+  const [roadmap, setRoadmap] = useState(() => JSON.parse(localStorage.getItem('maxe_roadmap') || '[]'));
+  const [newSubject, setNewSubject] = useState('');
+  const [newUnit, setNewUnit] = useState('');
+  const [rivalUsername, setRivalUsername] = useState(() => localStorage.getItem('maxe_rival_username') || '');
+  const [rival, setRival] = useState(null);
+  const [rivalMinutes, setRivalMinutes] = useState(0);
+  const [rivalStatus, setRivalStatus] = useState('');
+  const [audioText, setAudioText] = useState('');
+  const [audioState, setAudioState] = useState('idle');
 
   useEffect(() => {
     if (!session || !userProfile?.is_premium) return;
@@ -52,6 +62,51 @@ export default function StudyTracker() {
     localStorage.setItem('maxe_daily_goal', next);
   };
 
+  const saveRoadmap = next => {
+    setRoadmap(next);
+    localStorage.setItem('maxe_roadmap', JSON.stringify(next));
+  };
+
+  const addRoadmapItem = e => {
+    e.preventDefault();
+    if (!newSubject.trim() || !newUnit.trim()) return;
+    saveRoadmap([...roadmap, { id: crypto.randomUUID(), subject: newSubject.trim(), unit: newUnit.trim(), chapters: 0, completed: 0 }]);
+    setNewUnit('');
+  };
+
+  const toggleChapter = id => saveRoadmap(roadmap.map(item => item.id === id ? { ...item, completed: item.completed < item.chapters ? item.completed + 1 : 0 } : item));
+  const removeRoadmapItem = id => saveRoadmap(roadmap.filter(item => item.id !== id));
+
+  const findRival = async e => {
+    e.preventDefault();
+    setRivalStatus('Searching...');
+    const { data, error } = await supabase.from('profiles').select('id, name, username, avatar_url').eq('username', rivalUsername.trim().toLowerCase()).maybeSingle();
+    if (error || !data) {
+      setRival(null);
+      setRivalStatus('No user found with that username.');
+      return;
+    }
+    setRival(data);
+    localStorage.setItem('maxe_rival_username', data.username);
+    const weekAgo = new Date(Date.now() - 7 * 86400000).toISOString();
+    const { data: rivalData } = await supabase.from('study_activity').select('duration_minutes').eq('user_id', data.id).gte('created_at', weekAgo);
+    setRivalMinutes((rivalData || []).reduce((sum, item) => sum + (Number(item.duration_minutes) || 0), 0));
+    setRivalStatus('');
+  };
+
+  const speak = () => {
+    if (!audioText.trim() || !('speechSynthesis' in window)) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(audioText);
+    utterance.rate = 0.95;
+    utterance.onend = () => setAudioState('idle');
+    window.speechSynthesis.speak(utterance);
+    setAudioState('playing');
+  };
+  const pauseAudio = () => { window.speechSynthesis.pause(); setAudioState('paused'); };
+  const resumeAudio = () => { window.speechSynthesis.resume(); setAudioState('playing'); };
+  const stopAudio = () => { window.speechSynthesis.cancel(); setAudioState('idle'); };
+
   if (!userProfile?.is_premium) {
     return (
       <div className="card max-w-xl mx-auto p-8 text-center">
@@ -74,7 +129,37 @@ export default function StudyTracker() {
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><BarChart3 size={23} /></div>
       </header>
 
-      <section className="card p-5 grid md:grid-cols-[1fr_auto] gap-5 items-center overflow-hidden relative">
+      <nav className="card p-1 flex gap-1 overflow-x-auto">
+        {[
+          ['overview', 'Overview', BarChart3],
+          ['roadmap', 'Semester roadmap', Target],
+          ['rival', 'Rival mode', GitCompareArrows],
+          ['audio', 'Audiobook mode', Headphones]
+        ].map(([id, label, Icon]) => <button key={id} onClick={() => setActiveTab(id)} className={`flex-1 min-w-max rounded-xl px-3 py-2.5 text-xs font-bold flex items-center justify-center gap-2 ${activeTab === id ? 'bg-primary text-white' : 'text-body hover:bg-primary/5'}`}><Icon size={15} />{label}</button>)}
+      </nav>
+
+      {activeTab === 'roadmap' && (
+        <section className="space-y-5">
+          <div className="card p-5"><h2 className="text-xl font-black text-header">Semester roadmap</h2><p className="text-sm text-body mt-1">Break each subject into units and mark chapters as you finish them.</p>
+            <form onSubmit={addRoadmapItem} className="grid md:grid-cols-[1fr_1fr_auto] gap-2 mt-4">
+              <input className="app-input" placeholder="Subject (e.g. Operating Systems)" value={newSubject} onChange={e => setNewSubject(e.target.value)} />
+              <input className="app-input" placeholder="Unit or chapter group" value={newUnit} onChange={e => setNewUnit(e.target.value)} />
+              <button className="btn-primary flex items-center justify-center gap-1"><Plus size={15} /> Add</button>
+            </form>
+          </div>
+          {roadmap.length === 0 ? <div className="card p-8 text-center text-sm text-body">Add your first subject to start building the semester map.</div> : <div className="grid md:grid-cols-2 gap-3">{roadmap.map(item => { const percent = item.chapters ? Math.round((item.completed / item.chapters) * 100) : 0; return <div className="card p-4" key={item.id}><div className="flex justify-between gap-2"><div><p className="font-black text-header">{item.subject}</p><p className="text-xs text-primary font-bold mt-1">{item.unit}</p></div><button onClick={() => removeRoadmapItem(item.id)} className="text-body hover:text-red-500"><Trash2 size={15} /></button></div><div className="flex items-center gap-2 mt-4"><input type="number" min="1" max="100" value={item.chapters || ''} placeholder="Chapters" onChange={e => saveRoadmap(roadmap.map(row => row.id === item.id ? { ...row, chapters: Math.max(0, Number(e.target.value)) } : row))} className="app-input py-1.5 w-24" /><button onClick={() => toggleChapter(item.id)} className="btn-outline flex-1 text-left">Mark next chapter complete</button></div><div className="h-2 rounded-full bg-primary/10 mt-4 overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} /></div><p className="text-xs text-body mt-2">{item.completed}/{item.chapters || 0} chapters · {percent}% complete</p></div>; })}</div>}
+        </section>
+      )}
+
+      {activeTab === 'rival' && (
+        <section className="card p-5 space-y-5"><div><h2 className="text-xl font-black text-header">Weekly Rival mode</h2><p className="text-sm text-body mt-1">Choose one friend and compare focus time for the current week. Nothing is public until you opt in.</p></div><form onSubmit={findRival} className="flex gap-2"><input className="app-input flex-1" placeholder="Friend's username" value={rivalUsername} onChange={e => setRivalUsername(e.target.value)} /><button className="btn-primary">Find rival</button></form>{rivalStatus && <p className="text-xs text-body">{rivalStatus}</p>}{rival && <div className="grid md:grid-cols-2 gap-3"><div className="rounded-2xl bg-primary/5 p-5 text-center"><p className="text-xs uppercase font-bold text-primary">You</p><p className="text-3xl font-black text-header mt-2">{formatMinutes(stats.total)}</p><p className="text-xs text-body">Last 90 days</p></div><div className="rounded-2xl bg-orange-500/5 p-5 text-center"><p className="text-xs uppercase font-bold text-orange-600">{rival.name || `@${rival.username}`}</p><p className="text-3xl font-black text-header mt-2">{formatMinutes(rivalMinutes)}</p><p className="text-xs text-body">This week</p></div></div>}</section>
+      )}
+
+      {activeTab === 'audio' && (
+        <section className="card p-5 space-y-4"><div><h2 className="text-xl font-black text-header">Audiobook mode</h2><p className="text-sm text-body mt-1">Paste extracted PDF text and listen while commuting. Your browser reads it privately; no audio is uploaded.</p></div><textarea className="app-input min-h-48 resize-y" placeholder="Paste notes or PDF text here..." value={audioText} onChange={e => setAudioText(e.target.value)} /><div className="flex flex-wrap gap-2"><button onClick={speak} className="btn-primary flex items-center gap-2"><Play size={15} /> Read aloud</button>{audioState === 'playing' ? <button onClick={pauseAudio} className="btn-outline flex items-center gap-2"><Pause size={15} /> Pause</button> : audioState === 'paused' ? <button onClick={resumeAudio} className="btn-outline flex items-center gap-2"><Play size={15} /> Resume</button> : null}<button onClick={stopAudio} className="btn-outline flex items-center gap-2"><Square size={13} /> Stop</button></div><p className="text-xs text-body">Tip: export or copy text from your PDF viewer, then paste it here.</p></section>
+      )}
+
+      {activeTab === 'overview' && <><section className="card p-5 grid md:grid-cols-[1fr_auto] gap-5 items-center overflow-hidden relative">
         <div className="relative z-10">
           <p className="text-xs uppercase tracking-widest font-bold text-primary">Today’s focus</p>
           <div className="flex items-end gap-2 mt-2"><span className="text-5xl font-black text-header">{formatMinutes(stats.today)}</span><span className="text-sm text-body mb-2">/ {formatMinutes(goal)}</span></div>
@@ -91,7 +176,7 @@ export default function StudyTracker() {
           [BookOpen, 'PDF study', formatMinutes(stats.totals.pdf), 'text-sky-600'],
           [BrainCircuit, 'AI revision', formatMinutes(stats.totals.ai_chat), 'text-violet-600']
         ].map(([Icon, label, value, color]) => <div className="card p-4" key={label}><Icon size={18} className={color} /><p className="text-[10px] uppercase tracking-wider font-bold text-body mt-3">{label}</p><p className="text-lg font-black text-header mt-1">{value}</p></div>)}
-      </section>
+      </section></>}
 
       <section className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
         <div className="card p-5">
