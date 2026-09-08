@@ -184,6 +184,7 @@ export default function Explore() {
     
     const visibleCommunities = (allCommunities || []).filter(c => {
       if (isAdmin) return true;
+      if (!hasBranchName(c.name)) return false;
       if (map[c.id]) return true; // Member
       return hasBranchName(c.name);
     });
