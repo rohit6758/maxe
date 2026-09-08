@@ -95,6 +95,21 @@ export function AppProvider({ children }) {
       
     if (data) {
       setUserProfile(data);
+      if (typeof data.interests === 'string' && data.interests.startsWith('{')) {
+        try {
+          const savedSettings = JSON.parse(data.interests);
+          if (savedSettings.theme) {
+            setThemeState(savedSettings.theme);
+            localStorage.setItem('maxe_theme', savedSettings.theme);
+          }
+          if (savedSettings.profileEffects) {
+            setProfileEffectsState(savedSettings.profileEffects);
+            localStorage.setItem('maxe_effects', JSON.stringify(savedSettings.profileEffects));
+          }
+        } catch (error) {
+          console.error('Could not load profile appearance settings', error);
+        }
+      }
       // Auto-select the user's branch for the Hub if not already selected
       if (data.branch && !activeBranch) {
         setActiveBranch(data.branch);

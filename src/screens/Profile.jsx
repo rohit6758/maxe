@@ -240,6 +240,9 @@ const loadFollowStats = async () => {
             backgroundPosition: 'center',
           } : {})
         }}>
+          {profileEffects?.wallpaper === 'custom' && profileEffects.customWallpaperUrl && (
+            <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
+          )}
           {/* Compact profile row */}
           <div className="flex items-center gap-4 relative z-10 px-4 pt-4">
             <div
