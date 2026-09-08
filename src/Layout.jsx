@@ -140,7 +140,7 @@ export default function Layout() {
       )}
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
+      <div className="app-shell flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
 
         {/* Mobile Top Bar */}
         <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3"
@@ -183,7 +183,7 @@ export default function Layout() {
           </Link>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
+        <main className="app-content flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
           {/* Offline Banner */}
           {!isOnline && (
             <div className="sticky top-0 z-50 bg-yellow-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
