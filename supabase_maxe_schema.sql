@@ -26,6 +26,8 @@ drop policy if exists "Maxe notifications read own" on public.notifications;
 create policy "Maxe notifications read own" on public.notifications for select to authenticated using (auth.uid() = user_id);
 drop policy if exists "Maxe notifications update own" on public.notifications;
 create policy "Maxe notifications update own" on public.notifications for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Maxe notifications delete own" on public.notifications;
+create policy "Maxe notifications delete own" on public.notifications for delete to authenticated using (auth.uid() = user_id);
 drop policy if exists "Maxe notifications insert authenticated" on public.notifications;
 create policy "Maxe notifications insert authenticated" on public.notifications for insert to authenticated with check (true);
 

@@ -1,8 +1,49 @@
-import React, { useState, useEffect, useCallback } from 'react';
-import { Bell } from 'lucide-react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { Bell, BookOpen, CalendarDays, MessageCircle, Trash2, UserPlus, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { toast } from '../context/ToastContext';
+
+const notificationTypes = {
+  follow: { label: 'New follower', color: 'border-blue-500', icon: UserPlus, iconColor: 'text-blue-500', match: ['follow', 'friend request'] },
+  community: { label: 'Community', color: 'border-emerald-500', icon: MessageCircle, iconColor: 'text-emerald-500', match: ['community', 'group'] },
+  request: { label: 'Group request', color: 'border-purple-500', icon: UserPlus, iconColor: 'text-purple-500', match: ['request'] },
+  calendar: { label: 'Calendar reminder', color: 'border-orange-500', icon: CalendarDays, iconColor: 'text-orange-500', match: ['calendar', 'reminder', 'scheduled'] },
+  study: { label: 'Study update', color: 'border-red-500', icon: BookOpen, iconColor: 'text-red-500', match: ['study', 'focus', 'goal'] },
+  default: { label: 'Notification', color: 'border-primary', icon: Bell, iconColor: 'text-primary', match: [] }
+};
+
+const getNotificationType = (notification) => {
+  const explicitType = (notification.type || '').toLowerCase();
+  if (notificationTypes[explicitType]) return notificationTypes[explicitType];
+  const content = (notification.content || '').toLowerCase();
+  return Object.values(notificationTypes).find(type => type.match.some(word => content.includes(word))) || notificationTypes.default;
+};
+
+const formatNotificationTime = (createdAt) => {
+  const date = new Date(createdAt);
+  const seconds = Math.max(0, Math.floor((Date.now() - date.getTime()) / 1000));
+  if (seconds < 60) return 'just now';
+  if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+};
+
+const groupNotifications = (notifications) => {
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const groups = {};
+  notifications.forEach(notification => {
+    const date = new Date(notification.created_at);
+    let label = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    if (date.toDateString() === today.toDateString()) label = 'Today';
+    else if (date.toDateString() === yesterday.toDateString()) label = 'Yesterday';
+    if (!groups[label]) groups[label] = [];
+    groups[label].push(notification);
+  });
+  return groups;
+};
 
 export default function NotificationsMenu() {
   const { session } = useAppContext();
@@ -12,6 +53,8 @@ export default function NotificationsMenu() {
   const [notificationPermission, setNotificationPermission] = useState(
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
   );
+  const [banner, setBanner] = useState(null);
+  const bannerTimerRef = useRef(null);
 
   const requestPhoneNotifications = async () => {
     if (typeof Notification === 'undefined') {
@@ -70,7 +113,9 @@ export default function NotificationsMenu() {
       if (payload.eventType === 'INSERT' && !payload.new.is_read) {
         setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
         setUnreadCount(prev => prev + 1);
-        toast('New notification received!');
+        setBanner(payload.new);
+        window.clearTimeout(bannerTimerRef.current);
+        bannerTimerRef.current = window.setTimeout(() => setBanner(null), 4000);
         if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
           new Notification('Maxe', { body: payload.new.content, tag: `maxe-${payload.new.id}` });
         }
@@ -95,6 +140,7 @@ export default function NotificationsMenu() {
       window.clearInterval(poll);
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', refresh);
+      window.clearTimeout(bannerTimerRef.current);
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
@@ -124,6 +170,19 @@ export default function NotificationsMenu() {
     }
   };
 
+  const deleteNotification = async (id) => {
+    const { error } = await supabase.from('notifications').delete().eq('id', id).eq('user_id', session.user.id);
+    if (error) {
+      console.error('Failed to delete notification', error);
+      toast('Could not dismiss notification');
+      return;
+    }
+    setNotifications(prev => prev.filter(notification => notification.id !== id));
+    setUnreadCount(prev => Math.max(0, prev - 1));
+  };
+
+  const groupedNotifications = groupNotifications(notifications);
+
   return (
     <div className="relative">
       <button 
@@ -133,9 +192,31 @@ export default function NotificationsMenu() {
       >
         <Bell size={16} strokeWidth={2.25} className="text-header" />
         {unreadCount > 0 && (
-          <span className="absolute top-2 right-2 w-2.5 h-2.5 bg-red-500 rounded-full border-2 border-surface animate-pulse" />
+          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full border-2 border-surface text-[9px] leading-3 text-white font-bold flex items-center justify-center">
+            {unreadCount > 99 ? '99+' : unreadCount}
+          </span>
         )}
       </button>
+
+      {banner && (() => {
+        const type = getNotificationType(banner);
+        const Icon = type.icon;
+        return (
+          <button
+            onClick={() => { setBanner(null); setIsOpen(true); }}
+            className={`fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-[min(92vw,420px)] rounded-2xl border-l-4 ${type.color} bg-surface p-3 text-left shadow-2xl animate-slide-down`}
+          >
+            <span className="flex items-start gap-3">
+              <Icon size={18} className={`${type.iconColor} mt-0.5 shrink-0`} />
+              <span className="min-w-0 flex-1">
+                <strong className="block text-xs text-primary">{type.label}</strong>
+                <span className="block truncate text-sm font-bold text-header">{banner.content}</span>
+              </span>
+              <X size={16} className="text-body shrink-0" />
+            </span>
+          </button>
+        );
+      })()}
 
       {isOpen && (
         <div className="absolute top-12 right-0 w-80 bg-surface border border-primary/20 rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[400px] animate-fade-in">
@@ -161,29 +242,38 @@ export default function NotificationsMenu() {
             </p>
           )}
           
-          <div className="overflow-y-auto flex-1 p-2 space-y-1">
+          <div className="overflow-y-auto flex-1 p-2 space-y-3">
             {notifications.length === 0 ? (
-              <div className="p-6 text-center text-body text-sm font-medium">
-                No notifications yet
+              <div className="p-8 text-center text-body text-sm font-medium">
+                <Bell size={28} className="mx-auto mb-2 text-primary/50" />
+                All caught up
               </div>
-            ) : notifications.map(notif => (
-              <div 
-                key={notif.id} 
-                onClick={() => markAsRead(notif.id)}
-                className={`p-3 rounded-xl cursor-pointer transition-colors flex gap-3 border border-primary/10 hover:bg-primary/10 ${notif.is_read ? 'bg-surface opacity-70' : 'bg-primary/5'}`}
-              >
-                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
-                  <Bell size={14} className="text-primary" />
+            ) : Object.entries(groupedNotifications).map(([group, items]) => (
+              <section key={group}>
+                <h4 className="px-2 pb-1 text-[10px] font-black uppercase tracking-wider text-body">{group}</h4>
+                <div className="space-y-1">
+                  {items.map(notif => {
+                    const type = getNotificationType(notif);
+                    const Icon = type.icon;
+                    return (
+                      <div key={notif.id} className={`group relative flex gap-3 rounded-xl border-l-4 ${type.color} border-y border-r border-primary/10 p-3 transition-colors hover:bg-primary/10 ${notif.is_read ? 'bg-surface opacity-70' : 'bg-primary/5'}`}>
+                        <button onClick={() => markAsRead(notif.id)} className="flex min-w-0 flex-1 gap-3 text-left">
+                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                            <Icon size={15} className={type.iconColor} />
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-sm font-bold text-header">{notif.content}</span>
+                            <span className="mt-1 block text-[10px] text-body">{type.label} • {formatNotificationTime(notif.created_at)}</span>
+                          </span>
+                        </button>
+                        <button onClick={() => deleteNotification(notif.id)} aria-label="Dismiss notification" className="self-start rounded p-1 text-body opacity-0 transition-opacity hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100">
+                          <Trash2 size={14} />
+                        </button>
+                      </div>
+                    );
+                  })}
                 </div>
-                <div>
-                  <p className="text-sm text-header font-bold">
-                    {notif.content}
-                  </p>
-                  <p className="text-[10px] text-body mt-1">
-                    {new Date(notif.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              </div>
+              </section>
             ))}
           </div>
         </div>

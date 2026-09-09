@@ -370,6 +370,15 @@ input, textarea, .selectable, [contenteditable] {
   animation: animate-slide-up 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
 }
 
+@keyframes animate-slide-down {
+  from { opacity: 0; transform: translate(-50%, -120%); }
+  to { opacity: 1; transform: translate(-50%, 0); }
+}
+
+.animate-slide-down {
+  animation: animate-slide-down 0.3s ease-out forwards;
+}
+
 @keyframes float-3d {
   0%, 100% { transform: translate3d(0, 0, 0) rotate(-6deg); }
   50% { transform: translate3d(0, -6px, 0) rotate(6deg); }
