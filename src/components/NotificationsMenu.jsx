@@ -40,7 +40,7 @@ export default function NotificationsMenu() {
       }
       if (data) {
         const unread = data.filter(n => !n.is_read);
-        setNotifications(unread);
+        setNotifications(data);
         setUnreadCount(unread.length);
       }
     } catch (e) {
@@ -76,7 +76,7 @@ export default function NotificationsMenu() {
         }
       } else if (payload.eventType === 'UPDATE') {
         if (payload.new.is_read) {
-          setNotifications(prev => prev.filter(item => item.id !== payload.new.id));
+          setNotifications(prev => prev.map(item => item.id === payload.new.id ? payload.new : item));
         } else {
           fetchNotifications();
         }
@@ -85,6 +85,7 @@ export default function NotificationsMenu() {
       }
     });
     channel.subscribe(status => {
+      if (status === 'SUBSCRIBED') fetchNotifications();
       if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
         fetchNotifications();
       }
@@ -103,7 +104,7 @@ export default function NotificationsMenu() {
     try {
       const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
       if (error) throw error;
-      setNotifications(prev => prev.filter(n => n.id !== id));
+      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
       setUnreadCount(prev => Math.max(0, prev - 1));
     } catch (e) {
       console.error('Failed to mark notification as read', e);
@@ -115,7 +116,7 @@ export default function NotificationsMenu() {
     try {
       const { error } = await supabase.from('notifications').update({ is_read: true }).eq('user_id', session.user.id).eq('is_read', false);
       if (error) throw error;
-      setNotifications([]);
+      setNotifications(prev => prev.map(notification => ({ ...notification, is_read: true })));
       setUnreadCount(0);
     } catch (e) {
       console.error('Failed to mark notifications as read', e);
@@ -169,7 +170,7 @@ export default function NotificationsMenu() {
               <div 
                 key={notif.id} 
                 onClick={() => markAsRead(notif.id)}
-                className="p-3 rounded-xl cursor-pointer transition-colors flex gap-3 bg-primary/5 border border-primary/10 hover:bg-primary/10"
+                className={`p-3 rounded-xl cursor-pointer transition-colors flex gap-3 border border-primary/10 hover:bg-primary/10 ${notif.is_read ? 'bg-surface opacity-70' : 'bg-primary/5'}`}
               >
                 <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center shrink-0 mt-1">
                   <Bell size={14} className="text-primary" />

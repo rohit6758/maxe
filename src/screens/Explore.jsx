@@ -901,13 +901,20 @@ export default function Explore() {
                 <button onClick={(e) => { e.stopPropagation(); setShowShareModal(true); }} className="btn-primary text-sm flex items-center gap-1.5 py-1.5 px-4 shadow-sm hover:scale-105 active:scale-95 transition-transform">
                   <Plus size={14} /> <span className="font-bold">Share</span>
                 </button>
+                <button
+                  onClick={(e) => { e.stopPropagation(); setCommunityView('chat'); }}
+                  className={`btn-outline text-sm flex items-center gap-1.5 py-1.5 px-3 ${communityView === 'chat' ? 'bg-primary/10 text-primary' : 'bg-surface'}`}
+                  aria-label="Open group chat"
+                >
+                  <MessageSquare size={14} /> <span className="hidden sm:inline font-bold">Chat</span>
+                </button>
               </div>
 
               <div className="px-4 pt-3 bg-surface border-b border-primary/10">
                 <div className="flex gap-1 rounded-xl bg-background p-1">
                   {[
                     { id: 'resources', label: 'Resources' },
-                    { id: 'chat', label: 'Group chat' }
+                    { id: 'chat', label: 'Chat' }
                   ].map(tab => (
                     <button
                       key={tab.id}
