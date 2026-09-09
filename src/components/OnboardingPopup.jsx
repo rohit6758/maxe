@@ -3,6 +3,7 @@ import { supabase } from '../lib/supabase';
 import { BRANCHES, COLLEGES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
 import { User, BookOpen } from 'lucide-react';
+import { normalizeUsername, validateUsername } from '../lib/username';
 
 export default function OnboardingPopup() {
   const { session, fetchProfile } = useAppContext();
@@ -24,7 +25,11 @@ export default function OnboardingPopup() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!username.trim() || !branch || !college) return;
+    const validationError = validateUsername(username);
+    if (validationError || !branch || !college) {
+      setUsernameError(validationError || 'Choose your college and branch.');
+      return;
+    }
     
     setLoading(true);
     setError(null);
@@ -35,7 +40,9 @@ export default function OnboardingPopup() {
       if (!user) throw new Error("No active session.");
 
       // Check if username is already taken by someone else
-      const { data: existing } = await supabase.from('profiles').select('id').eq('username', username).neq('id', user.id).maybeSingle();
+      const normalizedUsername = normalizeUsername(username);
+      const { data: existing, error: lookupError } = await supabase.from('profiles').select('id').ilike('username', normalizedUsername).neq('id', user.id).maybeSingle();
+      if (lookupError) throw lookupError;
       if (existing) {
         setUsernameError("Username unavailable, already taken.");
         setLoading(false);
@@ -44,7 +51,7 @@ export default function OnboardingPopup() {
 
       const { error: updateError } = await supabase.from('profiles').upsert({
         id: user.id,
-        username: username.toLowerCase().replace(/[^a-z0-9_.]/g, ''),
+        username: normalizedUsername,
         branch: branch,
         college: college,
         name: user.user_metadata?.full_name || user.user_metadata?.name || username,
@@ -99,8 +106,7 @@ export default function OnboardingPopup() {
                 required
                 value={username}
                 onChange={e => {
-                  let val = e.target.value.toLowerCase().replace(/[^a-z0-9_.]/g, '');
-                  if (val.length > 0 && (val[0] === '_' || val[0] === '.')) val = val.substring(1);
+                  let val = normalizeUsername(e.target.value);
                   setUsername(val);
                   if (usernameError) setUsernameError(null);
                 }}
@@ -111,7 +117,7 @@ export default function OnboardingPopup() {
               {usernameError ? (
                 <p className="text-[11px] font-bold px-1" style={{color: 'var(--theme-header)'}}>{usernameError}</p>
               ) : (
-                <p className="text-[10px] text-body/60 px-1">Letters, numbers, underscores, and dots. Must start with letter/number.</p>
+                <p className="text-[10px] text-body/60 px-1">3-20 characters, starts with a letter. Letters, numbers, underscores, and dots.</p>
               )}
           </div>
 
@@ -151,7 +157,7 @@ export default function OnboardingPopup() {
 
           <button 
             type="submit" 
-            disabled={loading || !username || !branch}
+            disabled={loading || !username || !branch || !college}
             className="btn-primary w-full py-3.5 text-sm rounded-xl mt-4"
           >
             {loading ? 'Setting up...' : 'Get Started 🚀'}

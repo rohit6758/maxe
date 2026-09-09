@@ -7,6 +7,7 @@ import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
 import OnboardingPopup from './components/OnboardingPopup';
 import NotificationsMenu from './components/NotificationsMenu';
+import AppDialog from './components/AppDialog';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
@@ -15,6 +16,7 @@ export default function Layout() {
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
@@ -109,8 +111,8 @@ export default function Layout() {
           <User size={18} />
           <span>{userProfile?.name || 'Profile'}</span>
         </Link>
-        <button onClick={handleLogout} className="nav-item w-full text-red-400 hover:text-red-500">
-          <LogOut size={18} /> Sign Out
+        <button onClick={() => setShowLogoutConfirm(true)} className="nav-item w-full text-red-400 hover:text-red-500">
+          <LogOut size={18} /> Log out
         </button>
       </div>
     </div>
@@ -218,6 +220,18 @@ export default function Layout() {
 
       {isCalendarOpen && <CalendarModal onClose={() => setIsCalendarOpen(false)} />}
       {isTodoOpen && <TodoModal onClose={() => setIsTodoOpen(false)} />}
+      {showLogoutConfirm && (
+        <AppDialog
+          type="confirm"
+          title="Log out of Maxe?"
+          message="You can sign back in anytime."
+          confirmText="Log out"
+          cancelText="Stay signed in"
+          danger
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
     </div>
   );
 }

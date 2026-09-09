@@ -37,6 +37,27 @@ export default function StudyTracker() {
     return () => { mounted = false; };
   }, [session, userProfile?.is_premium]);
 
+  useEffect(() => {
+    if (!session || !userProfile?.is_premium) return;
+    const checkStudyReminder = async () => {
+      const now = new Date();
+      const currentTime = now.toTimeString().slice(0, 5);
+      const day = now.toISOString().slice(0, 10);
+      if (currentTime !== reminder || localStorage.getItem(`maxe_study_reminder_sent_${session.user.id}_${day}`)) return;
+      localStorage.setItem(`maxe_study_reminder_sent_${session.user.id}_${day}`, '1');
+      if ('Notification' in window && Notification.permission === 'granted') {
+        new Notification('Maxe study reminder', { body: `Your ${goal}-minute focus goal is waiting.` });
+      }
+      await supabase.from('notifications').insert([{
+        user_id: session.user.id,
+        content: `Study reminder: your ${goal}-minute focus goal is waiting.`,
+        is_read: false
+      }]);
+    };
+    const timer = window.setInterval(checkStudyReminder, 60000);
+    return () => window.clearInterval(timer);
+  }, [session, userProfile?.is_premium, reminder, goal]);
+
   const stats = useMemo(() => {
     const days = {};
     const totals = { pdf: 0, ai_chat: 0, video: 0, quiz: 0 };
@@ -187,7 +208,7 @@ export default function StudyTracker() {
         <div className="card p-5 space-y-4">
           <div><h2 className="font-black text-header">Study settings</h2><p className="text-xs text-body mt-1">Make the system fit your college routine.</p></div>
           <label className="block"><span className="text-xs font-bold text-body">Daily focus goal (minutes)</span><input className="app-input mt-2" type="number" min="15" max="600" value={goal} onChange={e => saveGoal(e.target.value)} /></label>
-          <label className="block"><span className="text-xs font-bold text-body flex items-center gap-1"><Bell size={13} /> Reminder time</span><input className="app-input mt-2" type="time" value={reminder} onChange={e => { setReminder(e.target.value); localStorage.setItem('maxe_study_reminder', e.target.value); }} /></label>
+          <label className="block"><span className="text-xs font-bold text-body flex items-center gap-1"><Bell size={13} /> Reminder time</span><input className="app-input mt-2" type="time" value={reminder} onChange={async e => { setReminder(e.target.value); localStorage.setItem('maxe_study_reminder', e.target.value); if ('Notification' in window && Notification.permission === 'default') await Notification.requestPermission(); }} /></label>
           <div className="rounded-xl bg-primary/5 p-3 text-xs text-body flex gap-2"><CalendarDays size={15} className="text-primary shrink-0" /> Use this goal for exam preparation, revision blocks, and weekly planning.</div>
         </div>
       </section>

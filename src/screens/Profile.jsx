@@ -8,6 +8,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
 import ProSettingsModal from '../components/ProSettingsModal';
 import ImageCropper from '../components/ImageCropper';
+import { normalizeUsername, validateUsername } from '../lib/username';
 
 export default function Profile() {
   const { session, userProfile, setUserProfile, profileEffects } = useAppContext();
@@ -196,12 +197,18 @@ const loadFollowStats = async () => {
 
   const handleSave = async () => {
     if (!session) return;
+    const normalizedUsername = normalizeUsername(username);
+    const usernameError = validateUsername(normalizedUsername);
+    if (usernameError) {
+      toast(usernameError);
+      return;
+    }
     setSaving(true);
     const { data, error } = await supabase
       .from('profiles')
       .update({
         name: name.trim(),
-        username: username.trim().toLowerCase(),
+        username: normalizedUsername,
         bio: bio.trim(),
         branch,
         college,

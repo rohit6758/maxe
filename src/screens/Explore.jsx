@@ -450,6 +450,24 @@ export default function Explore() {
     }
   };
 
+  const handleLeaveCommunity = async () => {
+    if (!selectedCommunity || !session?.user?.id || selectedCommunity.created_by === session.user.id) {
+      return toast('The group owner must transfer ownership before leaving.');
+    }
+    if (!window.confirm(`Leave ${selectedCommunity.name}?`)) return;
+    const { error } = await supabase.from('community_members')
+      .delete()
+      .match({ community_id: selectedCommunity.id, user_id: session.user.id });
+    if (error) return toast(`Could not leave group: ${error.message}`);
+    setMyMemberships(prev => {
+      const next = { ...prev };
+      delete next[selectedCommunity.id];
+      return next;
+    });
+    setShowGroupInfo(false);
+    setSelectedCommunity(null);
+  };
+
   const initiateImport = (post) => {
     setImportingPost(post);
     setShowImportModal(true);
@@ -1213,6 +1231,11 @@ export default function Explore() {
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Users size={16} /></div>
                     View all Members
                   </button>
+                  {!isCommunityAdmin && (
+                    <button onClick={handleLeaveCommunity} className="w-full p-3 rounded-2xl border border-red-200 text-red-500 font-bold text-sm hover:bg-red-50">
+                      Leave group
+                    </button>
+                  )}
                 </div>
               </div>
             </div>
