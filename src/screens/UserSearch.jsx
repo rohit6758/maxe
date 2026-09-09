@@ -133,7 +133,7 @@ export default function UserSearch() {
       try {
         await supabase.from('notifications').insert([{ 
           user_id: userId, 
-          content: `@${userProfile?.username || 'someone'} started following you!` 
+          content: `@${userProfile?.username || 'someone'} started following you!`, type: 'follow' 
         }]);
       } catch (e) { console.error("Notification failed", e); }
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
