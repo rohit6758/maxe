@@ -34,7 +34,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
       filter: `id=eq.${userId}`
     }, payload => setProfile(current => ({ ...current, ...payload.new })));
     channel.subscribe();
-    return () => { supabase.removeChannel(channel); };
+    return () => { channel.unsubscribe(); supabase.removeChannel(channel); };
   }, [userId]);
 
   useEffect(() => {

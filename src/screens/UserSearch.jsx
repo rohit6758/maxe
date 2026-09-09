@@ -18,15 +18,16 @@ export default function UserSearch() {
 
   useEffect(() => {
     // Realtime Sync Fix: Listen to UPDATE events on the profiles table for ALL rows so changes reflect globally
-    const subscription = supabase
-      .channel('global-profiles')
+    const channel = supabase
+      .channel(`global-profiles-${Date.now()}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
         setSearchResults(prev => prev.map(u => u.id === payload.new.id ? { ...u, ...payload.new } : u));
       })
       .subscribe();
 
     return () => {
-      supabase.removeChannel(subscription);
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
   }, []);
 

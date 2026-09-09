@@ -73,6 +73,7 @@ export default function NotificationsMenu() {
       window.clearInterval(poll);
       window.removeEventListener('online', refresh);
       document.removeEventListener('visibilitychange', refresh);
+      channel.unsubscribe();
       supabase.removeChannel(channel);
     };
   }, [session, fetchNotifications]);

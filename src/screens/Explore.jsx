@@ -92,7 +92,7 @@ export default function Explore() {
         })
         .subscribe();
         
-      return () => { supabase.removeChannel(memberChannel); };
+      return () => { memberChannel.unsubscribe(); supabase.removeChannel(memberChannel); };
     }
   }, [session, userProfile]);
 
@@ -161,6 +161,7 @@ export default function Explore() {
           chatChannelRef.current = null;
           chatChannelReadyRef.current = false;
           window.clearTimeout(typingStopTimerRef.current);
+          channel.unsubscribe();
           supabase.removeChannel(channel);
         };
       }
@@ -230,7 +231,7 @@ export default function Explore() {
            }
         }).subscribe();
         
-      return () => { supabase.removeChannel(channel); };
+      return () => { channel.unsubscribe(); supabase.removeChannel(channel); };
     }
   }, [selectedCommunity, isCurrentMember]);
 
