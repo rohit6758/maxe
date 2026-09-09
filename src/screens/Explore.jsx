@@ -101,6 +101,16 @@ export default function Explore() {
           .on('broadcast', { event: 'typing' }, ({ payload }) => {
             if (!payload?.userId || payload.userId === session.user.id) return;
             setTypingUsers(prev => ({ ...prev, [payload.userId]: payload.name || 'Member' }));
+            setChatProfiles(prev => ({
+              ...prev,
+              [payload.userId]: {
+                ...(prev[payload.userId] || {}),
+                id: payload.userId,
+                name: payload.name || 'Member',
+                username: payload.username,
+                avatar_url: payload.avatarUrl
+              }
+            }));
             window.clearTimeout(typingTimerRef.current);
             typingTimerRef.current = window.setTimeout(() => setTypingUsers({}), 1800);
           })
@@ -118,7 +128,7 @@ export default function Explore() {
           .subscribe();
         chatChannelRef.current = channel;
           
-        const syncTimer = window.setInterval(() => loadChatMessages(selectedCommunity.id), 3000);
+        const syncTimer = window.setInterval(() => loadChatMessages(selectedCommunity.id), 1500);
         return () => {
           window.clearInterval(syncTimer);
           chatChannelRef.current = null;
@@ -849,39 +859,39 @@ export default function Explore() {
 
               {communityView === 'chat' ? (
                 <div className="flex-1 min-h-0 flex flex-col">
-                  <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3">
+                  <div className="flex-1 overflow-y-auto p-3 pb-24">
                     {chatMessages.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center text-body text-sm">
                         <MessageSquare size={32} className="mb-3 text-primary/50" />
                         <p className="font-bold text-header">Start the group conversation</p>
                         <p className="mt-1">Ask for PDFs, links, or question papers.</p>
                       </div>
-                    ) : chatMessages.map(message => {
+                    ) : chatMessages.map((message, messageIndex) => {
                       const sender = chatProfiles[message.user_id];
                       const isMine = message.user_id === session?.user?.id;
+                      const previousMessage = chatMessages[messageIndex - 1];
+                      const grouped = previousMessage?.user_id === message.user_id;
                       return (
-                      <div key={message.id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                      <div key={message.id} className={`flex items-end gap-1.5 ${isMine ? 'justify-end' : 'justify-start'} ${grouped ? 'mt-1' : 'mt-3'}`}>
                         {!isMine && (
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
-                            {sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={15} className="text-primary" />}
+                          <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                            {grouped ? <span className="w-7" /> : sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={14} className="text-primary" />}
                           </div>
                         )}
                         <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${isMine ? 'bg-primary text-white rounded-br-sm' : 'bg-surface border border-primary/10 text-header rounded-bl-sm'} ${message.pending ? 'opacity-70' : ''}`}>
-                          <p className="mb-1 text-[11px] font-black opacity-80">
+                          {!grouped && <p className="mb-1 text-[11px] font-black opacity-80">
                             {sender?.name || sender?.username || 'Member'}
-                            {sender?.name && sender?.username
-                              ? ` · @${sender.username}`
-                              : ''}
-                          </p>
+                            {sender?.name && sender?.username ? ` · @${sender.username}` : ''}
+                          </p>}
                           <p>{message.content}</p>
-                          <time className="block mt-1 text-[10px] opacity-60">
+                          <time className="block mt-0.5 text-[10px] opacity-60">
                             {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                             {message.pending ? ' · Sending…' : ''}
                           </time>
                         </div>
                         {isMine && (
-                          <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
-                            {sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={15} className="text-primary" />}
+                          <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                            {grouped ? <span className="w-7" /> : sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={14} className="text-primary" />}
                           </div>
                         )}
                       </div>
@@ -889,9 +899,22 @@ export default function Explore() {
                     })}
                   </div>
                   {Object.keys(typingUsers).length > 0 && (
-                    <div className="px-4 pb-1 text-xs text-body flex items-center gap-1">
-                      <span className="flex gap-0.5"><i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" /><i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:120ms]" /><i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:240ms]" /></span>
-                      {Object.values(typingUsers).join(', ')} typing
+                    <div className="px-3 pb-2 flex items-end gap-1.5">
+                      <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                        {(() => {
+                          const typingUserId = Object.keys(typingUsers)[0];
+                          const typingProfile = chatProfiles[typingUserId];
+                          return typingProfile?.avatar_url
+                            ? <img src={typingProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                            : <User size={14} className="text-primary" />;
+                        })()}
+                      </div>
+                      <div className="rounded-2xl rounded-bl-sm bg-surface border border-primary/10 px-3 py-2 flex items-center gap-1">
+                        <span className="text-[11px] font-black text-header mr-1">{Object.values(typingUsers)[0]}</span>
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:120ms]" />
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:240ms]" />
+                      </div>
                     </div>
                   )}
                   <form onSubmit={sendChatMessage} className="sticky bottom-0 z-20 p-3 bg-surface border-t border-primary/10 flex gap-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
@@ -900,7 +923,12 @@ export default function Explore() {
                       value={chatInput}
                       onChange={e => {
                         setChatInput(e.target.value);
-                        chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload: { userId: session?.user?.id, name: userProfile?.name || userProfile?.username || 'Member' } });
+                        chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload: {
+                          userId: session?.user?.id,
+                          name: userProfile?.name || userProfile?.username || 'Member',
+                          username: userProfile?.username,
+                          avatarUrl: userProfile?.avatar_url
+                        } });
                       }}
                       placeholder="Ask for a PDF, link, or question paper..."
                       className="app-input flex-1"
