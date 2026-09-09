@@ -28,6 +28,7 @@ export default function Explore() {
   const chatInputRef = useRef(null);
   const chatScrollRef = useRef(null);
   const chatBottomRef = useRef(null);
+  const chatChannelReadyRef = useRef(false);
   const shouldFollowChatRef = useRef(true);
   const previousChatCountRef = useRef(0);
   const [myMemberships, setMyMemberships] = useState({});
@@ -129,13 +130,16 @@ export default function Explore() {
             if (sender) setChatProfiles(prev => ({ ...prev, [sender.id]: sender }));
             setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
           })
-          .subscribe();
-        chatChannelRef.current = channel;
+          .subscribe(status => {
+            chatChannelReadyRef.current = status === 'SUBSCRIBED';
+          });
+          chatChannelRef.current = channel;
           
         const syncTimer = window.setInterval(() => loadChatMessages(selectedCommunity.id), 1500);
         return () => {
           window.clearInterval(syncTimer);
           chatChannelRef.current = null;
+          chatChannelReadyRef.current = false;
           supabase.removeChannel(channel);
         };
       }
@@ -159,9 +163,21 @@ export default function Explore() {
     const countChanged = chatMessages.length !== previousChatCountRef.current;
     previousChatCountRef.current = chatMessages.length;
     if (countChanged && shouldFollowChatRef.current) {
-      window.requestAnimationFrame(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }));
+      window.requestAnimationFrame(() => {
+        const element = chatScrollRef.current;
+        if (element) element.scrollTop = element.scrollHeight;
+      });
     }
   }, [chatMessages, selectedCommunity, communityView]);
+
+  useEffect(() => {
+    if (!selectedCommunity || communityView !== 'chat' || !chatScrollRef.current) return;
+    const observer = new ResizeObserver(() => {
+      if (shouldFollowChatRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    });
+    observer.observe(chatScrollRef.current);
+    return () => observer.disconnect();
+  }, [selectedCommunity, communityView]);
 
   useEffect(() => {
     const chatActive = Boolean(selectedCommunity && communityView === 'chat');
@@ -267,6 +283,7 @@ export default function Explore() {
       return;
     }
     setChatMessages(data || []);
+    if (userProfile?.id) setChatProfiles(prev => ({ ...prev, [userProfile.id]: userProfile }));
     const senderIds = [...new Set((data || []).map(message => message.user_id))];
     if (senderIds.length > 0) {
       const { data: senders } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', senderIds);
@@ -956,6 +973,7 @@ export default function Explore() {
                       value={chatInput}
                       onChange={e => {
                         setChatInput(e.target.value);
+                        if (!chatChannelReadyRef.current) return;
                         chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload: {
                           userId: session?.user?.id,
                           name: userProfile?.name || userProfile?.username || 'Member',
