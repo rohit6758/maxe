@@ -75,16 +75,14 @@ function AppRoutes() {
   );
 }
 
-
 function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
         <ToastContainer />
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
-        
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
       </AppProvider>
     </ErrorBoundary>
   );
