@@ -194,7 +194,7 @@ export default function Layout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30"
+        <nav className="maxe-mobile-nav md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30"
           style={{ background: 'var(--theme-sidebar)', boxShadow: '0 -1px 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
           {[
             { to: '/', icon: <LayoutGrid size={22} strokeWidth={2.5} />, label: 'Home' },

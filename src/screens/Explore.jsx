@@ -145,6 +145,12 @@ export default function Explore() {
   }, [selectedCommunity, communityView]);
 
   useEffect(() => {
+    const chatActive = Boolean(selectedCommunity && communityView === 'chat');
+    document.documentElement.classList.toggle('maxe-chat-active', chatActive);
+    return () => document.documentElement.classList.remove('maxe-chat-active');
+  }, [selectedCommunity, communityView]);
+
+  useEffect(() => {
     if (selectedCommunity && !isCurrentMember) {
       const checkRequest = async () => {
         try {
@@ -859,7 +865,7 @@ export default function Explore() {
 
               {communityView === 'chat' ? (
                 <div className="flex-1 min-h-0 flex flex-col">
-                  <div className="flex-1 overflow-y-auto p-3 pb-24">
+                  <div className="flex-1 overflow-y-auto p-3">
                     {chatMessages.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center text-body text-sm">
                         <MessageSquare size={32} className="mb-3 text-primary/50" />
@@ -912,8 +918,8 @@ export default function Explore() {
                       <div className="rounded-2xl rounded-bl-sm bg-surface border border-primary/10 px-3 py-2 flex items-center gap-1">
                         <span className="text-[11px] font-black text-header mr-1">{Object.values(typingUsers)[0]}</span>
                         <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
-                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:120ms]" />
-                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:240ms]" />
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '120ms' }} />
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '240ms' }} />
                       </div>
                     </div>
                   )}

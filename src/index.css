@@ -83,6 +83,16 @@
   --color-ring: var(--theme-ring);
 }
 
+@media (max-width: 767px) {
+  .maxe-chat-active .maxe-mobile-nav {
+    display: none;
+  }
+
+  .maxe-chat-active .app-content {
+    padding-bottom: 16px !important;
+  }
+}
+
 @layer utilities {
   .nav-item {
     display: flex;
