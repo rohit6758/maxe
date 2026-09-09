@@ -15,6 +15,7 @@ export default function Explore() {
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [joinRequestStatus, setJoinRequestStatus] = useState(null);
+  const [typingUsers, setTypingUsers] = useState([]);
   const [posts, setPosts] = useState([]);
   const [myMemberships, setMyMemberships] = useState({});
 
@@ -48,6 +49,7 @@ export default function Explore() {
   const [followingMap, setFollowingMap] = useState({});
   const [selectedUser, setSelectedUser] = useState(null); // For Popup
   const [isAddingMember, setIsAddingMember] = useState(false);
+  const typingChannelRef = React.useRef(null);
   const [memberSearch, setMemberSearch] = useState('');
   const [memberSearchResults, setMemberSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
