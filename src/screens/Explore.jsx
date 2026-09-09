@@ -112,7 +112,7 @@ export default function Explore() {
 
       // Realtime is preferred, but this also covers clients that temporarily
       // lose their channel or have not enabled the table in the publication.
-      const communitySyncTimer = window.setInterval(() => loadCommunities(), 5000);
+      const communitySyncTimer = window.setInterval(() => loadCommunities({ silent: true }), 5000);
         
       return () => {
         window.clearInterval(communitySyncTimer);
@@ -282,8 +282,8 @@ export default function Explore() {
     if (data) setPosts(prev => [data, ...prev]);
   };
 
-  const loadCommunities = async () => {
-    setIsLoadingCommunities(true);
+  const loadCommunities = async ({ silent = false } = {}) => {
+    if (!silent) setIsLoadingCommunities(true);
     // Show all communities so user knows they exist
     let query = supabase.from('communities').select('*').order('created_at', { ascending: false });
     if (!isAdmin) {
@@ -310,10 +310,16 @@ export default function Explore() {
       if (map[c.id]) return true; // Member
       return hasBranchName(c.name);
     });
-    setCommunities(visibleCommunities);
-
-    setMyMemberships(map);
-    setIsLoadingCommunities(false);
+    setCommunities(prev => {
+      const previousKey = prev.map(community => `${community.id}:${community.name}:${community.avatar_url || ''}`).join('|');
+      const nextKey = visibleCommunities.map(community => `${community.id}:${community.name}:${community.avatar_url || ''}`).join('|');
+      return previousKey === nextKey ? prev : visibleCommunities;
+    });
+    setMyMemberships(prev => {
+      const previousKey = JSON.stringify(prev);
+      return previousKey === JSON.stringify(map) ? prev : map;
+    });
+    if (!silent) setIsLoadingCommunities(false);
   };
 
   const loadChatMessages = async (communityId) => {
@@ -328,16 +334,28 @@ export default function Explore() {
       setChatMessages([]);
       return;
     }
-    setChatMessages(data || []);
+    const serverMessages = data || [];
+    setChatMessages(prev => {
+      const pendingMessages = prev.filter(message => message.pending);
+      const currentKey = prev.filter(message => !message.pending)
+        .map(message => `${message.id}:${message.content}:${message.created_at}`).join('|');
+      const nextKey = serverMessages
+        .map(message => `${message.id}:${message.content}:${message.created_at}`).join('|');
+      if (currentKey === nextKey) return prev;
+      return [...serverMessages, ...pendingMessages];
+    });
     if (userProfile?.id) setChatProfiles(prev => ({ ...prev, [userProfile.id]: userProfile }));
     const senderIds = [...new Set((data || []).map(message => message.user_id))];
     if (senderIds.length > 0) {
       const { data: senders } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', senderIds);
       const profileMap = {};
       (senders || []).forEach(sender => { profileMap[sender.id] = sender; });
-      setChatProfiles(profileMap);
+      setChatProfiles(prev => {
+        const merged = { ...prev, ...profileMap };
+        return JSON.stringify(prev) === JSON.stringify(merged) ? prev : merged;
+      });
     } else {
-      setChatProfiles({});
+      setChatProfiles(prev => Object.keys(prev).length === 0 ? prev : {});
     }
   };
 
