@@ -9,6 +9,20 @@ export default function NotificationsMenu() {
   const [isOpen, setIsOpen] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [notificationPermission, setNotificationPermission] = useState(
+    typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
+  );
+
+  const requestPhoneNotifications = async () => {
+    if (typeof Notification === 'undefined') {
+      toast('Phone notifications are not supported by this browser');
+      return;
+    }
+    const permission = await Notification.requestPermission();
+    setNotificationPermission(permission);
+    if (permission === 'granted') toast('Phone notifications enabled');
+    else if (permission === 'denied') toast('Notifications are blocked in this device settings', 'error');
+  };
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -57,6 +71,9 @@ export default function NotificationsMenu() {
         setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
         setUnreadCount(prev => prev + 1);
         toast('New notification received!');
+        if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
+          new Notification('Maxe', { body: payload.new.content, tag: `maxe-${payload.new.id}` });
+        }
       } else if (payload.eventType === 'UPDATE') {
         if (payload.new.is_read) {
           setNotifications(prev => prev.filter(item => item.id !== payload.new.id));
@@ -129,6 +146,19 @@ export default function NotificationsMenu() {
               </button>
             )}
           </div>
+          {notificationPermission === 'default' && (
+            <button
+              onClick={requestPhoneNotifications}
+              className="mx-3 mt-3 rounded-xl bg-primary/10 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/15"
+            >
+              Enable phone notifications
+            </button>
+          )}
+          {notificationPermission === 'denied' && (
+            <p className="mx-3 mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600">
+              Notifications are blocked. Allow them in your browser or phone settings.
+            </p>
+          )}
           
           <div className="overflow-y-auto flex-1 p-2 space-y-1">
             {notifications.length === 0 ? (
