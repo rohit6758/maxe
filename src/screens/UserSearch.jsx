@@ -22,14 +22,23 @@ export default function UserSearch() {
       .channel(`global-profiles-${Date.now()}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
         setSearchResults(prev => prev.map(u => u.id === payload.new.id ? { ...u, ...payload.new } : u));
+        setRecentSearches(prev => prev.map(item => (
+          typeof item === 'string' || item.id !== payload.new.id ? item : { ...item, ...payload.new }
+        )));
       })
       .subscribe();
 
+    const refreshTimer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible' || !searchQuery.trim()) return;
+      executeSearch(searchQuery);
+    }, 5000);
+
     return () => {
+      window.clearInterval(refreshTimer);
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [searchQuery]);
 
   useEffect(() => {
     const saved = localStorage.getItem('maxe_recent_searches');
