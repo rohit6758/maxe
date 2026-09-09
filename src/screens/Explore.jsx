@@ -25,6 +25,7 @@ export default function Explore() {
   const [typingUsers, setTypingUsers] = useState({});
   const chatChannelRef = useRef(null);
   const typingTimerRef = useRef(null);
+  const typingStopTimerRef = useRef(null);
   const chatInputRef = useRef(null);
   const chatScrollRef = useRef(null);
   const chatBottomRef = useRef(null);
@@ -105,6 +106,14 @@ export default function Explore() {
         const channel = supabase.channel(`community_posts_${Date.now()}`)
           .on('broadcast', { event: 'typing' }, ({ payload }) => {
             if (!payload?.userId || payload.userId === session.user.id) return;
+            if (payload.state === 'stopped') {
+              setTypingUsers(prev => {
+                const next = { ...prev };
+                delete next[payload.userId];
+                return next;
+              });
+              return;
+            }
             setTypingUsers(prev => ({ ...prev, [payload.userId]: payload.name || 'Member' }));
             setChatProfiles(prev => ({
               ...prev,
@@ -117,7 +126,11 @@ export default function Explore() {
               }
             }));
             window.clearTimeout(typingTimerRef.current);
-            typingTimerRef.current = window.setTimeout(() => setTypingUsers({}), 1800);
+            typingTimerRef.current = window.setTimeout(() => setTypingUsers(prev => {
+              const next = { ...prev };
+              delete next[payload.userId];
+              return next;
+            }), 2200);
           })
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
             fetchSinglePost(payload.new.id);
@@ -126,9 +139,16 @@ export default function Explore() {
             setPosts(prev => prev.filter(p => p.id !== payload.old.id));
           })
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages', filter: `community_id=eq.${selectedCommunity.id}` }, async payload => {
-            const { data: sender } = await supabase.from('profiles').select('id, name, username, avatar_url').eq('id', payload.new.user_id).maybeSingle();
-            if (sender) setChatProfiles(prev => ({ ...prev, [sender.id]: sender }));
+            const cachedSender = chatProfiles[payload.new.user_id];
+            if (!cachedSender?.avatar_url) {
+              const { data: sender } = await supabase.from('profiles').select('id, name, username, avatar_url').eq('id', payload.new.user_id).maybeSingle();
+              if (sender) setChatProfiles(prev => ({ ...prev, [sender.id]: sender }));
+            }
             setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
+          })
+          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'communities', filter: `id=eq.${selectedCommunity.id}` }, payload => {
+            setSelectedCommunity(prev => ({ ...prev, ...payload.new }));
+            setCommunities(prev => prev.map(community => community.id === payload.new.id ? { ...community, ...payload.new } : community));
           })
           .subscribe(status => {
             chatChannelReadyRef.current = status === 'SUBSCRIBED';
@@ -140,6 +160,7 @@ export default function Explore() {
           window.clearInterval(syncTimer);
           chatChannelRef.current = null;
           chatChannelReadyRef.current = false;
+          window.clearTimeout(typingStopTimerRef.current);
           supabase.removeChannel(channel);
         };
       }
@@ -492,6 +513,7 @@ export default function Explore() {
       const updated = { ...selectedCommunity, name: editCommunityName.trim() };
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
       setSelectedCommunity(updated);
+      await notifyCommunityMembers(`@${userProfile?.username || 'someone'} updated the group profile in ${updated.name}`);
       setIsEditingName(false);
     } catch(e) { toast(e.message); }
     setIsSavingInfo(false);
@@ -522,8 +544,28 @@ export default function Explore() {
       const updated = { ...selectedCommunity, avatar_url: publicUrl };
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
       setSelectedCommunity(updated);
+      await notifyCommunityMembers(`@${userProfile?.username || 'someone'} updated the group profile in ${updated.name}`);
     } catch(err) { toast(err.message); }
     setIsSavingInfo(false);
+  };
+
+  const notifyCommunityMembers = async (content) => {
+    if (!selectedCommunity || !session?.user?.id) return;
+    const { data: members, error: membersError } = await supabase
+      .from('community_members')
+      .select('user_id')
+      .eq('community_id', selectedCommunity.id);
+    if (membersError) {
+      console.error('Could not load community members for notification', membersError);
+      return;
+    }
+    const notifications = (members || [])
+      .filter(member => member.user_id !== session.user.id)
+      .map(member => ({ user_id: member.user_id, content, is_read: false, type: 'community_profile' }));
+    if (notifications.length) {
+      const { error } = await supabase.from('notifications').insert(notifications);
+      if (error) console.error('Could not notify community members', error);
+    }
   };
 
   const handleDeleteCommunity = async (communityId, e) => {
@@ -974,12 +1016,22 @@ export default function Explore() {
                       onChange={e => {
                         setChatInput(e.target.value);
                         if (!chatChannelReadyRef.current) return;
-                        chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload: {
+                        const payload = {
                           userId: session?.user?.id,
                           name: userProfile?.name || userProfile?.username || 'Member',
                           username: userProfile?.username,
-                          avatarUrl: userProfile?.avatar_url
-                        } });
+                          avatarUrl: userProfile?.avatar_url,
+                          state: 'typing'
+                        };
+                        chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload });
+                        window.clearTimeout(typingStopTimerRef.current);
+                        typingStopTimerRef.current = window.setTimeout(() => {
+                          chatChannelRef.current?.send({
+                            type: 'broadcast',
+                            event: 'typing',
+                            payload: { ...payload, state: 'stopped' }
+                          });
+                        }, 1200);
                       }}
                       placeholder="Ask for a PDF, link, or question paper..."
                       className="app-input flex-1"
