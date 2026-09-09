@@ -9,6 +9,7 @@ import Profile from './screens/Profile';
 import Explore from './screens/Explore';
 import UserSearch from './screens/UserSearch';
 import { AppProvider, useAppContext } from './context/AppContext';
+import { NotificationsProvider } from './context/NotificationsContext';
 
 class ErrorBoundary extends React.Component {
   constructor(props) {
@@ -73,16 +74,16 @@ function AppRoutes() {
   );
 }
 
-
 function App() {
   return (
     <ErrorBoundary>
       <AppProvider>
-        <ToastContainer />
+        <NotificationsProvider>
+          <ToastContainer />
           <BrowserRouter>
             <AppRoutes />
           </BrowserRouter>
-        
+        </NotificationsProvider>
       </AppProvider>
     </ErrorBoundary>
   );
