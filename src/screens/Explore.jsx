@@ -91,8 +91,36 @@ export default function Explore() {
           }
         })
         .subscribe();
+
+      const communityChannel = supabase.channel(`community_directory_${session.user.id}_${Date.now()}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'communities' }, () => {
+          loadCommunities();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'communities' }, payload => {
+          setCommunities(prev => prev.map(community => (
+            community.id === payload.new.id ? { ...community, ...payload.new } : community
+          )));
+          setSelectedCommunity(prev => (
+            prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev
+          ));
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'communities' }, payload => {
+          setCommunities(prev => prev.filter(community => community.id !== payload.old.id));
+          setSelectedCommunity(prev => prev?.id === payload.old.id ? null : prev);
+        })
+        .subscribe();
+
+      // Realtime is preferred, but this also covers clients that temporarily
+      // lose their channel or have not enabled the table in the publication.
+      const communitySyncTimer = window.setInterval(() => loadCommunities(), 5000);
         
-      return () => { memberChannel.unsubscribe(); supabase.removeChannel(memberChannel); };
+      return () => {
+        window.clearInterval(communitySyncTimer);
+        memberChannel.unsubscribe();
+        communityChannel.unsubscribe();
+        supabase.removeChannel(memberChannel);
+        supabase.removeChannel(communityChannel);
+      };
     }
   }, [session, userProfile]);
 
@@ -145,10 +173,6 @@ export default function Explore() {
               if (sender) setChatProfiles(prev => ({ ...prev, [sender.id]: sender }));
             }
             setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
-          })
-          .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'communities', filter: `id=eq.${selectedCommunity.id}` }, payload => {
-            setSelectedCommunity(prev => ({ ...prev, ...payload.new }));
-            setCommunities(prev => prev.map(community => community.id === payload.new.id ? { ...community, ...payload.new } : community));
           })
           .subscribe(status => {
             chatChannelReadyRef.current = status === 'SUBSCRIBED';
@@ -504,7 +528,7 @@ export default function Explore() {
     if (!file) return;
     setIsSavingInfo(true);
     try {
-      const fileName = `avatar_${selectedCommunity.id}_${Math.random()}.jpg`;
+      const fileName = `avatar_${selectedCommunity.id}_${crypto.randomUUID()}.jpg`;
       const { error: uploadError } = await supabase.storage.from('uploads').upload(`community_avatars/${fileName}`, file, { contentType: 'image/jpeg' });
       if (uploadError) throw uploadError;
       
@@ -512,9 +536,13 @@ export default function Explore() {
       const { error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id);
       if (error) throw error;
       
-      const updated = { ...selectedCommunity, avatar_url: publicUrl };
-      setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
-      setSelectedCommunity(updated);
+      setCommunities(prev => prev.map(community => (
+        community.id === selectedCommunity.id ? { ...community, avatar_url: publicUrl } : community
+      )));
+      setSelectedCommunity(prev => prev?.id === selectedCommunity.id
+        ? { ...prev, avatar_url: publicUrl }
+        : prev);
+      toast('Group photo updated');
     } catch(err) { toast(err.message); }
     setIsSavingInfo(false);
   };
