@@ -118,7 +118,12 @@ export default function Explore() {
           .subscribe();
         chatChannelRef.current = channel;
           
-        return () => { chatChannelRef.current = null; supabase.removeChannel(channel); };
+        const syncTimer = window.setInterval(() => loadChatMessages(selectedCommunity.id), 3000);
+        return () => {
+          window.clearInterval(syncTimer);
+          chatChannelRef.current = null;
+          supabase.removeChannel(channel);
+        };
       }
     }
   }, [selectedCommunity, myMemberships, isAdmin]);
@@ -243,18 +248,29 @@ export default function Explore() {
     const content = chatInput.trim();
     if (!content || !selectedCommunity || isSendingChat) return;
     setIsSendingChat(true);
-    const { data, error } = await supabase.from('community_messages').insert([{
+    const optimisticId = `pending-${crypto.randomUUID()}`;
+    const optimisticMessage = {
+      id: optimisticId,
+      community_id: selectedCommunity.id,
+      user_id: session.user.id,
+      content,
+      created_at: new Date().toISOString(),
+      pending: true
+    };
+    setChatMessages(prev => [...prev, optimisticMessage]);
+    setChatProfiles(prev => ({ ...prev, [session.user.id]: userProfile }));
+    setChatInput('');
+    const { error } = await supabase.from('community_messages').insert([{
       community_id: selectedCommunity.id,
       user_id: session.user.id,
       content
-    }]).select().single();
+    }]);
     if (error) {
+      setChatMessages(prev => prev.filter(message => message.id !== optimisticId));
       if (error.code === 'PGRST205') toast('Community chat needs the Supabase table setup shown in the deployment notes.', 'error');
       else toast(`Could not send message: ${error.message}`, 'error');
-    } else if (data) {
-      setChatMessages(prev => prev.some(message => message.id === data.id) ? prev : [...prev, data]);
-      setChatProfiles(prev => ({ ...prev, [session.user.id]: userProfile }));
-      setChatInput('');
+    } else {
+      await loadChatMessages(selectedCommunity.id);
       const { data: members } = await supabase
         .from('community_members')
         .select('user_id')
@@ -470,9 +486,7 @@ export default function Explore() {
   };
 
   const handleLeaveCommunity = async () => {
-    if (!selectedCommunity || !session?.user?.id || selectedCommunity.created_by === session.user.id) {
-      return toast('The group owner must transfer ownership before leaving.');
-    }
+    if (!selectedCommunity || !session?.user?.id) return;
     if (!window.confirm(`Leave ${selectedCommunity.name}?`)) return;
     const { error } = await supabase.from('community_members')
       .delete()
@@ -842,22 +856,37 @@ export default function Explore() {
                         <p className="font-bold text-header">Start the group conversation</p>
                         <p className="mt-1">Ask for PDFs, links, or question papers.</p>
                       </div>
-                    ) : chatMessages.map(message => (
-                      <div key={message.id} className={`flex ${message.user_id === session?.user?.id ? 'justify-end' : 'justify-start'}`}>
-                        <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${message.user_id === session?.user?.id ? 'bg-primary text-white rounded-br-sm' : 'bg-surface border border-primary/10 text-header rounded-bl-sm'}`}>
+                    ) : chatMessages.map(message => {
+                      const sender = chatProfiles[message.user_id];
+                      const isMine = message.user_id === session?.user?.id;
+                      return (
+                      <div key={message.id} className={`flex items-end gap-2 ${isMine ? 'justify-end' : 'justify-start'}`}>
+                        {!isMine && (
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                            {sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={15} className="text-primary" />}
+                          </div>
+                        )}
+                        <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${isMine ? 'bg-primary text-white rounded-br-sm' : 'bg-surface border border-primary/10 text-header rounded-bl-sm'} ${message.pending ? 'opacity-70' : ''}`}>
                           <p className="mb-1 text-[11px] font-black opacity-80">
-                            {chatProfiles[message.user_id]?.name || chatProfiles[message.user_id]?.username || 'Member'}
-                            {chatProfiles[message.user_id]?.name && chatProfiles[message.user_id]?.username
-                              ? ` · @${chatProfiles[message.user_id].username}`
+                            {sender?.name || sender?.username || 'Member'}
+                            {sender?.name && sender?.username
+                              ? ` · @${sender.username}`
                               : ''}
                           </p>
                           <p>{message.content}</p>
                           <time className="block mt-1 text-[10px] opacity-60">
                             {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {message.pending ? ' · Sending…' : ''}
                           </time>
                         </div>
+                        {isMine && (
+                          <div className="w-8 h-8 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                            {sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={15} className="text-primary" />}
+                          </div>
+                        )}
                       </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {Object.keys(typingUsers).length > 0 && (
                     <div className="px-4 pb-1 text-xs text-body flex items-center gap-1">
@@ -1102,7 +1131,7 @@ export default function Explore() {
             </div>
             
             <button aria-label="Close" onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
-            {!isCommunityAdmin && (
+            {isCurrentMember && (
               <button onClick={handleLeaveCommunity} className="w-full py-2 mt-2 rounded-xl border border-red-200 text-red-500 font-bold text-sm">
                 Leave group
               </button>
@@ -1265,7 +1294,7 @@ export default function Explore() {
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Users size={16} /></div>
                     View all Members
                   </button>
-                  {!isCommunityAdmin && (
+                  {isCurrentMember && (
                     <button onClick={handleLeaveCommunity} className="w-full p-3 rounded-2xl border border-red-200 text-red-500 font-bold text-sm hover:bg-red-50">
                       Leave group
                     </button>
