@@ -12,6 +12,7 @@ export default function StudyTracker() {
   const [goal, setGoal] = useState(() => Number(localStorage.getItem('maxe_daily_goal')) || 120);
   const [reminder, setReminder] = useState(() => localStorage.getItem('maxe_study_reminder') || '22:00');
   const [loading, setLoading] = useState(true);
+  const [activeTab, setActiveTab] = useState('overview');
   const [roadmap, setRoadmap] = useState(() => JSON.parse(localStorage.getItem('maxe_roadmap') || '[]'));
   const [newSubject, setNewSubject] = useState('');
   const [newUnit, setNewUnit] = useState('');
@@ -186,7 +187,20 @@ export default function StudyTracker() {
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><BarChart3 size={23} /></div>
       </header>
 
-      
+      <nav className="card p-1 flex gap-1 overflow-x-auto">
+        {[
+          ['overview', 'Overview', BarChart3],
+          ['roadmap', 'Semester roadmap', Target],
+          ['rival', 'Rival mode', GitCompareArrows],
+          ['audio', 'Audiobook mode', Headphones]
+        ].map(([id, label, Icon]) => (
+          <button key={id} onClick={() => setActiveTab(id)} className={`flex-1 min-w-max rounded-xl px-3 py-2.5 text-xs font-bold flex items-center justify-center gap-2 ${activeTab === id ? 'bg-primary text-white' : 'text-body hover:bg-primary/5'}`}>
+            <Icon size={15} />{label}
+          </button>
+        ))}
+      </nav>
+
+      {activeTab === 'roadmap' && (
         <section className="space-y-5">
           <div className="card p-5"><h2 className="text-xl font-black text-header">Semester roadmap</h2><p className="text-sm text-body mt-1">Break each subject into units and mark chapters as you finish them.</p>
             <form onSubmit={addRoadmapItem} className="grid md:grid-cols-[1fr_1fr_auto] gap-2 mt-4">
@@ -197,12 +211,17 @@ export default function StudyTracker() {
           </div>
           {roadmap.length === 0 ? <div className="card p-8 text-center text-sm text-body">Add your first subject to start building the semester map.</div> : <div className="grid md:grid-cols-2 gap-3">{roadmap.map(item => { const percent = item.chapters ? Math.round((item.completed / item.chapters) * 100) : 0; return <div className="card p-4" key={item.id}><div className="flex justify-between gap-2"><div><p className="font-black text-header">{item.subject}</p><p className="text-xs text-primary font-bold mt-1">{item.unit}</p></div><button onClick={() => removeRoadmapItem(item.id)} className="text-body hover:text-red-500"><Trash2 size={15} /></button></div><div className="flex items-center gap-2 mt-4"><input type="number" min="1" max="100" value={item.chapters || ''} placeholder="Chapters" onChange={e => saveRoadmap(roadmap.map(row => row.id === item.id ? { ...row, chapters: Math.max(0, Number(e.target.value)) } : row))} className="app-input py-1.5 w-24" /><button onClick={() => toggleChapter(item.id)} className="btn-outline flex-1 text-left">Mark next chapter complete</button></div><div className="h-2 rounded-full bg-primary/10 mt-4 overflow-hidden"><div className="h-full rounded-full bg-primary" style={{ width: `${percent}%` }} /></div><p className="text-xs text-body mt-2">{item.completed}/{item.chapters || 0} chapters · {percent}% complete</p></div>; })}</div>}
         </section>
+      )}
 
+      {activeTab === 'rival' && (
         <section className="card p-5 space-y-5"><div><h2 className="text-xl font-black text-header">Weekly Rival mode</h2><p className="text-sm text-body mt-1">Choose one friend and compare focus time for the current week. Nothing is public until you opt in.</p></div><form onSubmit={findRival} className="flex gap-2"><input className="app-input flex-1" placeholder="Friend's username" value={rivalUsername} onChange={e => setRivalUsername(e.target.value)} /><button className="btn-primary">Find rival</button></form>{rivalStatus && <p className="text-xs text-body">{rivalStatus}</p>}{rival && <div className="grid md:grid-cols-2 gap-3"><div className="rounded-2xl bg-primary/5 p-5 text-center"><p className="text-xs uppercase font-bold text-primary">You</p><p className="text-3xl font-black text-header mt-2">{formatMinutes(stats.total)}</p><p className="text-xs text-body">Last 90 days</p></div><div className="rounded-2xl bg-orange-500/5 p-5 text-center"><p className="text-xs uppercase font-bold text-orange-600">{rival.name || `@${rival.username}`}</p><p className="text-3xl font-black text-header mt-2">{formatMinutes(rivalMinutes)}</p><p className="text-xs text-body">This week</p></div></div>}</section>
+      )}
 
+      {activeTab === 'audio' && (
         <section className="card p-5 space-y-4"><div><h2 className="text-xl font-black text-header">Audiobook mode</h2><p className="text-sm text-body mt-1">Upload a PDF or paste notes and listen while commuting.</p></div><input type="file" accept="application/pdf" onChange={handleAudioPdf} className="app-input text-sm" /><textarea className="app-input min-h-48 resize-y" placeholder="Paste notes, PDF text, or copied AI chat here..." value={audioText} onChange={e => setAudioText(e.target.value)} /><div className="flex flex-wrap gap-2"><button onClick={speak} className="btn-primary flex items-center gap-2"><Play size={15} /> Read aloud</button>{audioState === 'playing' ? <button onClick={pauseAudio} className="btn-outline flex items-center gap-2"><Pause size={15} /> Pause</button> : audioState === 'paused' ? <button onClick={resumeAudio} className="btn-outline flex items-center gap-2"><Play size={15} /> Resume</button> : null}<button onClick={stopAudio} className="btn-outline flex items-center gap-2"><Square size={13} /> Stop</button></div><p className="text-xs text-body">PDF text is extracted locally in your browser.</p></section>
+      )}
 
-      <><section className="card p-5 grid md:grid-cols-[1fr_auto] gap-5 items-center overflow-hidden relative">
+      {activeTab === 'overview' && <><section className="card p-5 grid md:grid-cols-[1fr_auto] gap-5 items-center overflow-hidden relative">
         <div className="relative z-10">
           <p className="text-xs uppercase tracking-widest font-bold text-primary">Today’s focus</p>
           <div className="flex items-end gap-2 mt-2"><span className="text-5xl font-black text-header">{formatMinutes(stats.today)}</span><span className="text-sm text-body mb-2">/ {formatMinutes(goal)}</span></div>
@@ -219,9 +238,9 @@ export default function StudyTracker() {
           [BookOpen, 'PDF study', formatMinutes(stats.totals.pdf), 'text-sky-600'],
           [BrainCircuit, 'AI revision', formatMinutes(stats.totals.ai_chat), 'text-violet-600']
         ].map(([Icon, label, value, color]) => <div className="card p-4" key={label}><Icon size={18} className={color} /><p className="text-[10px] uppercase tracking-wider font-bold text-body mt-3">{label}</p><p className="text-lg font-black text-header mt-1">{value}</p></div>)}
-      </section></>
+      </section></>}
 
-      <section className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
+      {activeTab === 'overview' && <section className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
         <div className="card p-5">
           <div className="flex justify-between items-center"><div><h2 className="font-black text-header">Consistency map</h2><p className="text-xs text-body mt-1">Your last 90 study days</p></div>{loading && <span className="text-xs text-primary">Syncing</span>}</div>
           <div className="grid gap-1 mt-5" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>{Array.from({ length: 90 }, (_, index) => { const day = new Date(); day.setDate(day.getDate() - (89 - index)); const value = stats.days[day.toISOString().slice(0, 10)] || 0; return <span key={index} className="aspect-square rounded-[3px]" title={`${value} minutes`} style={{ background: value ? `color-mix(in srgb, var(--theme-primary) ${Math.min(90, 20 + value / 3)}%, var(--theme-bg))` : 'var(--theme-bg)' }} />; })}</div>
@@ -233,7 +252,7 @@ export default function StudyTracker() {
           <label className="block"><span className="text-xs font-bold text-body flex items-center gap-1"><Bell size={13} /> Reminder time</span><input className="app-input mt-2" type="time" value={reminder} onChange={async e => { setReminder(e.target.value); localStorage.setItem('maxe_study_reminder', e.target.value); if ('Notification' in window && Notification.permission === 'default') await Notification.requestPermission(); }} /></label>
           <div className="rounded-xl bg-primary/5 p-3 text-xs text-body flex gap-2"><CalendarDays size={15} className="text-primary shrink-0" /> Use this goal for exam preparation, revision blocks, and weekly planning.</div>
         </div>
-      </section>
+      </section>}
     </div>
   );
 }

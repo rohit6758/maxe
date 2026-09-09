@@ -25,6 +25,7 @@ export default function Explore() {
   const [typingUsers, setTypingUsers] = useState({});
   const chatChannelRef = useRef(null);
   const typingTimerRef = useRef(null);
+  const chatInputRef = useRef(null);
   const [myMemberships, setMyMemberships] = useState({});
 
   // Modals / Forms
@@ -121,6 +122,12 @@ export default function Explore() {
       }
     }
   }, [selectedCommunity, myMemberships, isAdmin]);
+
+  useEffect(() => {
+    if (selectedCommunity && communityView === 'chat') {
+      window.requestAnimationFrame(() => chatInputRef.current?.focus());
+    }
+  }, [selectedCommunity, communityView]);
 
   useEffect(() => {
     if (selectedCommunity && !isCurrentMember) {
@@ -412,10 +419,11 @@ export default function Explore() {
     }
     setIsSavingInfo(true);
     try {
-      const { data, error } = await supabase.from('communities').update({ name: editCommunityName.trim() }).eq('id', selectedCommunity.id).select().single();
+      const { error } = await supabase.from('communities').update({ name: editCommunityName.trim() }).eq('id', selectedCommunity.id);
       if (error) throw error;
-      setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
-      setSelectedCommunity(data);
+      const updated = { ...selectedCommunity, name: editCommunityName.trim() };
+      setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
+      setSelectedCommunity(updated);
       setIsEditingName(false);
     } catch(e) { toast(e.message); }
     setIsSavingInfo(false);
@@ -440,11 +448,12 @@ export default function Explore() {
       if (uploadError) throw uploadError;
       
       const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(`community_avatars/${fileName}`);
-      const { data, error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id).select().single();
+      const { error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id);
       if (error) throw error;
       
-      setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
-      setSelectedCommunity(data);
+      const updated = { ...selectedCommunity, avatar_url: publicUrl };
+      setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
+      setSelectedCommunity(updated);
     } catch(err) { toast(err.message); }
     setIsSavingInfo(false);
   };
@@ -826,7 +835,7 @@ export default function Explore() {
 
               {communityView === 'chat' ? (
                 <div className="flex-1 min-h-0 flex flex-col">
-                  <div className="flex-1 overflow-y-auto p-4 space-y-3">
+                  <div className="flex-1 overflow-y-auto p-4 pb-24 space-y-3">
                     {chatMessages.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center text-body text-sm">
                         <MessageSquare size={32} className="mb-3 text-primary/50" />
@@ -856,8 +865,9 @@ export default function Explore() {
                       {Object.values(typingUsers).join(', ')} typing
                     </div>
                   )}
-                  <form onSubmit={sendChatMessage} className="p-3 bg-surface border-t border-primary/10 flex gap-2">
+                  <form onSubmit={sendChatMessage} className="sticky bottom-0 z-20 p-3 bg-surface border-t border-primary/10 flex gap-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
                     <input
+                      ref={chatInputRef}
                       value={chatInput}
                       onChange={e => {
                         setChatInput(e.target.value);
@@ -1092,6 +1102,11 @@ export default function Explore() {
             </div>
             
             <button aria-label="Close" onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
+            {!isCommunityAdmin && (
+              <button onClick={handleLeaveCommunity} className="w-full py-2 mt-2 rounded-xl border border-red-200 text-red-500 font-bold text-sm">
+                Leave group
+              </button>
+            )}
           </div>
         </div>
       )}
