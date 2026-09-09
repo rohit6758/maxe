@@ -345,21 +345,6 @@ export default function Explore() {
       else toast(`Could not send message: ${error.message}`, 'error');
     } else {
       await loadChatMessages(selectedCommunity.id);
-      const { data: members } = await supabase
-        .from('community_members')
-        .select('user_id')
-        .eq('community_id', selectedCommunity.id);
-      const notifications = (members || [])
-        .filter(member => member.user_id !== session.user.id)
-        .map(member => ({
-          user_id: member.user_id,
-          content: `@${userProfile?.username || 'someone'} sent a message in ${selectedCommunity.name}`,
-          is_read: false
-        }));
-      if (notifications.length > 0) {
-        const { error: notificationError } = await supabase.from('notifications').insert(notifications);
-        if (notificationError) console.error('Failed to notify community members', notificationError);
-      }
     }
     setIsSendingChat(false);
   };
@@ -473,20 +458,6 @@ export default function Explore() {
 
       if (error) throw error;
       
-      try {
-        const { data: mems } = await supabase.from('community_members').select('user_id').eq('community_id', selectedCommunity.id);
-        if (mems) {
-          const notifs = mems.filter(m => m.user_id !== session.user.id).map(m => ({
-            user_id: m.user_id,
-            content: `@${userProfile?.username || 'someone'} posted new material in ${selectedCommunity.name}`,
-            is_read: false
-          }));
-          if (notifs.length > 0) {
-            const { error: notificationError } = await supabase.from('notifications').insert(notifs);
-            if (notificationError) throw notificationError;
-          }
-        }
-      } catch (e) { console.error("Notification failed", e); }
       setShowShareModal(false);
       setShareData({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
     } catch (err) {
@@ -514,7 +485,6 @@ export default function Explore() {
       const updated = { ...selectedCommunity, name: editCommunityName.trim() };
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
       setSelectedCommunity(updated);
-      await notifyCommunityMembers(`@${userProfile?.username || 'someone'} updated the group profile in ${updated.name}`);
       setIsEditingName(false);
     } catch(e) { toast(e.message); }
     setIsSavingInfo(false);
@@ -545,28 +515,8 @@ export default function Explore() {
       const updated = { ...selectedCommunity, avatar_url: publicUrl };
       setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
       setSelectedCommunity(updated);
-      await notifyCommunityMembers(`@${userProfile?.username || 'someone'} updated the group profile in ${updated.name}`);
     } catch(err) { toast(err.message); }
     setIsSavingInfo(false);
-  };
-
-  const notifyCommunityMembers = async (content) => {
-    if (!selectedCommunity || !session?.user?.id) return;
-    const { data: members, error: membersError } = await supabase
-      .from('community_members')
-      .select('user_id')
-      .eq('community_id', selectedCommunity.id);
-    if (membersError) {
-      console.error('Could not load community members for notification', membersError);
-      return;
-    }
-    const notifications = (members || [])
-      .filter(member => member.user_id !== session.user.id)
-      .map(member => ({ user_id: member.user_id, content, is_read: false, type: 'community_profile' }));
-    if (notifications.length) {
-      const { error } = await supabase.from('notifications').insert(notifications);
-      if (error) console.error('Could not notify community members', error);
-    }
   };
 
   const handleDeleteCommunity = async (communityId, e) => {

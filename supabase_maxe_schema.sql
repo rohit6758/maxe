@@ -84,3 +84,98 @@ begin
     alter publication supabase_realtime add table public.communities;
   end if;
 end $$;
+
+-- Database-side notification delivery. These triggers work even when the
+-- browser is backgrounded or a client-side insert is skipped.
+create or replace function public.maxe_notify_follow()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, content, is_read, type)
+  values (
+    new.following_id,
+    new.follower_id,
+    coalesce((select '@' || username from public.profiles where id = new.follower_id), '@someone') || ' sent you a friend request',
+    false,
+    'follow'
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_follow on public.follows;
+create trigger maxe_notify_follow
+after insert on public.follows
+for each row execute function public.maxe_notify_follow();
+
+create or replace function public.maxe_notify_community_message()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
+  select member.user_id, new.user_id, new.community_id::text,
+    coalesce((select '@' || username from public.profiles where id = new.user_id), '@someone') ||
+      ' sent a message in ' || coalesce((select name from public.communities where id = new.community_id), 'your group'),
+    false, 'community_message'
+  from public.community_members member
+  where member.community_id = new.community_id and member.user_id <> new.user_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_community_message on public.community_messages;
+create trigger maxe_notify_community_message
+after insert on public.community_messages
+for each row execute function public.maxe_notify_community_message();
+
+create or replace function public.maxe_notify_community_post()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
+  select member.user_id, new.user_id, new.community_id::text,
+    coalesce((select '@' || username from public.profiles where id = new.user_id), '@someone') ||
+      ' posted new material in ' || coalesce((select name from public.communities where id = new.community_id), 'your group'),
+    false, 'community_post'
+  from public.community_members member
+  where member.community_id = new.community_id and member.user_id <> new.user_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_community_post on public.community_posts;
+create trigger maxe_notify_community_post
+after insert on public.community_posts
+for each row execute function public.maxe_notify_community_post();
+
+create or replace function public.maxe_notify_community_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
+  select member.user_id, auth.uid(), new.id::text,
+    coalesce((select '@' || username from public.profiles where id = auth.uid()), '@someone') ||
+      ' updated the group profile in ' || new.name,
+    false, 'community_profile'
+  from public.community_members member
+  where member.community_id = new.id and member.user_id <> auth.uid();
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_community_update on public.communities;
+create trigger maxe_notify_community_update
+after update of name, avatar_url on public.communities
+for each row execute function public.maxe_notify_community_update();

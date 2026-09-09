@@ -113,12 +113,6 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     } else {
       const { error: followError } = await supabase.from('follows').insert([{ follower_id: currentUserId, following_id: userId }]);
       if (followError) throw followError;
-      const { error: notificationError } = await supabase.from('notifications').insert([{
-        user_id: userId,
-        content: `@${profile?.username || 'someone'} sent you a friend request`,
-        is_read: false
-      }]);
-      if (notificationError) console.error('Notification failed', notificationError);
       setIsFollowing(true);
       setFollowerCount(prev => prev + 1);
       if (onFollowChange) onFollowChange(userId, true);

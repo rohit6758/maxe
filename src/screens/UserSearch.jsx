@@ -130,15 +130,11 @@ export default function UserSearch() {
       await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
       setFollowingMap(prev => ({ ...prev, [userId]: false }));
     } else {
-      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
-      try {
-        const { error: notificationError } = await supabase.from('notifications').insert([{
-          user_id: userId, 
-          content: `@${userProfile?.username || 'someone'} sent you a friend request`,
-          is_read: false
-        }]);
-        if (notificationError) throw notificationError;
-      } catch (e) { console.error("Notification failed", e); }
+      const { error: followError } = await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      if (followError) {
+        console.error('Follow failed', followError);
+        return;
+      }
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
     }
   };

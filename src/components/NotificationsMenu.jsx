@@ -19,7 +19,11 @@ export default function NotificationsMenu() {
         .order('created_at', { ascending: false })
         .limit(20);
         
-      if (error && error.code !== 'PGRST205') throw error;
+      if (error && error.code !== 'PGRST205') {
+        console.error('Notifications query failed', error);
+        toast(`Notifications unavailable: ${error.message}`);
+        return;
+      }
       if (data) {
         const unread = data.filter(n => !n.is_read);
         setNotifications(unread);
