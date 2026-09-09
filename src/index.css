@@ -1,5 +1,14 @@
 @import "tailwindcss";
 
+html, body {
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+}
+
+button, a, input, textarea, select {
+  -webkit-tap-highlight-color: transparent;
+}
+
 :root {
   /* Default — Mint + Forest Green */
   --theme-bg: #EAF5EF;         /* mint cream page bg */

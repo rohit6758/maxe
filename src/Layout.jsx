@@ -150,6 +150,16 @@ export default function Layout() {
           </button>
           <h1 className="font-black text-lg" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
           <div className="flex items-center gap-1">
+            {installPrompt && (
+              <button
+                onClick={handleInstall}
+                aria-label="Install Maxe app"
+                className="p-2 rounded-xl"
+                style={{ color: 'var(--theme-primary)' }}
+              >
+                <Download size={20} />
+              </button>
+            )}
             <button onClick={() => setIsTodoOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-primary)' }}>
               <CheckSquare size={20} />
             </button>
@@ -183,7 +193,7 @@ export default function Layout() {
           </Link>
         </header>
 
-        <main className="app-content flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
+        <main className="app-content flex-1 p-4 md:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-8">
           {/* Offline Banner */}
           {!isOnline && (
             <div className="sticky top-0 z-50 bg-yellow-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
@@ -194,7 +204,7 @@ export default function Layout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="maxe-mobile-nav md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30"
+        <nav className="maxe-mobile-nav md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center min-h-[56px] h-[calc(56px+env(safe-area-inset-bottom))] px-2 pb-[env(safe-area-inset-bottom)] z-30"
           style={{ background: 'var(--theme-sidebar)', boxShadow: '0 -1px 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
           {[
             { to: '/', icon: <LayoutGrid size={22} strokeWidth={2.5} />, label: 'Home' },
