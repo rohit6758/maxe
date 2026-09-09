@@ -54,6 +54,7 @@ export default function StudyTracker() {
       await supabase.from('notifications').insert([{
         user_id: session.user.id,
         content: `Study reminder: your ${goal}-minute focus goal is waiting.`,
+        type: 'study',
         is_read: false
       }]);
     };

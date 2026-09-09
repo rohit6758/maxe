@@ -55,16 +55,42 @@ export default function NotificationsMenu() {
   );
   const [banner, setBanner] = useState(null);
   const bannerTimerRef = useRef(null);
+  const seenNotificationIdsRef = useRef(new Set());
 
   const requestPhoneNotifications = async () => {
     if (typeof Notification === 'undefined') {
       toast('Phone notifications are not supported by this browser');
       return;
     }
-    const permission = await Notification.requestPermission();
-    setNotificationPermission(permission);
-    if (permission === 'granted') toast('Phone notifications enabled');
-    else if (permission === 'denied') toast('Notifications are blocked in this device settings', 'error');
+    try {
+      const permission = await Notification.requestPermission();
+      setNotificationPermission(permission);
+      if (permission === 'granted') toast('Phone notifications enabled');
+      else if (permission === 'denied') toast('Notifications are blocked in this device settings', 'error');
+    } catch (error) {
+      console.error('Notification permission request failed', error);
+      toast('Could not request phone notification permission', 'error');
+    }
+  };
+
+  const showDeviceNotification = async (notification) => {
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    try {
+      if ('serviceWorker' in navigator) {
+        const registration = await navigator.serviceWorker.ready;
+        await registration.showNotification('Maxe', {
+          body: notification.content,
+          icon: '/icon-192x192.png',
+          badge: '/icon-96x96.png',
+          tag: `maxe-${notification.id}`,
+          data: { url: notification.url || '/' }
+        });
+      } else {
+        new Notification('Maxe', { body: notification.content, tag: `maxe-${notification.id}` });
+      }
+    } catch (error) {
+      console.error('Device notification display failed', error);
+    }
   };
 
   const fetchNotifications = useCallback(async () => {
@@ -83,6 +109,7 @@ export default function NotificationsMenu() {
       }
       if (data) {
         const unread = data.filter(n => !n.is_read);
+        data.forEach(notification => seenNotificationIdsRef.current.add(notification.id));
         setNotifications(data);
         setUnreadCount(unread.length);
       }
@@ -111,13 +138,16 @@ export default function NotificationsMenu() {
       filter: `user_id=eq.${session.user.id}`
     }, payload => {
       if (payload.eventType === 'INSERT' && !payload.new.is_read) {
-        setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
-        setUnreadCount(prev => prev + 1);
-        setBanner(payload.new);
-        window.clearTimeout(bannerTimerRef.current);
-        bannerTimerRef.current = window.setTimeout(() => setBanner(null), 4000);
-        if (typeof Notification !== 'undefined' && Notification.permission === 'granted' && document.visibilityState !== 'visible') {
-          new Notification('Maxe', { body: payload.new.content, tag: `maxe-${payload.new.id}` });
+        if (!seenNotificationIdsRef.current.has(payload.new.id)) {
+          seenNotificationIdsRef.current.add(payload.new.id);
+          setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
+          setUnreadCount(prev => prev + 1);
+          setBanner(payload.new);
+          window.clearTimeout(bannerTimerRef.current);
+          bannerTimerRef.current = window.setTimeout(() => setBanner(null), 4000);
+          if (document.visibilityState !== 'visible') {
+            showDeviceNotification(payload.new);
+          }
         }
       } else if (payload.eventType === 'UPDATE') {
         if (payload.new.is_read) {
@@ -150,8 +180,13 @@ export default function NotificationsMenu() {
     try {
       const { error } = await supabase.from('notifications').update({ is_read: true }).eq('id', id);
       if (error) throw error;
-      setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n));
-      setUnreadCount(prev => Math.max(0, prev - 1));
+      setNotifications(prev => {
+        const notification = prev.find(item => item.id === id);
+        if (notification && !notification.is_read) {
+          setUnreadCount(count => Math.max(0, count - 1));
+        }
+        return prev.map(n => n.id === id ? { ...n, is_read: true } : n);
+      });
     } catch (e) {
       console.error('Failed to mark notification as read', e);
       toast('Could not update notification');
@@ -177,8 +212,13 @@ export default function NotificationsMenu() {
       toast('Could not dismiss notification');
       return;
     }
-    setNotifications(prev => prev.filter(notification => notification.id !== id));
-    setUnreadCount(prev => Math.max(0, prev - 1));
+    setNotifications(prev => {
+      const removed = prev.find(notification => notification.id === id);
+      if (removed && !removed.is_read) {
+        setUnreadCount(count => Math.max(0, count - 1));
+      }
+      return prev.filter(notification => notification.id !== id);
+    });
   };
 
   const groupedNotifications = groupNotifications(notifications);

@@ -30,7 +30,13 @@ export default function CalendarModal({ onClose }) {
         if ('Notification' in window && Notification.permission === 'granted') {
           new Notification(event.title, { body: `Your ${event.type} is scheduled now.` });
         }
-        await supabase.from('notifications').insert([{ user_id: session.user.id, content: `Reminder: ${event.title}`, is_read: false }]);
+        const { error } = await supabase.from('notifications').insert([{
+          user_id: session.user.id,
+          content: `Reminder: ${event.title}`,
+          type: 'calendar',
+          is_read: false
+        }]);
+        if (error) console.error('Calendar notification failed', error);
       }
     };
     const timer = window.setInterval(checkReminders, 60000);

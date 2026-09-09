@@ -666,8 +666,12 @@ export default function Explore() {
     try {
       await supabase.from('community_members').insert([{ community_id: req.community_id, user_id: req.user_id, role: 'member' }]);
       await supabase.from('community_requests').update({ status: 'accepted' }).eq('id', req.id);
-      // Notify the user
-      try { await supabase.from('notifications').insert([{ user_id: req.user_id, content: `Your request to join ${selectedCommunity?.name} was accepted! 🎉` }]); } catch(e) {}
+      const { error: notificationError } = await supabase.from('notifications').insert([{
+        user_id: req.user_id,
+        content: `Your request to join ${selectedCommunity?.name} was accepted!`,
+        type: 'request'
+      }]);
+      if (notificationError) console.error('Request acceptance notification failed', notificationError);
       setCommunityRequests(prev => prev.filter(r => r.id !== req.id));
       toast('Request accepted!');
       openMembersModal(); // reload members
@@ -677,8 +681,12 @@ export default function Explore() {
   const handleRejectRequest = async (req) => {
     try {
       await supabase.from('community_requests').update({ status: 'rejected' }).eq('id', req.id);
-      // Notify the user
-      try { await supabase.from('notifications').insert([{ user_id: req.user_id, content: `Your request to join ${selectedCommunity?.name} was declined.` }]); } catch(e) {}
+      const { error: notificationError } = await supabase.from('notifications').insert([{
+        user_id: req.user_id,
+        content: `Your request to join ${selectedCommunity?.name} was declined.`,
+        type: 'request'
+      }]);
+      if (notificationError) console.error('Request rejection notification failed', notificationError);
       setCommunityRequests(prev => prev.filter(r => r.id !== req.id));
       toast('Request declined.');
     } catch (e) { toast(e.message, 'error'); }
@@ -739,11 +747,6 @@ export default function Explore() {
         console.error('Follow failed', followError);
         return;
       }
-      const { error: notificationError } = await supabase.from('notifications').insert([{
-        user_id: userId,
-        content: `@${userProfile?.username || 'someone'} sent you a friend request`
-      }]);
-      if (notificationError) console.error('Notification failed', notificationError);
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
     }
   };
