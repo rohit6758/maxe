@@ -49,19 +49,22 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     const { data: p } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (p) setProfile(p);
 
-    // Fetch counts
-    const { count: followers } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId);
-    const { count: following } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId);
+    // Fetch independent counts in parallel so the profile does not show stale zeros.
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', userId),
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', userId)
+    ]);
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
 
     // Check mutual following status
     if (currentUserId && currentUserId !== userId) {
-      const { data: f } = await supabase.from('follows').select('*').match({ follower_id: currentUserId, following_id: userId }).maybeSingle();
-      setIsFollowing(!!f);
-
-      const { data: fMe } = await supabase.from('follows').select('*').match({ follower_id: userId, following_id: currentUserId }).maybeSingle();
-      setIsFollowingMe(!!fMe);
+      const [{ data: f }, { data: fMe }] = await Promise.all([
+        supabase.from('follows').select('id').match({ follower_id: currentUserId, following_id: userId }).maybeSingle(),
+        supabase.from('follows').select('id').match({ follower_id: userId, following_id: currentUserId }).maybeSingle()
+      ]);
+      setIsFollowing(Boolean(f));
+      setIsFollowingMe(Boolean(fMe));
     }
     
     // Load my following map so we can show buttons in the lists

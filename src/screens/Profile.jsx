@@ -35,6 +35,7 @@ export default function Profile() {
 
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [followStatsLoading, setFollowStatsLoading] = useState(true);
   
   const [followingMap, setFollowingMap] = useState({});
   const [selectedUser, setSelectedUser] = useState(null); // For Profile Popup
@@ -68,10 +69,14 @@ export default function Profile() {
     setIsLoadingNetwork(false);
   };
 const loadFollowStats = async () => {
-    const { count: followers } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', session.user.id);
-    const { count: following } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', session.user.id);
+    setFollowStatsLoading(true);
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', session.user.id),
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', session.user.id)
+    ]);
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
+    setFollowStatsLoading(false);
   };
 
   const loadFollowingMap = async () => {
@@ -274,11 +279,11 @@ const loadFollowStats = async () => {
               <p className="text-xs font-semibold mt-0.5" style={{color:'var(--theme-body)'}}>{userProfile?.branch || ''}{userProfile?.college ? ` • ${userProfile.college}` : ''}</p>
               <div className="flex gap-4 mt-2">
                 <button onClick={() => openNetwork('followers')} className="flex items-center gap-1.5 hover:opacity-80">
-                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followerCount}</span>
+                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followStatsLoading ? '…' : followerCount}</span>
                   <span className="text-[10px] uppercase font-bold tracking-wider" style={{color:'var(--theme-body)'}}>Followers</span>
                 </button>
                 <button onClick={() => openNetwork('following')} className="flex items-center gap-1.5 hover:opacity-80">
-                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followingCount}</span>
+                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followStatsLoading ? '…' : followingCount}</span>
                   <span className="text-[10px] uppercase font-bold tracking-wider" style={{color:'var(--theme-body)'}}>Following</span>
                 </button>
               </div>

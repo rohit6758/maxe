@@ -20,6 +20,7 @@ alter table public.notifications add column if not exists entity_id text;
 alter table public.notifications add column if not exists url text;
 alter table public.notifications add column if not exists created_at timestamptz not null default now();
 create index if not exists notifications_user_created_idx on public.notifications(user_id, created_at desc);
+alter table public.notifications replica identity full;
 alter table public.notifications enable row level security;
 drop policy if exists "Maxe notifications read own" on public.notifications;
 create policy "Maxe notifications read own" on public.notifications for select to authenticated using (auth.uid() = user_id);
@@ -52,6 +53,7 @@ create table if not exists public.community_messages (
   created_at timestamptz not null default now()
 );
 create index if not exists community_messages_group_created_idx on public.community_messages(community_id, created_at);
+alter table public.community_messages replica identity full;
 alter table public.community_messages enable row level security;
 drop policy if exists "Maxe community messages read" on public.community_messages;
 create policy "Maxe community messages read" on public.community_messages for select to authenticated using (true);

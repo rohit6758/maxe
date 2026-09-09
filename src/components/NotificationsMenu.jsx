@@ -36,6 +36,9 @@ export default function NotificationsMenu() {
     // Initial fetch
     fetchNotifications();
     const poll = window.setInterval(fetchNotifications, 3000);
+    const refresh = () => { if (document.visibilityState === 'visible') fetchNotifications(); };
+    window.addEventListener('online', refresh);
+    document.addEventListener('visibilitychange', refresh);
 
     // Register one callback before subscribing. A unique name avoids reusing a
     // channel that React Strict Mode may still be removing.
@@ -68,6 +71,8 @@ export default function NotificationsMenu() {
 
     return () => {
       window.clearInterval(poll);
+      window.removeEventListener('online', refresh);
+      document.removeEventListener('visibilitychange', refresh);
       supabase.removeChannel(channel);
     };
   }, [session, fetchNotifications]);
