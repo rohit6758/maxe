@@ -71,7 +71,7 @@ self.addEventListener('push', event => {
   const title = data.title || 'Maxe - Study Hub';
   const options = {
     body: data.body || 'You have a new notification',
-    icon: '/icon-192x192.png',
+    icon: '/icon-96x96.png',
     badge: '/icon-96x96.png',
     data: { url: data.url || '/' },
     vibrate: [200, 100, 200],

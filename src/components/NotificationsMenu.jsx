@@ -80,7 +80,7 @@ export default function NotificationsMenu() {
         const registration = await navigator.serviceWorker.ready;
         await registration.showNotification('Maxe', {
           body: notification.content,
-          icon: '/icon-192x192.png',
+          icon: '/icon-96x96.png',
           badge: '/icon-96x96.png',
           tag: `maxe-${notification.id}`,
           data: { url: notification.url || '/' }
