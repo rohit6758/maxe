@@ -57,6 +57,16 @@ export default function NotificationsMenu() {
   const bannerTimerRef = useRef(null);
   const seenNotificationIdsRef = useRef(new Set());
 
+  const getNotificationSender = async (notification) => {
+    if (!notification.actor_id) return null;
+    const { data } = await supabase
+      .from('profiles')
+      .select('name, username')
+      .eq('id', notification.actor_id)
+      .maybeSingle();
+    return data || null;
+  };
+
   const requestPhoneNotifications = async () => {
     if (typeof Notification === 'undefined') {
       toast('Phone notifications are not supported by this browser');
@@ -73,20 +83,25 @@ export default function NotificationsMenu() {
     }
   };
 
-  const showDeviceNotification = async (notification) => {
+  const showDeviceNotification = async (notification, sender) => {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    const senderName = sender?.name || (sender?.username ? `@${sender.username}` : 'Maxe');
+    const title = sender ? senderName : getNotificationType(notification).label;
+    const body = sender?.username && sender.name
+      ? `@${sender.username}: ${notification.content}`
+      : notification.content;
     try {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification('Maxe', {
-          body: notification.content,
+        await registration.showNotification(title, {
+          body,
           icon: '/icon-96x96.png',
           badge: '/icon-96x96.png',
           tag: `maxe-${notification.id}`,
           data: { url: notification.url || '/' }
         });
       } else {
-        new Notification('Maxe', { body: notification.content, tag: `maxe-${notification.id}` });
+        new Notification(title, { body, tag: `maxe-${notification.id}` });
       }
     } catch (error) {
       console.error('Device notification display failed', error);
@@ -108,9 +123,23 @@ export default function NotificationsMenu() {
         return;
       }
       if (data) {
+        const actorIds = [...new Set(data.map(notification => notification.actor_id).filter(Boolean))];
+        let actorMap = {};
+        if (actorIds.length > 0) {
+          const { data: actors } = await supabase
+            .from('profiles')
+            .select('id, name, username')
+            .in('id', actorIds);
+          actorMap = Object.fromEntries((actors || []).map(actor => [actor.id, actor]));
+        }
+        const enrichedData = data.map(notification => ({
+          ...notification,
+          actor_name: actorMap[notification.actor_id]?.name,
+          actor_username: actorMap[notification.actor_id]?.username
+        }));
         const unread = data.filter(n => !n.is_read);
-        data.forEach(notification => seenNotificationIdsRef.current.add(notification.id));
-        setNotifications(data);
+        enrichedData.forEach(notification => seenNotificationIdsRef.current.add(notification.id));
+        setNotifications(enrichedData);
         setUnreadCount(unread.length);
       }
     } catch (e) {
@@ -142,12 +171,15 @@ export default function NotificationsMenu() {
           seenNotificationIdsRef.current.add(payload.new.id);
           setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
           setUnreadCount(prev => prev + 1);
-          setBanner(payload.new);
+          getNotificationSender(payload.new).then(sender => {
+            const enriched = sender ? { ...payload.new, actor_name: sender.name, actor_username: sender.username } : payload.new;
+            setBanner(enriched);
+            if (document.visibilityState !== 'visible') {
+              showDeviceNotification(payload.new, sender);
+            }
+          });
           window.clearTimeout(bannerTimerRef.current);
           bannerTimerRef.current = window.setTimeout(() => setBanner(null), 4000);
-          if (document.visibilityState !== 'visible') {
-            showDeviceNotification(payload.new);
-          }
         }
       } else if (payload.eventType === 'UPDATE') {
         if (payload.new.is_read) {
@@ -250,7 +282,10 @@ export default function NotificationsMenu() {
               <Icon size={18} className={`${type.iconColor} mt-0.5 shrink-0`} />
               <span className="min-w-0 flex-1">
                 <strong className="block text-xs text-primary">{type.label}</strong>
-                <span className="block truncate text-sm font-bold text-header">{banner.content}</span>
+                <span className="block truncate text-sm font-bold text-header">
+                  {banner.actor_name || (banner.actor_username ? `@${banner.actor_username}` : type.label)}
+                </span>
+                <span className="block truncate text-xs text-body">{banner.content}</span>
               </span>
               <X size={16} className="text-body shrink-0" />
             </span>
@@ -302,7 +337,10 @@ export default function NotificationsMenu() {
                             <Icon size={15} className={type.iconColor} />
                           </span>
                           <span className="min-w-0">
-                            <span className="block text-sm font-bold text-header">{notif.content}</span>
+                            <span className="block text-sm font-bold text-header">
+                              {notif.actor_name || (notif.actor_username ? `@${notif.actor_username}` : type.label)}
+                            </span>
+                            <span className="block text-xs text-header">{notif.content}</span>
                             <span className="mt-1 block text-[10px] text-body">{type.label} • {formatNotificationTime(notif.created_at)}</span>
                           </span>
                         </button>

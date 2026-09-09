@@ -668,6 +668,7 @@ export default function Explore() {
       await supabase.from('community_requests').update({ status: 'accepted' }).eq('id', req.id);
       const { error: notificationError } = await supabase.from('notifications').insert([{
         user_id: req.user_id,
+        actor_id: session.user.id,
         content: `Your request to join ${selectedCommunity?.name} was accepted!`,
         type: 'request'
       }]);
@@ -683,6 +684,7 @@ export default function Explore() {
       await supabase.from('community_requests').update({ status: 'rejected' }).eq('id', req.id);
       const { error: notificationError } = await supabase.from('notifications').insert([{
         user_id: req.user_id,
+        actor_id: session.user.id,
         content: `Your request to join ${selectedCommunity?.name} was declined.`,
         type: 'request'
       }]);
