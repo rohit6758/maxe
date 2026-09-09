@@ -35,7 +35,7 @@ export default function NotificationsMenu() {
     
     // Initial fetch
     fetchNotifications();
-    const poll = window.setInterval(fetchNotifications, 10000);
+    const poll = window.setInterval(fetchNotifications, 3000);
 
     // Register one callback before subscribing. A unique name avoids reusing a
     // channel that React Strict Mode may still be removing.
@@ -60,7 +60,11 @@ export default function NotificationsMenu() {
         setNotifications(prev => prev.filter(item => item.id !== payload.old.id));
       }
     });
-    channel.subscribe();
+    channel.subscribe(status => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        fetchNotifications();
+      }
+    });
 
     return () => {
       window.clearInterval(poll);

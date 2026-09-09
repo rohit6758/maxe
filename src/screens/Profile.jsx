@@ -8,6 +8,7 @@ import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
 import ProSettingsModal from '../components/ProSettingsModal';
 import ImageCropper from '../components/ImageCropper';
+import AppDialog from '../components/AppDialog';
 import { normalizeUsername, validateUsername } from '../lib/username';
 
 export default function Profile() {
@@ -40,6 +41,7 @@ export default function Profile() {
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
   const [showProModal, setShowProModal] = useState(false);
   const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -379,12 +381,22 @@ const loadFollowStats = async () => {
           <p className="text-sm font-medium mt-0.5" className="text-header">{session?.user?.email}</p>
         </div>
         <button
-          onClick={() => supabase.auth.signOut()}
+          onClick={() => setShowLogoutConfirm(true)}
           className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
           style={{background:'rgba(220,107,107,0.08)', border:'1.5px solid rgba(220,107,107,0.2)', color:'#DC6B6B'}}>
-          <LogOut size={16} /> Sign Out
+          <LogOut size={16} /> Log out
         </button>
       </div>
+
+      {showLogoutConfirm && <AppDialog
+        type="confirm"
+        title="Log out of Maxe?"
+        message="Are you sure you want to log out?"
+        confirmText="Log out"
+        danger
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={async () => { await supabase.auth.signOut(); window.location.reload(); }}
+      />}
 
       {showProModal && <ProSettingsModal isOpen={showProModal} onClose={() => setShowProModal(false)} />}
 

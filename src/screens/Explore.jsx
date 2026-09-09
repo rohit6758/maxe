@@ -1,5 +1,5 @@
 import { toast } from '../context/ToastContext';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon, Search } from 'lucide-react';
@@ -22,6 +22,9 @@ export default function Explore() {
   const [chatProfiles, setChatProfiles] = useState({});
   const [chatInput, setChatInput] = useState('');
   const [isSendingChat, setIsSendingChat] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
+  const chatChannelRef = useRef(null);
+  const typingTimerRef = useRef(null);
   const [myMemberships, setMyMemberships] = useState({});
 
   // Modals / Forms
@@ -94,6 +97,12 @@ export default function Explore() {
         loadChatMessages(selectedCommunity.id);
         
         const channel = supabase.channel(`community_posts_${Date.now()}`)
+          .on('broadcast', { event: 'typing' }, ({ payload }) => {
+            if (!payload?.userId || payload.userId === session.user.id) return;
+            setTypingUsers(prev => ({ ...prev, [payload.userId]: payload.name || 'Member' }));
+            window.clearTimeout(typingTimerRef.current);
+            typingTimerRef.current = window.setTimeout(() => setTypingUsers({}), 1800);
+          })
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
             fetchSinglePost(payload.new.id);
           })
@@ -106,8 +115,9 @@ export default function Explore() {
             setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
           })
           .subscribe();
+        chatChannelRef.current = channel;
           
-        return () => { supabase.removeChannel(channel); };
+        return () => { chatChannelRef.current = null; supabase.removeChannel(channel); };
       }
     }
   }, [selectedCommunity, myMemberships, isAdmin]);
@@ -840,10 +850,19 @@ export default function Explore() {
                       </div>
                     ))}
                   </div>
+                  {Object.keys(typingUsers).length > 0 && (
+                    <div className="px-4 pb-1 text-xs text-body flex items-center gap-1">
+                      <span className="flex gap-0.5"><i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" /><i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:120ms]" /><i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce [animation-delay:240ms]" /></span>
+                      {Object.values(typingUsers).join(', ')} typing
+                    </div>
+                  )}
                   <form onSubmit={sendChatMessage} className="p-3 bg-surface border-t border-primary/10 flex gap-2">
                     <input
                       value={chatInput}
-                      onChange={e => setChatInput(e.target.value)}
+                      onChange={e => {
+                        setChatInput(e.target.value);
+                        chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload: { userId: session?.user?.id, name: userProfile?.name || userProfile?.username || 'Member' } });
+                      }}
                       placeholder="Ask for a PDF, link, or question paper..."
                       className="app-input flex-1"
                       maxLength={1000}
