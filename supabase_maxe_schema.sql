@@ -1,4 +1,4 @@
--- Run once in Supabase SQL Editor. All statements are safe to re-run.
+/* Run once in Supabase SQL Editor. All statements are safe to re-run. */
 alter table if exists public.profiles add column if not exists interests text;
 create unique index if not exists profiles_username_lower_unique on public.profiles (lower(username)) where username is not null and username <> '';
 
