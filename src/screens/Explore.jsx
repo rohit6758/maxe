@@ -26,6 +26,10 @@ export default function Explore() {
   const chatChannelRef = useRef(null);
   const typingTimerRef = useRef(null);
   const chatInputRef = useRef(null);
+  const chatScrollRef = useRef(null);
+  const chatBottomRef = useRef(null);
+  const shouldFollowChatRef = useRef(true);
+  const previousChatCountRef = useRef(0);
   const [myMemberships, setMyMemberships] = useState({});
 
   // Modals / Forms
@@ -143,6 +147,21 @@ export default function Explore() {
       window.requestAnimationFrame(() => chatInputRef.current?.focus());
     }
   }, [selectedCommunity, communityView]);
+
+  useEffect(() => {
+    if (!selectedCommunity || communityView !== 'chat') return;
+    previousChatCountRef.current = 0;
+    shouldFollowChatRef.current = true;
+  }, [selectedCommunity, communityView]);
+
+  useEffect(() => {
+    if (!selectedCommunity || communityView !== 'chat') return;
+    const countChanged = chatMessages.length !== previousChatCountRef.current;
+    previousChatCountRef.current = chatMessages.length;
+    if (countChanged && shouldFollowChatRef.current) {
+      window.requestAnimationFrame(() => chatBottomRef.current?.scrollIntoView({ behavior: 'smooth', block: 'end' }));
+    }
+  }, [chatMessages, selectedCommunity, communityView]);
 
   useEffect(() => {
     const chatActive = Boolean(selectedCommunity && communityView === 'chat');
@@ -865,7 +884,14 @@ export default function Explore() {
 
               {communityView === 'chat' ? (
                 <div className="flex-1 min-h-0 flex flex-col">
-                  <div className="flex-1 overflow-y-auto p-3">
+                  <div
+                    ref={chatScrollRef}
+                    onScroll={event => {
+                      const element = event.currentTarget;
+                      shouldFollowChatRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+                    }}
+                    className="flex-1 overflow-y-auto p-3"
+                  >
                     {chatMessages.length === 0 ? (
                       <div className="h-full flex flex-col items-center justify-center text-center text-body text-sm">
                         <MessageSquare size={32} className="mb-3 text-primary/50" />
@@ -903,6 +929,7 @@ export default function Explore() {
                       </div>
                       );
                     })}
+                    <div ref={chatBottomRef} aria-hidden="true" className="h-px" />
                   </div>
                   {Object.keys(typingUsers).length > 0 && (
                     <div className="px-3 pb-2 flex items-end gap-1.5">
