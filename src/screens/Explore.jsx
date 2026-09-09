@@ -901,27 +901,21 @@ export default function Explore() {
                 <button onClick={(e) => { e.stopPropagation(); setShowShareModal(true); }} className="btn-primary text-sm flex items-center gap-1.5 py-1.5 px-4 shadow-sm hover:scale-105 active:scale-95 transition-transform">
                   <Plus size={14} /> <span className="font-bold">Share</span>
                 </button>
-                <button
-                  onClick={(e) => { e.stopPropagation(); setCommunityView('chat'); }}
-                  className={`btn-outline text-sm flex items-center gap-1.5 py-1.5 px-3 ${communityView === 'chat' ? 'bg-primary/10 text-primary' : 'bg-surface'}`}
-                  aria-label="Open group chat"
-                >
-                  <MessageSquare size={14} /> <span className="hidden sm:inline font-bold">Chat</span>
-                </button>
               </div>
 
-              <div className="px-4 pt-3 bg-surface border-b border-primary/10">
+              <div className="sticky top-0 z-20 px-3 pt-2 bg-surface border-b border-primary/10 sm:px-4 sm:pt-3">
                 <div className="flex gap-1 rounded-xl bg-background p-1">
                   {[
-                    { id: 'resources', label: 'Resources' },
-                    { id: 'chat', label: 'Chat' }
+                    { id: 'resources', label: 'Resources', icon: FileText },
+                    { id: 'chat', label: 'Group chat', icon: MessageSquare }
                   ].map(tab => (
                     <button
                       key={tab.id}
                       onClick={() => setCommunityView(tab.id)}
-                      className={`flex-1 rounded-lg py-2 text-xs font-bold transition-all ${communityView === tab.id ? 'bg-surface text-primary shadow-sm' : 'text-body'}`}
+                      className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${communityView === tab.id ? 'bg-surface text-primary shadow-sm' : 'text-body hover:text-primary'}`}
                     >
-                      {tab.label}
+                      <tab.icon size={15} />
+                      <span>{tab.label}</span>
                     </button>
                   ))}
                 </div>
