@@ -45,6 +45,12 @@ const groupNotifications = (notifications) => {
   return groups;
 };
 
+const decodeVapidKey = (value) => {
+  const padding = '='.repeat((4 - value.length % 4) % 4);
+  const base64 = (value + padding).replace(/-/g, '+').replace(/_/g, '/');
+  return Uint8Array.from(atob(base64), char => char.charCodeAt(0));
+};
+
 export default function NotificationsMenu() {
   const { session } = useAppContext();
   const [isOpen, setIsOpen] = useState(false);
@@ -75,7 +81,31 @@ export default function NotificationsMenu() {
     try {
       const permission = await Notification.requestPermission();
       setNotificationPermission(permission);
-      if (permission === 'granted') toast('Phone notifications enabled');
+      if (permission === 'granted') {
+        const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
+        if (!publicKey || !('serviceWorker' in navigator) || !('PushManager' in window)) {
+          toast('Push notifications are not supported in this browser', 'error');
+          return;
+        }
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: decodeVapidKey(publicKey)
+        });
+        const p256dh = subscription.getKey('p256dh');
+        const auth = subscription.getKey('auth');
+        if (!p256dh || !auth) throw new Error('Could not read push subscription keys');
+        const toBase64 = buffer => btoa(String.fromCharCode(...new Uint8Array(buffer)));
+        const { error } = await supabase.from('push_subscriptions').upsert({
+          user_id: session.user.id,
+          endpoint: subscription.endpoint,
+          p256dh: toBase64(p256dh),
+          auth: toBase64(auth),
+          updated_at: new Date().toISOString()
+        }, { onConflict: 'endpoint' });
+        if (error) throw error;
+        toast('Phone notifications enabled');
+      }
       else if (permission === 'denied') toast('Notifications are blocked in this device settings', 'error');
     } catch (error) {
       console.error('Notification permission request failed', error);
