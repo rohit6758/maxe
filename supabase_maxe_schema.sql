@@ -141,7 +141,8 @@ begin
   insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
   select member.user_id, new.user_id, new.community_id::text,
     coalesce((select '@' || username from public.profiles where id = new.user_id), '@someone') ||
-      ' sent a message in ' || coalesce((select name from public.communities where id = new.community_id), 'your group'),
+      ': ' || new.content || ' · ' ||
+      coalesce((select name from public.communities where id = new.community_id), 'your group'),
     false, 'community_message'
   from public.community_members member
   where member.community_id = new.community_id and member.user_id <> new.user_id;
