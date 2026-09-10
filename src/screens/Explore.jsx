@@ -331,7 +331,7 @@ export default function Explore() {
       .limit(100);
     if (error) {
       if (error.code !== 'PGRST205') console.error('Failed to load community chat', error);
-      setChatMessages([]);
+      setChatMessages(prev => prev.filter(message => message.pending));
       return;
     }
     const serverMessages = data || [];
@@ -341,8 +341,13 @@ export default function Explore() {
         .map(message => `${message.id}:${message.content}:${message.created_at}`).join('|');
       const nextKey = serverMessages
         .map(message => `${message.id}:${message.content}:${message.created_at}`).join('|');
-      if (currentKey === nextKey) return prev;
-      return [...serverMessages, ...pendingMessages];
+      const unsentMessages = pendingMessages.filter(pendingMessage => !serverMessages.some(serverMessage => (
+          pendingMessage.user_id === serverMessage.user_id &&
+          pendingMessage.content === serverMessage.content &&
+          Math.abs(new Date(serverMessage.created_at).getTime() - new Date(pendingMessage.created_at).getTime()) < 30000
+        )));
+      if (currentKey === nextKey && unsentMessages.length === pendingMessages.length) return prev;
+      return [...serverMessages, ...unsentMessages];
     });
     if (userProfile?.id) setChatProfiles(prev => ({ ...prev, [userProfile.id]: userProfile }));
     const senderIds = [...new Set((data || []).map(message => message.user_id))];
@@ -376,19 +381,26 @@ export default function Explore() {
     setChatMessages(prev => [...prev, optimisticMessage]);
     setChatProfiles(prev => ({ ...prev, [session.user.id]: userProfile }));
     setChatInput('');
-    const { error } = await supabase.from('community_messages').insert([{
-      community_id: selectedCommunity.id,
-      user_id: session.user.id,
-      content
-    }]);
-    if (error) {
+    try {
+      const { error } = await supabase.from('community_messages').insert([{
+        community_id: selectedCommunity.id,
+        user_id: session.user.id,
+        content
+      }]);
+      if (error) {
+        setChatMessages(prev => prev.filter(message => message.id !== optimisticId));
+        if (error.code === 'PGRST205') toast('Community chat needs the Supabase table setup shown in the deployment notes.', 'error');
+        else toast(`Could not send message: ${error.message}`, 'error');
+      } else {
+        await loadChatMessages(selectedCommunity.id);
+      }
+    } catch (error) {
       setChatMessages(prev => prev.filter(message => message.id !== optimisticId));
-      if (error.code === 'PGRST205') toast('Community chat needs the Supabase table setup shown in the deployment notes.', 'error');
-      else toast(`Could not send message: ${error.message}`, 'error');
-    } else {
-      await loadChatMessages(selectedCommunity.id);
+      console.error('Failed to send community message', error);
+      toast('Could not send message. Please try again.', 'error');
+    } finally {
+      setIsSendingChat(false);
     }
-    setIsSendingChat(false);
   };
 
   const loadPosts = async (communityId) => {
