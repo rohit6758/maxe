@@ -90,10 +90,13 @@ export default function NotificationsMenu() {
           return;
         }
         const registration = await navigator.serviceWorker.ready;
-        const subscription = await registration.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: decodeVapidKey(publicKey)
-        });
+        let subscription = await registration.pushManager.getSubscription();
+        if (!subscription) {
+          subscription = await registration.pushManager.subscribe({
+            userVisibleOnly: true,
+            applicationServerKey: decodeVapidKey(publicKey)
+          });
+        }
         const p256dh = subscription.getKey('p256dh');
         const auth = subscription.getKey('auth');
         if (!p256dh || !auth) throw new Error('Could not read push subscription keys');
@@ -106,9 +109,11 @@ export default function NotificationsMenu() {
           updated_at: new Date().toISOString()
         }, { onConflict: 'endpoint' });
         if (error) throw error;
-        toast('Phone notifications enabled');
+        toast('This device is registered for push notifications');
       }
-      else if (permission === 'denied') toast('Notifications are blocked in this device settings', 'error');
+      else if (permission === 'denied') {
+        toast('Notifications are blocked. Open browser site settings and allow them.', 'error');
+      }
     } catch (error) {
       console.error('Notification permission request failed', error);
       toast('Could not request phone notification permission', 'error');
