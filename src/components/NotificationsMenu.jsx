@@ -133,15 +133,18 @@ export default function NotificationsMenu() {
   const showDeviceNotification = async (notification, sender) => {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
     const title = sender?.name || (sender?.username ? `@${sender.username}` : getNotificationType(notification).label);
-    const body = notification.content;
+    const community = notification.entity_id
+      ? (await supabase.from('communities').select('name, avatar_url').eq('id', notification.entity_id).maybeSingle()).data
+      : null;
+    const body = `${sender?.username ? `@${sender.username}: ` : ''}${notification.content}${community?.name ? ` · ${community.name}` : ''}`;
     try {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         await registration.showNotification(title, {
           body,
           icon: sender?.avatar_url || '/icon-96x96.png',
-          badge: '/maxe-badge.svg',
-          image: sender?.avatar_url || undefined,
+          badge: community?.avatar_url || '/maxe-badge.svg',
+          image: community?.avatar_url || undefined,
           tag: `maxe-${notification.id}`,
           data: { url: notification.url || '/' }
         });

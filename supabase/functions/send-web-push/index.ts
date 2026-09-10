@@ -60,7 +60,8 @@ Deno.serve(async request => {
       : Promise.resolve({ data: null })
   ]);
   const senderName = sender?.name || (sender?.username ? `@${sender.username}` : "New message");
-  const body = community?.name ? `${record.content} · ${community.name}` : record.content;
+  const senderHandle = sender?.username ? `@${sender.username}: ` : "";
+  const body = `${senderHandle}${record.content}${community?.name ? ` · ${community.name}` : ""}`;
 
   const message = JSON.stringify({
     title: senderName,
@@ -69,6 +70,7 @@ Deno.serve(async request => {
     notificationId: record.id,
     type: record.type || "default",
     icon: sender?.avatar_url || undefined,
+    badge: community?.avatar_url || undefined,
     image: community?.avatar_url || undefined
   });
   const expired: string[] = [];
