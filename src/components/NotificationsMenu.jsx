@@ -79,7 +79,9 @@ export default function NotificationsMenu() {
       return;
     }
     try {
-      const permission = await Notification.requestPermission();
+      const permission = Notification.permission === 'default'
+        ? await Notification.requestPermission()
+        : Notification.permission;
       setNotificationPermission(permission);
       if (permission === 'granted') {
         const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
@@ -333,12 +335,12 @@ export default function NotificationsMenu() {
               </button>
             )}
           </div>
-          {notificationPermission === 'default' && (
+          {(notificationPermission === 'default' || notificationPermission === 'granted') && (
             <button
               onClick={requestPhoneNotifications}
               className="mx-3 mt-3 rounded-xl bg-primary/10 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/15"
             >
-              Enable phone notifications
+              {notificationPermission === 'granted' ? 'Register this device for push notifications' : 'Enable phone notifications'}
             </button>
           )}
           {notificationPermission === 'denied' && (
