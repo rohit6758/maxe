@@ -92,6 +92,12 @@ export default function NotificationsMenu() {
         }
         const registration = await navigator.serviceWorker.ready;
         let subscription = await registration.pushManager.getSubscription();
+        const vapidKeyStorage = 'maxe_push_vapid_public_key';
+        const previousPublicKey = window.localStorage.getItem(vapidKeyStorage);
+        if (subscription && previousPublicKey !== publicKey) {
+          await subscription.unsubscribe();
+          subscription = null;
+        }
         if (!subscription) {
           subscription = await registration.pushManager.subscribe({
             userVisibleOnly: true,
@@ -110,6 +116,7 @@ export default function NotificationsMenu() {
           updated_at: new Date().toISOString()
         }, { onConflict: 'endpoint' });
         if (error) throw error;
+        window.localStorage.setItem(vapidKeyStorage, publicKey);
         setPushRegistration('registered');
         toast('This device is registered for push notifications');
       }

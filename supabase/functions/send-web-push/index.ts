@@ -67,8 +67,14 @@ Deno.serve(async request => {
       }, message);
     } catch (error) {
       const statusCode = (error as { statusCode?: number }).statusCode;
+      const responseBody = (error as { body?: string }).body;
       if (statusCode === 404 || statusCode === 410) expired.push(subscription.id);
-      else console.error("Push delivery failed", error);
+      else console.error("Push delivery failed", {
+        subscriptionId: subscription.id,
+        statusCode,
+        responseBody,
+        message: error instanceof Error ? error.message : String(error)
+      });
     }
   }
 
