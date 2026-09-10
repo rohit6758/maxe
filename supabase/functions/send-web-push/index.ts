@@ -8,6 +8,7 @@ type NotificationRecord = {
   content?: string;
   type?: string;
   url?: string | null;
+  actor_id?: string | null;
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -55,7 +56,12 @@ Deno.serve(async request => {
     body: record.content,
     url: record.url || "/",
     notificationId: record.id,
-    type: record.type || "default"
+    type: record.type || "default",
+    image: record.actor_id ? (await admin
+      .from("profiles")
+      .select("avatar_url")
+      .eq("id", record.actor_id)
+      .maybeSingle()).data?.avatar_url || undefined : undefined
   });
   const expired: string[] = [];
 

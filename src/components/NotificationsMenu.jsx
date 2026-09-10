@@ -143,6 +143,8 @@ export default function NotificationsMenu() {
         await registration.showNotification(title, {
           body,
           icon: '/icon-96x96.png',
+          badge: '/maxe-badge.svg',
+          image: sender?.avatar_url || undefined,
           tag: `maxe-${notification.id}`,
           data: { url: notification.url || '/' }
         });
