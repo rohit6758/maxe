@@ -59,6 +59,7 @@ export default function NotificationsMenu() {
   const [notificationPermission, setNotificationPermission] = useState(
     typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
   );
+  const [pushRegistration, setPushRegistration] = useState('unknown');
   const [banner, setBanner] = useState(null);
   const bannerTimerRef = useRef(null);
   const seenNotificationIdsRef = useRef(new Set());
@@ -85,9 +86,9 @@ export default function NotificationsMenu() {
       setNotificationPermission(permission);
       if (permission === 'granted') {
         const publicKey = import.meta.env.VITE_VAPID_PUBLIC_KEY;
-        if (!publicKey || !('serviceWorker' in navigator) || !('PushManager' in window)) {
-          toast('Push notifications are not supported in this browser', 'error');
-          return;
+        if (!publicKey) throw new Error('VITE_VAPID_PUBLIC_KEY is missing from this deployment');
+        if (!('serviceWorker' in navigator) || !('PushManager' in window)) {
+          throw new Error('This browser does not support Web Push');
         }
         const registration = await navigator.serviceWorker.ready;
         let subscription = await registration.pushManager.getSubscription();
@@ -109,6 +110,7 @@ export default function NotificationsMenu() {
           updated_at: new Date().toISOString()
         }, { onConflict: 'endpoint' });
         if (error) throw error;
+        setPushRegistration('registered');
         toast('This device is registered for push notifications');
       }
       else if (permission === 'denied') {
@@ -116,7 +118,8 @@ export default function NotificationsMenu() {
       }
     } catch (error) {
       console.error('Notification permission request failed', error);
-      toast('Could not request phone notification permission', 'error');
+      const message = error?.message || 'Unknown registration error';
+      toast(`Push registration failed: ${message}`, 'error');
     }
   };
 
@@ -182,6 +185,23 @@ export default function NotificationsMenu() {
     } catch (e) {
       console.error(e);
     }
+  }, [session]);
+
+  useEffect(() => {
+    let cancelled = false;
+    const checkPushRegistration = async () => {
+      if (!session || !('serviceWorker' in navigator) || !('PushManager' in window)) return;
+      try {
+        const registration = await navigator.serviceWorker.ready;
+        const subscription = await registration.pushManager.getSubscription();
+        if (!cancelled) setPushRegistration(subscription ? 'registered' : 'unregistered');
+      } catch (error) {
+        console.error('Could not check push registration', error);
+        if (!cancelled) setPushRegistration('unregistered');
+      }
+    };
+    checkPushRegistration();
+    return () => { cancelled = true; };
   }, [session]);
 
   useEffect(() => {
@@ -340,13 +360,18 @@ export default function NotificationsMenu() {
               </button>
             )}
           </div>
-          {(notificationPermission === 'default' || notificationPermission === 'granted') && (
+          {(notificationPermission === 'default' || notificationPermission === 'granted') && pushRegistration !== 'registered' && (
             <button
               onClick={requestPhoneNotifications}
               className="mx-3 mt-3 rounded-xl bg-primary/10 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/15"
             >
               {notificationPermission === 'granted' ? 'Register this device for push notifications' : 'Enable phone notifications'}
             </button>
+          )}
+          {notificationPermission === 'granted' && pushRegistration === 'registered' && (
+            <p className="mx-3 mt-3 rounded-xl bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-700">
+              This device is registered for push notifications
+            </p>
           )}
           {notificationPermission === 'denied' && (
             <p className="mx-3 mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600">
