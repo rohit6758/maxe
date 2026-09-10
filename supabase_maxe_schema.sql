@@ -1,5 +1,6 @@
 /* Run once in Supabase SQL Editor. All statements are safe to re-run. */
 alter table if exists public.profiles add column if not exists interests text;
+alter table if exists public.communities add column if not exists avatar_url text;
 create unique index if not exists profiles_username_lower_unique on public.profiles (lower(username)) where username is not null and username <> '';
 
 create table if not exists public.notifications (

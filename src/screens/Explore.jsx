@@ -563,14 +563,20 @@ export default function Explore() {
       if (uploadError) throw uploadError;
       
       const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(`community_avatars/${fileName}`);
-      const { error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id);
+      const { data: updatedCommunity, error } = await supabase
+        .from('communities')
+        .update({ avatar_url: publicUrl })
+        .eq('id', selectedCommunity.id)
+        .select('*')
+        .single();
       if (error) throw error;
+      if (!updatedCommunity) throw new Error('Group photo was not saved. Check community update permissions.');
       
       setCommunities(prev => prev.map(community => (
-        community.id === selectedCommunity.id ? { ...community, avatar_url: publicUrl } : community
+        community.id === selectedCommunity.id ? updatedCommunity : community
       )));
       setSelectedCommunity(prev => prev?.id === selectedCommunity.id
-        ? { ...prev, avatar_url: publicUrl }
+        ? updatedCommunity
         : prev);
       toast('Group photo updated');
     } catch(err) { toast(err.message); }
