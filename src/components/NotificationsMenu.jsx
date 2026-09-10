@@ -132,17 +132,14 @@ export default function NotificationsMenu() {
 
   const showDeviceNotification = async (notification, sender) => {
     if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
-    const senderName = sender?.name || (sender?.username ? `@${sender.username}` : 'Maxe');
-    const title = sender ? senderName : getNotificationType(notification).label;
-    const body = sender?.username && sender.name
-      ? `@${sender.username}: ${notification.content}`
-      : notification.content;
+    const title = sender?.name || (sender?.username ? `@${sender.username}` : getNotificationType(notification).label);
+    const body = notification.content;
     try {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
         await registration.showNotification(title, {
           body,
-          icon: '/icon-96x96.png',
+          icon: sender?.avatar_url || '/icon-96x96.png',
           badge: '/maxe-badge.svg',
           image: sender?.avatar_url || undefined,
           tag: `maxe-${notification.id}`,

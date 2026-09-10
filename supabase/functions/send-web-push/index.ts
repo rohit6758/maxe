@@ -51,17 +51,25 @@ Deno.serve(async request => {
 
   if (error) return json({ error: error.message }, 500);
 
+  const [{ data: sender }, { data: community }] = await Promise.all([
+    record.actor_id
+      ? admin.from("profiles").select("name, username, avatar_url").eq("id", record.actor_id).maybeSingle()
+      : Promise.resolve({ data: null }),
+    record.entity_id
+      ? admin.from("communities").select("name, avatar_url").eq("id", record.entity_id).maybeSingle()
+      : Promise.resolve({ data: null })
+  ]);
+  const senderName = sender?.name || (sender?.username ? `@${sender.username}` : "New message");
+  const body = community?.name ? `${record.content} · ${community.name}` : record.content;
+
   const message = JSON.stringify({
-    title: "Maxe",
-    body: record.content,
+    title: senderName,
+    body,
     url: record.url || "/",
     notificationId: record.id,
     type: record.type || "default",
-    image: record.actor_id ? (await admin
-      .from("profiles")
-      .select("avatar_url")
-      .eq("id", record.actor_id)
-      .maybeSingle()).data?.avatar_url || undefined : undefined
+    icon: sender?.avatar_url || undefined,
+    image: community?.avatar_url || undefined
   });
   const expired: string[] = [];
 
