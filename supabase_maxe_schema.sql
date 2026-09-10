@@ -1,6 +1,28 @@
 /* Run once in Supabase SQL Editor. All statements are safe to re-run. */
 alter table if exists public.profiles add column if not exists interests text;
 alter table if exists public.communities add column if not exists avatar_url text;
+alter table if exists public.communities enable row level security;
+drop policy if exists "Maxe communities update members" on public.communities;
+create policy "Maxe communities update members" on public.communities
+  for update to authenticated
+  using (
+    auth.uid() = created_by
+    or exists (
+      select 1
+      from public.community_members member
+      where member.community_id = communities.id
+        and member.user_id = auth.uid()
+    )
+  )
+  with check (
+    auth.uid() = created_by
+    or exists (
+      select 1
+      from public.community_members member
+      where member.community_id = communities.id
+        and member.user_id = auth.uid()
+    )
+  );
 create unique index if not exists profiles_username_lower_unique on public.profiles (lower(username)) where username is not null and username <> '';
 
 create table if not exists public.notifications (
