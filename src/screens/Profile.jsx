@@ -156,7 +156,11 @@ const loadFollowStats = async () => {
       const url = `${data.publicUrl}`;
       
       // Instantly update database so popup uploads save immediately
-      await supabase.from('profiles').update({ avatar_url: url }).eq('id', session.user.id);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: url })
+        .eq('id', session.user.id);
+      if (profileError) throw profileError;
       setUserProfile(prev => ({ ...prev, avatar_url: url }));
       setAvatarUrl(url);
       
@@ -227,6 +231,9 @@ const loadFollowStats = async () => {
       setUserProfile(data);
       setSaved(true);
       setTimeout(() => { setSaved(false); setIsEditing(false); }, 1000);
+    }
+    else {
+      toast('Profile was not updated. Please try again.', 'error');
     }
     setSaving(false);
   };
@@ -360,7 +367,7 @@ const loadFollowStats = async () => {
             <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
           </div>
 
-          <button onClick={handleSave} disabled={saving}
+          <button type="button" onClick={handleSave} disabled={saving || uploading}
             className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm mt-2">
             <Save size={16} />
             {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}

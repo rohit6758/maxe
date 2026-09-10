@@ -15,15 +15,19 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
 
   const handleSave = async () => {
     try {
+      if (!croppedAreaPixels) {
+        onCancel();
+        return;
+      }
       const croppedImageFile = await getCroppedImg(imageSrc, croppedAreaPixels);
-      onCropComplete(croppedImageFile);
+      if (croppedImageFile) onCropComplete(croppedImageFile);
     } catch (e) {
       console.error(e);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[999] bg-black flex flex-col animate-fade-in">
+    <div className="fixed inset-0 z-[999] bg-black flex flex-col animate-fade-in" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-between p-4 bg-black/50 absolute top-0 left-0 right-0 z-10">
         <div>
           <h3 className="text-white font-bold">Crop Image</h3>
