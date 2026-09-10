@@ -68,7 +68,7 @@ export default function NotificationsMenu() {
     if (!notification.actor_id) return null;
     const { data } = await supabase
       .from('profiles')
-      .select('name, username')
+      .select('name, username, avatar_url')
       .eq('id', notification.actor_id)
       .maybeSingle();
     return data || null;
@@ -140,14 +140,15 @@ export default function NotificationsMenu() {
     try {
       if ('serviceWorker' in navigator) {
         const registration = await navigator.serviceWorker.ready;
-        await registration.showNotification(title, {
+        const notificationOptions = {
           body,
-          icon: sender?.avatar_url || '/icon-96x96.png',
-          badge: community?.avatar_url || '/maxe-badge.svg',
+          icon: sender?.avatar_url || undefined,
+          badge: community?.avatar_url || undefined,
           image: community?.avatar_url || undefined,
           tag: `maxe-${notification.id}`,
           data: { url: notification.url || '/' }
-        });
+        };
+        await registration.showNotification(title, notificationOptions);
       } else {
         new Notification(title, { body, tag: `maxe-${notification.id}` });
       }

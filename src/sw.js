@@ -71,8 +71,8 @@ self.addEventListener('push', event => {
   const title = data.title || 'New notification';
   const options = {
     body: data.body || 'You have a new notification',
-    icon: data.icon || '/icon-96x96.png',
-    badge: data.badge || '/maxe-badge.svg',
+    ...(data.icon ? { icon: data.icon } : {}),
+    ...(data.badge ? { badge: data.badge } : {}),
     image: data.image || undefined,
     data: { url: data.url || '/' },
     vibrate: [200, 100, 200],
