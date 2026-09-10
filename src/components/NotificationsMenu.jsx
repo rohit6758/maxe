@@ -15,6 +15,7 @@ const notificationTypes = {
 
 const getNotificationType = (notification) => {
   const explicitType = (notification.type || '').toLowerCase();
+  if (explicitType.startsWith('community')) return notificationTypes.community;
   if (notificationTypes[explicitType]) return notificationTypes[explicitType];
   const content = (notification.content || '').toLowerCase();
   return Object.values(notificationTypes).find(type => type.match.some(word => content.includes(word))) || notificationTypes.default;
@@ -177,14 +178,28 @@ export default function NotificationsMenu() {
         if (actorIds.length > 0) {
           const { data: actors } = await supabase
             .from('profiles')
-            .select('id, name, username')
+            .select('id, name, username, avatar_url')
             .in('id', actorIds);
           actorMap = Object.fromEntries((actors || []).map(actor => [actor.id, actor]));
+        }
+        const communityIds = [...new Set(data
+          .filter(notification => notification.entity_id && getNotificationType(notification) === notificationTypes.community)
+          .map(notification => notification.entity_id))];
+        let communityMap = {};
+        if (communityIds.length > 0) {
+          const { data: communities } = await supabase
+            .from('communities')
+            .select('id, name, avatar_url')
+            .in('id', communityIds);
+          communityMap = Object.fromEntries((communities || []).map(community => [community.id, community]));
         }
         const enrichedData = data.map(notification => ({
           ...notification,
           actor_name: actorMap[notification.actor_id]?.name,
-          actor_username: actorMap[notification.actor_id]?.username
+          actor_username: actorMap[notification.actor_id]?.username,
+          actor_avatar_url: actorMap[notification.actor_id]?.avatar_url,
+          community_name: communityMap[notification.entity_id]?.name,
+          community_avatar_url: communityMap[notification.entity_id]?.avatar_url
         }));
         const unread = data.filter(n => !n.is_read);
         enrichedData.forEach(notification => seenNotificationIdsRef.current.add(notification.id));
@@ -238,7 +253,12 @@ export default function NotificationsMenu() {
           setNotifications(prev => prev.some(item => item.id === payload.new.id) ? prev : [payload.new, ...prev]);
           setUnreadCount(prev => prev + 1);
           getNotificationSender(payload.new).then(sender => {
-            const enriched = sender ? { ...payload.new, actor_name: sender.name, actor_username: sender.username } : payload.new;
+            const enriched = sender ? {
+              ...payload.new,
+              actor_name: sender.name,
+              actor_username: sender.username,
+              actor_avatar_url: sender.avatar_url
+            } : payload.new;
             setBanner(enriched);
             if (document.visibilityState !== 'visible') {
               showDeviceNotification(payload.new, sender);
@@ -418,18 +438,30 @@ export default function NotificationsMenu() {
                   {items.map(notif => {
                     const type = getNotificationType(notif);
                     const Icon = type.icon;
+                    const isCommunityNotification = type === notificationTypes.community;
                     return (
                       <div key={notif.id} className={`group relative flex gap-3 px-4 py-3 transition-colors hover:bg-primary/10 ${notif.is_read ? 'opacity-65' : 'bg-primary/5'}`}>
                         <button onClick={() => markAsRead(notif.id)} className="flex min-w-0 flex-1 gap-3 text-left">
-                          <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${notif.is_read ? 'bg-primary/5' : 'bg-primary/10'}`}>
-                            <Icon size={15} className={type.iconColor} />
+                          <span className={`relative mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-full ${notif.is_read ? 'bg-primary/5' : 'bg-primary/10'}`}>
+                            {notif.actor_avatar_url
+                              ? <img src={notif.actor_avatar_url} alt="" className="h-full w-full rounded-full object-cover" />
+                              : <Icon size={15} className={type.iconColor} />}
+                            {isCommunityNotification && (
+                              <span className="absolute -bottom-1 -right-1 flex h-5 w-5 items-center justify-center overflow-hidden rounded-full border-2 border-surface bg-primary/10">
+                                {notif.community_avatar_url
+                                  ? <img src={notif.community_avatar_url} alt="" className="h-full w-full object-cover" />
+                                  : <span className="text-[9px] font-black text-primary">{(notif.community_name || 'G').charAt(0).toUpperCase()}</span>}
+                              </span>
+                            )}
                           </span>
                           <span className="min-w-0">
                             <span className="block truncate text-sm font-bold text-header">
                               {notif.actor_name || (notif.actor_username ? `@${notif.actor_username}` : type.label)}
                             </span>
                             <span className="mt-0.5 block break-words text-xs leading-5 text-body">{notif.content}</span>
-                            <span className="mt-1 block text-[10px] text-body">{type.label} · {formatNotificationTime(notif.created_at)}</span>
+                            <span className="mt-1 block text-[10px] text-body">
+                              {isCommunityNotification && notif.community_name ? `${notif.community_name} · ` : ''}{formatNotificationTime(notif.created_at)}
+                            </span>
                           </span>
                         </button>
                         <button onClick={() => deleteNotification(notif.id)} aria-label="Dismiss notification" className="self-start rounded-lg p-1 text-body opacity-0 transition-opacity hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100 focus:opacity-100">

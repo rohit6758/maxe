@@ -72,7 +72,6 @@ self.addEventListener('push', event => {
   const options = {
     body: data.body || 'You have a new notification',
     ...(data.icon ? { icon: data.icon } : {}),
-    ...(data.badge ? { badge: data.badge } : {}),
     image: data.image || undefined,
     data: { url: data.url || '/' },
     vibrate: [200, 100, 200],

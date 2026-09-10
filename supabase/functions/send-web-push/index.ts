@@ -9,6 +9,7 @@ type NotificationRecord = {
   type?: string;
   url?: string | null;
   actor_id?: string | null;
+  entity_id?: string | null;
 };
 
 const supabaseUrl = Deno.env.get("SUPABASE_URL");
@@ -70,7 +71,8 @@ Deno.serve(async request => {
     notificationId: record.id,
     type: record.type || "default",
     icon: sender?.avatar_url || undefined,
-    badge: community?.avatar_url || undefined,
+    // Chrome uses image as the expanded/right-side artwork. Do not send a
+    // Maxe badge: badge is reserved for the small monochrome status icon.
     image: community?.avatar_url || undefined
   });
   const expired: string[] = [];
