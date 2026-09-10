@@ -54,6 +54,15 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    const themeColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--theme-sidebar')
+      .trim() || getComputedStyle(document.documentElement).getPropertyValue('--theme-bg').trim();
+    if (themeColor) {
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.setAttribute('content', themeColor);
+      const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+      if (appleMeta) appleMeta.setAttribute('content', 'default');
+    }
   }, [theme]);
 
   // Ensure DB always has latest effects from local storage
