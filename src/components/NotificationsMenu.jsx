@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
-import { Bell, BookOpen, CalendarDays, MessageCircle, Trash2, UserPlus, X } from 'lucide-react';
+import { Bell, BookOpen, CalendarDays, MessageCircle, Trash2, UserPlus, X, Check } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { toast } from '../context/ToastContext';
@@ -322,14 +322,16 @@ export default function NotificationsMenu() {
 
   return (
     <div className="relative">
-      <button 
+      <button
         onClick={() => setIsOpen(!isOpen)} 
         aria-label={unreadCount > 0 ? `${unreadCount} unread notifications` : 'Notifications'}
-        className="w-8 h-8 rounded-lg flex items-center justify-center bg-surface relative hover:bg-primary/10 transition-colors"
+        className="relative flex h-8 w-8 items-center justify-center rounded-xl transition-colors hover:bg-primary/10"
+        style={{ color: 'var(--theme-header)' }}
       >
-        <Bell size={16} strokeWidth={2.25} className="text-header" />
+        <Bell size={18} strokeWidth={2} />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 min-w-4 h-4 px-1 bg-red-500 rounded-full border-2 border-surface text-[9px] leading-3 text-white font-bold flex items-center justify-center">
+          <span className="absolute -right-0.5 -top-0.5 flex h-4 min-w-4 items-center justify-center rounded-full border-2 text-[9px] font-bold leading-3 text-white"
+            style={{ background: 'var(--theme-primary)', borderColor: 'var(--theme-sidebar)' }}>
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -341,13 +343,15 @@ export default function NotificationsMenu() {
         return (
           <button
             onClick={() => { setBanner(null); setIsOpen(true); }}
-            className={`fixed top-4 left-1/2 -translate-x-1/2 z-[70] w-[min(92vw,420px)] rounded-2xl border-l-4 ${type.color} bg-surface p-3 text-left shadow-2xl animate-slide-down`}
+            className="fixed left-1/2 top-4 z-[70] w-[min(92vw,400px)] -translate-x-1/2 rounded-2xl border border-primary/15 bg-surface p-3 text-left shadow-2xl animate-slide-down"
           >
             <span className="flex items-start gap-3">
-              <Icon size={18} className={`${type.iconColor} mt-0.5 shrink-0`} />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                <Icon size={16} className={type.iconColor} />
+              </span>
               <span className="min-w-0 flex-1">
-                <strong className="block text-xs text-primary">{type.label}</strong>
-                <span className="block truncate text-sm font-bold text-header">
+                <strong className="block text-[11px] font-bold text-primary">{type.label}</strong>
+                <span className="mt-0.5 block truncate text-sm font-bold text-header">
                   {banner.actor_name || (banner.actor_username ? `@${banner.actor_username}` : type.label)}
                 </span>
                 <span className="block truncate text-xs text-body">{banner.content}</span>
@@ -359,62 +363,75 @@ export default function NotificationsMenu() {
       })()}
 
       {isOpen && (
-        <div className="absolute top-12 right-0 w-80 bg-surface border border-primary/20 rounded-2xl shadow-xl z-50 overflow-hidden flex flex-col max-h-[400px] animate-fade-in">
-          <div className="p-4 border-b border-primary/10 flex justify-between items-center bg-background">
-            <h3 className="font-bold text-header">Notifications</h3>
-            {unreadCount > 0 && (
-              <button onClick={markAllAsRead} className="text-[10px] uppercase font-bold text-primary hover:underline">
-                Mark all read
+        <div className="fixed right-3 top-[4.25rem] z-50 flex max-h-[min(70vh,520px)] w-[calc(100vw-24px)] max-w-[380px] flex-col overflow-hidden rounded-2xl border border-primary/15 bg-surface shadow-2xl animate-fade-in md:absolute md:right-0 md:top-12 md:max-h-[520px] md:w-80">
+          <div className="flex items-center justify-between border-b border-primary/10 px-4 py-3">
+            <div className="flex items-center gap-2">
+              <h3 className="text-sm font-black text-header">Notifications</h3>
+              {unreadCount > 0 && (
+                <span className="rounded-full bg-primary/10 px-2 py-0.5 text-[10px] font-bold text-primary">
+                  {unreadCount} new
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1">
+              {unreadCount > 0 && (
+                <button onClick={markAllAsRead} className="rounded-lg px-2 py-1 text-[10px] font-bold text-primary hover:bg-primary/10">
+                  <Check size={13} className="mr-1 inline" /> Read all
+                </button>
+              )}
+              <button onClick={() => setIsOpen(false)} aria-label="Close notifications" className="rounded-lg p-1 text-body hover:bg-primary/10">
+                <X size={15} />
               </button>
-            )}
+            </div>
           </div>
           {(notificationPermission === 'default' || notificationPermission === 'granted') && pushRegistration !== 'registered' && (
             <button
               onClick={requestPhoneNotifications}
-              className="mx-3 mt-3 rounded-xl bg-primary/10 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/15"
+              className="mx-3 mt-3 rounded-xl border border-primary/15 bg-primary/5 px-3 py-2 text-left text-xs font-bold text-primary hover:bg-primary/10"
             >
               {notificationPermission === 'granted' ? 'Register this device for push notifications' : 'Enable phone notifications'}
             </button>
           )}
           {notificationPermission === 'granted' && pushRegistration === 'registered' && (
-            <p className="mx-3 mt-3 rounded-xl bg-emerald-500/10 px-3 py-2 text-xs font-bold text-emerald-700">
+            <p className="mx-3 mt-3 rounded-xl border border-emerald-500/15 bg-emerald-500/5 px-3 py-2 text-xs font-semibold text-emerald-700">
               This device is registered for push notifications
             </p>
           )}
           {notificationPermission === 'denied' && (
-            <p className="mx-3 mt-3 rounded-xl bg-red-500/10 px-3 py-2 text-xs font-medium text-red-600">
+            <p className="mx-3 mt-3 rounded-xl border border-red-500/15 bg-red-500/5 px-3 py-2 text-xs font-medium text-red-600">
               Notifications are blocked. Allow them in your browser or phone settings.
             </p>
           )}
           
-          <div className="overflow-y-auto flex-1 p-2 space-y-3">
+          <div className="min-h-0 flex-1 overflow-y-auto">
             {notifications.length === 0 ? (
-              <div className="p-8 text-center text-body text-sm font-medium">
-                <Bell size={28} className="mx-auto mb-2 text-primary/50" />
-                All caught up
+              <div className="px-6 py-12 text-center text-body">
+                <Bell size={26} className="mx-auto mb-2 opacity-40" />
+                <p className="text-sm font-semibold">You’re all caught up</p>
+                <p className="mt-1 text-xs opacity-70">New activity will appear here.</p>
               </div>
             ) : Object.entries(groupedNotifications).map(([group, items]) => (
-              <section key={group}>
-                <h4 className="px-2 pb-1 text-[10px] font-black uppercase tracking-wider text-body">{group}</h4>
-                <div className="space-y-1">
+              <section key={group} className="border-b border-primary/10 last:border-b-0">
+                <h4 className="px-4 pb-1 pt-3 text-[10px] font-black uppercase tracking-wider text-body">{group}</h4>
+                <div>
                   {items.map(notif => {
                     const type = getNotificationType(notif);
                     const Icon = type.icon;
                     return (
-                      <div key={notif.id} className={`group relative flex gap-3 rounded-xl border-l-4 ${type.color} border-y border-r border-primary/10 p-3 transition-colors hover:bg-primary/10 ${notif.is_read ? 'bg-surface opacity-70' : 'bg-primary/5'}`}>
+                      <div key={notif.id} className={`group relative flex gap-3 px-4 py-3 transition-colors hover:bg-primary/10 ${notif.is_read ? 'opacity-65' : 'bg-primary/5'}`}>
                         <button onClick={() => markAsRead(notif.id)} className="flex min-w-0 flex-1 gap-3 text-left">
-                          <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10">
+                          <span className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${notif.is_read ? 'bg-primary/5' : 'bg-primary/10'}`}>
                             <Icon size={15} className={type.iconColor} />
                           </span>
                           <span className="min-w-0">
-                            <span className="block text-sm font-bold text-header">
+                            <span className="block truncate text-sm font-bold text-header">
                               {notif.actor_name || (notif.actor_username ? `@${notif.actor_username}` : type.label)}
                             </span>
-                            <span className="block text-xs text-header">{notif.content}</span>
-                            <span className="mt-1 block text-[10px] text-body">{type.label} • {formatNotificationTime(notif.created_at)}</span>
+                            <span className="mt-0.5 block break-words text-xs leading-5 text-body">{notif.content}</span>
+                            <span className="mt-1 block text-[10px] text-body">{type.label} · {formatNotificationTime(notif.created_at)}</span>
                           </span>
                         </button>
-                        <button onClick={() => deleteNotification(notif.id)} aria-label="Dismiss notification" className="self-start rounded p-1 text-body opacity-0 transition-opacity hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100">
+                        <button onClick={() => deleteNotification(notif.id)} aria-label="Dismiss notification" className="self-start rounded-lg p-1 text-body opacity-0 transition-opacity hover:bg-red-500/10 hover:text-red-500 group-hover:opacity-100 focus:opacity-100">
                           <Trash2 size={14} />
                         </button>
                       </div>
