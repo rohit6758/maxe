@@ -104,6 +104,19 @@ export function AppProvider({ children }) {
       
     if (data) {
       setUserProfile(data);
+
+      // ── Save account info for the Switch Account feature ──
+      try {
+        const SAVED_KEY = 'maxe_saved_accounts';
+        const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
+        const { data: { session: s } } = await supabase.auth.getSession();
+        const email = s?.user?.email || null;
+        const entry = { id: data.id, name: data.name || 'Unnamed', username: data.username || '', avatar_url: data.avatar_url || null, email, saved_at: Date.now() };
+        const idx = saved.findIndex(a => a.id === data.id);
+        if (idx >= 0) saved[idx] = entry; else saved.push(entry);
+        localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
+      } catch (_) {}
+
       if (typeof data.interests === 'string' && data.interests.startsWith('{')) {
         try {
           const savedSettings = JSON.parse(data.interests);

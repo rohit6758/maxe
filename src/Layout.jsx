@@ -8,6 +8,7 @@ import TodoModal from './screens/TodoModal';
 import OnboardingPopup from './components/OnboardingPopup';
 import NotificationsMenu from './components/NotificationsMenu';
 import AppDialog from './components/AppDialog';
+import SwitchAccountModal from './components/SwitchAccountModal';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
@@ -17,6 +18,7 @@ export default function Layout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showSwitchAccount, setShowSwitchAccount] = useState(false);
 
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
@@ -111,6 +113,17 @@ export default function Layout() {
           <User size={18} />
           <span>{userProfile?.name || 'Profile'}</span>
         </Link>
+        {/* Switch Account — Instagram style */}
+        <button
+          onClick={() => { setShowSwitchAccount(true); setSidebarOpen(false); }}
+          className="nav-item w-full"
+          style={{ color: 'var(--theme-primary)' }}
+        >
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>
+          </svg>
+          Switch Account
+        </button>
         <button onClick={() => setShowLogoutConfirm(true)} className="nav-item w-full text-red-400 hover:text-red-500">
           <LogOut size={18} /> Log out
         </button>
@@ -242,6 +255,7 @@ export default function Layout() {
           onCancel={() => setShowLogoutConfirm(false)}
         />
       )}
+      {showSwitchAccount && <SwitchAccountModal onClose={() => setShowSwitchAccount(false)} />}
     </div>
   );
 }
