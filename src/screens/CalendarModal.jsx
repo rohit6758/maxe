@@ -11,11 +11,37 @@ export default function CalendarModal({ onClose }) {
   const [events, setEvents] = useState([]);
   const [selected, setSelected] = useState(new Date());
   const [showForm, setShowForm] = useState(false);
-  const [form, setForm] = useState({ title: '', type: 'exam', marks: '' });
+  const [form, setForm] = useState({ title: '', type: 'exam', marks: '', reminder_time: '' });
 
   const getLocalYMD = (d = new Date()) => new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0];
 
   useEffect(() => { if (session) load(); }, [session]);
+
+  useEffect(() => {
+    const checkReminders = async () => {
+      const now = new Date();
+      const date = getLocalYMD(now);
+      const time = now.toTimeString().slice(0, 5);
+      const due = events.filter(event => event.event_date === date && event.reminder_time === time);
+      for (const event of due) {
+        const reminderKey = `maxe_reminder_${session.user.id}_${event.id}_${date}_${time}`;
+        if (localStorage.getItem(reminderKey)) continue;
+        localStorage.setItem(reminderKey, '1');
+        if ('Notification' in window && Notification.permission === 'granted') {
+          new Notification(event.title, { body: `Your ${event.type} is scheduled now.` });
+        }
+        const { error } = await supabase.from('notifications').insert([{
+          user_id: session.user.id,
+          content: `Reminder: ${event.title}`,
+          type: 'calendar',
+          is_read: false
+        }]);
+        if (error) console.error('Calendar notification failed', error);
+      }
+    };
+    const timer = window.setInterval(checkReminders, 60000);
+    return () => window.clearInterval(timer);
+  }, [events, session]);
 
   const load = async () => {
     const { data } = await supabase.from('calendar_events').select('*').eq('user_id', session.user.id).order('event_date');
@@ -29,19 +55,23 @@ export default function CalendarModal({ onClose }) {
       title: form.title,
       type: form.type,
       marks: form.marks ? parseInt(form.marks) : null,
-      event_date: getLocalYMD(selected)
+      event_date: getLocalYMD(selected),
+      reminder_time: form.reminder_time || null
     }]).select();
     if (error) {
       toast('Failed to save event: ' + error.message);
     } else if (data) {
       setEvents(p => [...p, data[0]]);
-      setForm({ title: '', type: 'exam', marks: '' });
+      if (form.reminder_time && 'Notification' in window && Notification.permission === 'default') {
+        await Notification.requestPermission();
+      }
+      setForm({ title: '', type: 'exam', marks: '', reminder_time: '' });
       setShowForm(false);
     }
   };
 
   const del = async (id) => {
-    const { error } = await supabase.from('calendar_events').delete().eq('id', id);
+    const { error } = await supabase.from('calendar_events').delete().eq('id', id).eq('user_id', session.user.id);
     if (error) toast('Failed to delete event: ' + error.message);
     else setEvents(p => p.filter(e => e.id !== id));
   };
@@ -60,7 +90,7 @@ export default function CalendarModal({ onClose }) {
         {/* Header */}
         <div className="flex items-center justify-between p-4 sticky top-0" style={{background:'var(--theme-surface)', borderBottom:'1px solid color-mix(in srgb, var(--theme-primary) 15%, transparent)'}}>
           <h2 className="font-bold text-lg" style={{color:'var(--theme-header)'}}>📅 Calendar</h2>
-          <button onClick={onClose} className="btn-outline p-1.5 rounded-xl"><X size={16} /></button>
+          <button aria-label="Close calendar" onClick={onClose} className="btn-outline p-1.5 rounded-xl"><X size={16} /></button>
         </div>
 
         <div className="p-4 space-y-4">
@@ -103,6 +133,10 @@ export default function CalendarModal({ onClose }) {
                     <input type="number" className="app-input w-24" placeholder="Marks" value={form.marks} onChange={e => setForm({...form, marks: e.target.value})} />
                   )}
                 </div>
+                <label className="block text-xs font-semibold text-body">
+                  Reminder time (optional)
+                  <input type="time" className="app-input mt-1" value={form.reminder_time} onChange={e => setForm({...form, reminder_time: e.target.value})} />
+                </label>
                 <button type="submit" className="btn-primary w-full py-2 text-xs rounded-xl">Save Event</button>
               </form>
             )}
@@ -115,8 +149,9 @@ export default function CalendarModal({ onClose }) {
                   <div className="flex-1">
                     <p className="text-sm font-semibold" style={{color:'var(--theme-header)'}}>{ev.title}</p>
                     {ev.marks !== null && <p className="text-xs" style={{color:'var(--theme-primary)'}}>Marks: {ev.marks}</p>}
+                    {ev.reminder_time && <p className="text-xs text-body">Reminder at {ev.reminder_time}</p>}
                   </div>
-                  <button onClick={() => del(ev.id)} className="text-xs opacity-0 group-hover:opacity-100 transition-opacity" style={{color:'#E57373'}}>✕</button>
+                  <button aria-label={`Delete ${ev.title}`} onClick={() => del(ev.id)} className="text-xs p-2 rounded-lg text-red-500 hover:bg-red-50 transition-colors">Delete</button>
                 </div>
               ))
             }

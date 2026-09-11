@@ -18,17 +18,27 @@ export default function UserSearch() {
 
   useEffect(() => {
     // Realtime Sync Fix: Listen to UPDATE events on the profiles table for ALL rows so changes reflect globally
-    const subscription = supabase
-      .channel('global-profiles')
+    const channel = supabase
+      .channel(`global-profiles-${Date.now()}-${Math.random().toString(36).slice(2)}`)
       .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'profiles' }, payload => {
         setSearchResults(prev => prev.map(u => u.id === payload.new.id ? { ...u, ...payload.new } : u));
+        setRecentSearches(prev => prev.map(item => (
+          typeof item === 'string' || item.id !== payload.new.id ? item : { ...item, ...payload.new }
+        )));
       })
       .subscribe();
 
+    const refreshTimer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible' || !searchQuery.trim()) return;
+      executeSearch(searchQuery);
+    }, 5000);
+
     return () => {
-      supabase.removeChannel(subscription);
+      window.clearInterval(refreshTimer);
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
-  }, []);
+  }, [searchQuery]);
 
   useEffect(() => {
     const saved = localStorage.getItem('maxe_recent_searches');
@@ -111,7 +121,7 @@ export default function UserSearch() {
       .or(orQuery)
       .limit(15);
       
-    setSearchResults(data || []);
+    setSearchResults((data || []).filter(user => user.id !== session?.user?.id));
     setIsSearching(false);
   };
 
@@ -129,13 +139,11 @@ export default function UserSearch() {
       await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
       setFollowingMap(prev => ({ ...prev, [userId]: false }));
     } else {
-      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
-      try {
-        await supabase.from('notifications').insert([{ 
-          user_id: userId, 
-          content: `@${userProfile?.username || 'someone'} started following you!`, type: 'follow' 
-        }]);
-      } catch (e) { console.error("Notification failed", e); }
+      const { error: followError } = await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      if (followError) {
+        console.error('Follow failed', followError);
+        return;
+      }
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
     }
   };
@@ -201,7 +209,7 @@ export default function UserSearch() {
                       if (parsed.profileEffects) eff = parsed.profileEffects;
                     } catch(e) {}
                   }
-                  const hasWallpaper = !isText && item.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
+                  const hasWallpaper = !isText && eff && eff.wallpaper && eff.wallpaper !== 'none';
                   const wallpaperStyle = hasWallpaper ? {
                     background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url(${eff.customWallpaperUrl})` :
                                 eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
@@ -285,11 +293,12 @@ export default function UserSearch() {
               } catch(e) {}
             }
             
-            const hasWallpaper = user.is_premium && eff && eff.wallpaper && eff.wallpaper !== 'none';
+            const hasWallpaper = eff && eff.wallpaper && eff.wallpaper !== 'none';
             const isCustomPhoto = hasWallpaper && eff.wallpaper === 'custom' && eff.customWallpaperUrl;
             
             return (
               <div key={user.id} onClick={() => openUserPopup(user)}
+                title={`Open ${user.name || user.username || 'profile'}`}
                 className={`px-3 py-3 flex items-center gap-3 cursor-pointer transition-all relative overflow-hidden z-0 ${hasWallpaper ? 'rounded-xl mb-2 border border-white/20 shadow-[0_0_15px_rgba(255,255,255,0.15)] bg-transparent' : 'hover:bg-black/5 border-b border-primary/5'}`}
               >
                 {/* 1. Background Layer */}
@@ -331,6 +340,7 @@ export default function UserSearch() {
                 </div>
 
                 <button
+                  aria-label={isFollowing ? `Unfollow ${user.name || user.username}` : `Follow ${user.name || user.username}`}
                   onClick={(e) => { e.stopPropagation(); toggleFollow(user.id); }}
                   className={`relative z-10 px-4 py-1.5 rounded-lg text-xs transition-all ${hasWallpaper ? 'bg-white/80 text-gray-900 backdrop-blur-md hover:bg-white/95 border border-white/40 font-medium' : isFollowing ? 'bg-surface border border-primary/20 text-header font-semibold' : 'bg-primary text-white font-semibold shadow-sm'}`}
                 >

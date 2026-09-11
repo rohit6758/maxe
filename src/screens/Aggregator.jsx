@@ -199,7 +199,7 @@ export default function Aggregator() {
       )}
 
       {/* ── Funnel ── */}
-      <div className="card p-4 space-y-4">
+      <div className="card anime-context-card p-4 space-y-4">
         <p className="text-xs font-bold uppercase tracking-widest" style={{color: 'var(--theme-primary)'}}>Select Context</p>
 
         {/* Branch */}

@@ -1,13 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { X, User, ArrowLeft, UserPlus, Check } from 'lucide-react';
+import { X, User, ArrowLeft } from 'lucide-react';
 import VerifiedBadge from './VerifiedBadge';
-import AvatarDecoration from './AvatarDecoration';
 import { useAppContext } from '../context/AppContext';
-import { THEME_DECORATIONS } from './ProSettingsModal';
 
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
-  const { profileEffects, theme } = useAppContext();
+  const { profileEffects } = useAppContext();
   const [profile, setProfile] = useState(null);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
@@ -27,6 +25,19 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
   }, [userId]);
 
   useEffect(() => {
+    if (!userId) return;
+    const channel = supabase.channel(`profile_preview_${userId}_${Date.now()}`);
+    channel.on('postgres_changes', {
+      event: 'UPDATE',
+      schema: 'public',
+      table: 'profiles',
+      filter: `id=eq.${userId}`
+    }, payload => setProfile(current => ({ ...current, ...payload.new })));
+    channel.subscribe();
+    return () => { channel.unsubscribe(); supabase.removeChannel(channel); };
+  }, [userId]);
+
+  useEffect(() => {
     if (viewMode === 'followers') loadFollowers();
     if (viewMode === 'following') loadFollowing();
   }, [viewMode]);
@@ -38,19 +49,22 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     const { data: p } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (p) setProfile(p);
 
-    // Fetch counts
-    const { count: followers } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', userId);
-    const { count: following } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', userId);
+    // Fetch independent counts in parallel so the profile does not show stale zeros.
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', userId),
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', userId)
+    ]);
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
 
     // Check mutual following status
     if (currentUserId && currentUserId !== userId) {
-      const { data: f } = await supabase.from('follows').select('*').match({ follower_id: currentUserId, following_id: userId }).maybeSingle();
-      setIsFollowing(!!f);
-
-      const { data: fMe } = await supabase.from('follows').select('*').match({ follower_id: userId, following_id: currentUserId }).maybeSingle();
-      setIsFollowingMe(!!fMe);
+      const [{ data: f }, { data: fMe }] = await Promise.all([
+        supabase.from('follows').select('id').match({ follower_id: currentUserId, following_id: userId }).maybeSingle(),
+        supabase.from('follows').select('id').match({ follower_id: userId, following_id: currentUserId }).maybeSingle()
+      ]);
+      setIsFollowing(Boolean(f));
+      setIsFollowingMe(Boolean(fMe));
     }
     
     // Load my following map so we can show buttons in the lists
@@ -97,7 +111,8 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
       setFollowerCount(prev => prev - 1);
       if (onFollowChange) onFollowChange(userId, false);
     } else {
-      await supabase.from('follows').insert([{ follower_id: currentUserId, following_id: userId }]);
+      const { error: followError } = await supabase.from('follows').insert([{ follower_id: currentUserId, following_id: userId }]);
+      if (followError) throw followError;
       setIsFollowing(true);
       setFollowerCount(prev => prev + 1);
       if (onFollowChange) onFollowChange(userId, true);
@@ -128,17 +143,13 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
 
   const isMe = currentUserId === userId;
   let dbEffects = null;
-  let dbTheme = null;
   if (profile?.interests && profile?.interests.startsWith('{')) {
     try {
       const parsed = JSON.parse(profile.interests);
       if (parsed.profileEffects) dbEffects = parsed.profileEffects;
-      if (parsed.theme) dbTheme = parsed.theme;
     } catch(e) {}
   }
 
-  const effectiveTheme = isMe ? theme : (dbTheme || (profile?.is_premium ? 'venice' : 'default'));
-  const dec = THEME_DECORATIONS[effectiveTheme] || THEME_DECORATIONS.default;
   // Only use dbEffects if we actually read something from DB; never fake a wallpaper
   const eff = isMe ? profileEffects : (dbEffects || { banner:'none', avatar:'none', wallpaper:'none' });
 
@@ -146,7 +157,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
     <div className="fixed inset-0 z-[200] flex flex-col items-center justify-center p-4 bg-black/40 backdrop-blur-sm animate-fade-in" onClick={onClose}>
       
       <div className="relative w-full max-w-sm card overflow-hidden shadow-2xl animate-slide-up" onClick={e => e.stopPropagation()} style={{
-        ...(profile?.is_premium && eff?.wallpaper !== 'none' ? {
+        ...(eff?.wallpaper !== 'none' ? {
           background: eff.wallpaper === 'custom' && eff.customWallpaperUrl ? `url('${eff.customWallpaperUrl}')` : 
                         eff.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                         eff.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
@@ -187,16 +198,6 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
                 className="relative w-28 h-28 flex items-center justify-center shrink-0 cursor-pointer"
                 onClick={() => profile?.avatar_url && setViewingAvatar(true)}
               >
-                {/* Theme-specific decorations */}
-                {profile?.is_premium && (
-                  <div className="absolute inset-0 pointer-events-none scale-[1.3] z-0">
-                    {dec.elements}
-                  </div>
-                )}
-                {/* Fallback old avatar decoration */}
-                {profile?.is_premium && eff?.avatar !== 'none' && (
-                  <AvatarDecoration type={eff?.avatar} />
-                )}
                 <div className="w-24 h-24 rounded-full border-4 overflow-hidden relative z-10 bg-white"
                   style={{borderColor: profile?.is_premium ? 'color-mix(in srgb, var(--theme-primary) 50%, white)' : 'var(--theme-ring)'}}>
                   {profile?.avatar_url ? (

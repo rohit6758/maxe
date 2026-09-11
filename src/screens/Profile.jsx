@@ -6,11 +6,13 @@ import { useAppContext } from '../context/AppContext';
 import { User, Save, UploadCloud, LogOut, Camera, Users, X } from 'lucide-react';
 import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
-import ProSettingsModal, { THEME_DECORATIONS } from '../components/ProSettingsModal';
-import AvatarDecoration from '../components/AvatarDecoration';
+import ProSettingsModal from '../components/ProSettingsModal';
+import ImageCropper from '../components/ImageCropper';
+import AppDialog from '../components/AppDialog';
+import { normalizeUsername, validateUsername } from '../lib/username';
 
 export default function Profile() {
-  const { session, userProfile, setUserProfile, theme, setTheme, profileEffects, setProfileEffects } = useAppContext();
+  const { session, userProfile, setUserProfile, profileEffects } = useAppContext();
 
 
   const [name, setName] = useState('');
@@ -33,11 +35,14 @@ export default function Profile() {
 
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
+  const [followStatsLoading, setFollowStatsLoading] = useState(true);
   
   const [followingMap, setFollowingMap] = useState({});
   const [selectedUser, setSelectedUser] = useState(null); // For Profile Popup
   const [showRemoveConfirm, setShowRemoveConfirm] = useState(null);
   const [showProModal, setShowProModal] = useState(false);
+  const [cropImageSrc, setCropImageSrc] = useState(null);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     if (session) {
@@ -64,10 +69,14 @@ export default function Profile() {
     setIsLoadingNetwork(false);
   };
 const loadFollowStats = async () => {
-    const { count: followers } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('following_id', session.user.id);
-    const { count: following } = await supabase.from('follows').select('*', { count: 'exact', head: true }).eq('follower_id', session.user.id);
+    setFollowStatsLoading(true);
+    const [{ count: followers }, { count: following }] = await Promise.all([
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('following_id', session.user.id),
+      supabase.from('follows').select('id', { count: 'exact', head: true }).eq('follower_id', session.user.id)
+    ]);
     setFollowerCount(followers || 0);
     setFollowingCount(following || 0);
+    setFollowStatsLoading(false);
   };
 
   const loadFollowingMap = async () => {
@@ -108,12 +117,6 @@ const loadFollowStats = async () => {
       if (networkType === 'following') setFollowingCount(prev => prev - 1);
     } else {
       await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
-      try {
-        await supabase.from('notifications').insert([{ 
-          user_id: userId, 
-          content: `@${userProfile?.username || 'someone'} started following you!`, type: 'follow' 
-        }]);
-      } catch (e) { console.error("Notification failed", e); }
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
       if (networkType === 'following') setFollowingCount(prev => prev + 1);
     }
@@ -130,22 +133,34 @@ const loadFollowStats = async () => {
     }
   }, [userProfile, isEditing]);
 
-  const handleAvatarUpload = async (e) => {
+  const handleAvatarUpload = (e) => {
     const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.addEventListener('load', () => setCropImageSrc(reader.result));
+    reader.readAsDataURL(file);
+    e.target.value = null;
+  };
+
+  const handleCroppedAvatarUpload = async (file) => {
+    setCropImageSrc(null);
     if (!file || !session) return;
     setUploading(true);
     try {
-      const ext = file.name.split('.').pop();
-      const path = `avatars/${session.user.id}_${Math.random()}.${ext}`;
+      const path = `avatars/${session.user.id}_${Date.now()}.jpg`;
       const { error: upErr } = await supabase.storage
         .from('uploads')
-        .upload(path, file, { upsert: true, contentType: file.type });
+        .upload(path, file, { upsert: true, contentType: 'image/jpeg' });
       if (upErr) throw upErr;
       const { data } = supabase.storage.from('uploads').getPublicUrl(path);
       const url = `${data.publicUrl}`;
       
       // Instantly update database so popup uploads save immediately
-      await supabase.from('profiles').update({ avatar_url: url }).eq('id', session.user.id);
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .update({ avatar_url: url })
+        .eq('id', session.user.id);
+      if (profileError) throw profileError;
       setUserProfile(prev => ({ ...prev, avatar_url: url }));
       setAvatarUrl(url);
       
@@ -185,12 +200,18 @@ const loadFollowStats = async () => {
 
   const handleSave = async () => {
     if (!session) return;
+    const normalizedUsername = normalizeUsername(username);
+    const usernameError = validateUsername(normalizedUsername);
+    if (usernameError) {
+      toast(usernameError);
+      return;
+    }
     setSaving(true);
     const { data, error } = await supabase
       .from('profiles')
       .update({
         name: name.trim(),
-        username: username.trim().toLowerCase(),
+        username: normalizedUsername,
         bio: bio.trim(),
         branch,
         college,
@@ -211,6 +232,9 @@ const loadFollowStats = async () => {
       setSaved(true);
       setTimeout(() => { setSaved(false); setIsEditing(false); }, 1000);
     }
+    else {
+      toast('Profile was not updated. Please try again.', 'error');
+    }
     setSaving(false);
   };
 
@@ -220,7 +244,7 @@ const loadFollowStats = async () => {
       {!isEditing ? (
         <div className="card relative overflow-hidden" style={{
           padding: 0,
-          ...(userProfile?.is_premium && profileEffects?.wallpaper && profileEffects.wallpaper !== 'none' ? {
+          ...(profileEffects?.wallpaper && profileEffects.wallpaper !== 'none' ? {
             background: profileEffects.wallpaper === 'custom' && profileEffects.customWallpaperUrl ? `url('${profileEffects.customWallpaperUrl}')` :
                         profileEffects.wallpaper === 'dots' ? 'radial-gradient(circle, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
                         profileEffects.wallpaper === 'grid' ? 'linear-gradient(var(--theme-ring) 1px, transparent 1px), linear-gradient(90deg, var(--theme-ring) 1px, var(--theme-surface) 1px)' :
@@ -229,24 +253,14 @@ const loadFollowStats = async () => {
             backgroundPosition: 'center',
           } : {})
         }}>
-          {/* Nitro Gradient Banner if active */}
-          {userProfile?.is_premium && profileEffects?.banner === 'gradient' && (
-            <div className="absolute top-0 left-0 right-0 h-16 opacity-30 pointer-events-none" style={{background: 'linear-gradient(90deg, var(--theme-primary), color-mix(in srgb, var(--theme-ring) 50%, transparent))'}} />
+          {profileEffects?.wallpaper === 'custom' && profileEffects.customWallpaperUrl && (
+            <div className="absolute inset-0 bg-black/20 pointer-events-none" aria-hidden="true" />
           )}
-
           {/* Compact profile row */}
           <div className="flex items-center gap-4 relative z-10 px-4 pt-4">
             <div
               onClick={() => setShowAvatarPopup(true)}
               className="relative w-20 h-20 shrink-0 cursor-pointer hover:scale-105 transition-transform">
-              {userProfile?.is_premium && (
-                <div className="absolute inset-0 pointer-events-none scale-[1.3] z-0">
-                  {(THEME_DECORATIONS[theme] || THEME_DECORATIONS.default).elements}
-                </div>
-              )}
-              {userProfile?.is_premium && profileEffects?.avatar !== 'none' && (
-                <AvatarDecoration type={profileEffects?.avatar} />
-              )}
               <div className="w-full h-full rounded-full overflow-hidden flex items-center justify-center border-[3px] relative z-10"
                 style={{borderColor: 'color-mix(in srgb, var(--theme-primary) 35%, transparent)', background:'color-mix(in srgb, var(--theme-sidebar) 60%, white)'}}>
                 {userProfile?.avatar_url
@@ -264,11 +278,11 @@ const loadFollowStats = async () => {
               <p className="text-xs font-semibold mt-0.5" style={{color:'var(--theme-body)'}}>{userProfile?.branch || ''}{userProfile?.college ? ` • ${userProfile.college}` : ''}</p>
               <div className="flex gap-4 mt-2">
                 <button onClick={() => openNetwork('followers')} className="flex items-center gap-1.5 hover:opacity-80">
-                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followerCount}</span>
+                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followStatsLoading ? '…' : followerCount}</span>
                   <span className="text-[10px] uppercase font-bold tracking-wider" style={{color:'var(--theme-body)'}}>Followers</span>
                 </button>
                 <button onClick={() => openNetwork('following')} className="flex items-center gap-1.5 hover:opacity-80">
-                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followingCount}</span>
+                  <span className="text-sm font-black" style={{color:'var(--theme-header)'}}>{followStatsLoading ? '…' : followingCount}</span>
                   <span className="text-[10px] uppercase font-bold tracking-wider" style={{color:'var(--theme-body)'}}>Following</span>
                 </button>
               </div>
@@ -285,25 +299,11 @@ const loadFollowStats = async () => {
               style={{color:'var(--theme-header)', border:'1px solid color-mix(in srgb, var(--theme-ring) 60%, transparent)'}}>
               Edit Profile
             </button>
-            {userProfile?.is_premium ? (
-              <button onClick={() => setShowProModal(true)}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 bg-white/80 backdrop-blur-sm shadow-sm"
-                style={{color:'var(--theme-primary)', border:'1px solid color-mix(in srgb, var(--theme-primary) 40%, transparent)'}}>
-                ✨ Pro Settings
-              </button>
-            ) : (
-              <button onClick={() => {
-                if (session?.user?.email === 'rohitnxtgengw@gmail.com') {
-                  setShowProModal(true);
-                } else {
-                  toast("Pro upgrade is currently locked during testing. Please wait for the official release!");
-                }
-              }}
-                className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 shadow-md"
-                style={{background:'var(--theme-primary)', color:'#fff'}}>
-                Upgrade ₹40
-              </button>
-            )}
+            <button onClick={() => setShowProModal(true)}
+              className="flex-1 py-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center gap-1 bg-white/80 backdrop-blur-sm shadow-sm"
+              style={{color:'var(--theme-primary)', border:'1px solid color-mix(in srgb, var(--theme-primary) 40%, transparent)'}}>
+              Settings
+            </button>
           </div>
         </div>
       ) : (
@@ -367,7 +367,7 @@ const loadFollowStats = async () => {
             <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
           </div>
 
-          <button onClick={handleSave} disabled={saving}
+          <button type="button" onClick={handleSave} disabled={saving || uploading}
             className="btn-primary w-full py-3 flex items-center justify-center gap-2 text-sm mt-2">
             <Save size={16} />
             {saving ? 'Saving...' : saved ? '✓ Saved!' : 'Save Changes'}
@@ -385,12 +385,22 @@ const loadFollowStats = async () => {
           <p className="text-sm font-medium mt-0.5" className="text-header">{session?.user?.email}</p>
         </div>
         <button
-          onClick={() => supabase.auth.signOut()}
+          onClick={() => setShowLogoutConfirm(true)}
           className="w-full py-3 rounded-xl text-sm font-bold flex items-center justify-center gap-2"
           style={{background:'rgba(220,107,107,0.08)', border:'1.5px solid rgba(220,107,107,0.2)', color:'#DC6B6B'}}>
-          <LogOut size={16} /> Sign Out
+          <LogOut size={16} /> Log out
         </button>
       </div>
+
+      {showLogoutConfirm && <AppDialog
+        type="confirm"
+        title="Log out of Maxe?"
+        message="Are you sure you want to log out?"
+        confirmText="Log out"
+        danger
+        onCancel={() => setShowLogoutConfirm(false)}
+        onConfirm={async () => { await supabase.auth.signOut(); window.location.reload(); }}
+      />}
 
       {showProModal && <ProSettingsModal isOpen={showProModal} onClose={() => setShowProModal(false)} />}
 
@@ -502,19 +512,7 @@ const loadFollowStats = async () => {
               ) : (
                 <Camera size={24} />
               )}
-              <input type="file" accept="image/*" className="hidden" onChange={async (e) => {
-                await handleAvatarUpload(e);
-                // Also instantly save to DB so they don't have to click 'Save Changes' in the other form
-                if (session) {
-                  setTimeout(async () => {
-                     const { data } = await supabase.from('profiles').select('avatar_url').eq('id', session.user.id).single();
-                     if (data) {
-                       setUserProfile(prev => ({...prev, avatar_url: data.avatar_url}));
-                       setAvatarUrl(data.avatar_url);
-                     }
-                  }, 1500);
-                }
-              }} disabled={uploading} />
+              <input type="file" accept="image/*" className="hidden" onChange={handleAvatarUpload} disabled={uploading} />
             </label>
           </div>
           
@@ -526,7 +524,15 @@ const loadFollowStats = async () => {
         </div>
       )}
 
+      {cropImageSrc && (
+        <ImageCropper
+          imageSrc={cropImageSrc}
+          aspectRatio={1}
+          onCropComplete={handleCroppedAvatarUpload}
+          onCancel={() => setCropImageSrc(null)}
+        />
+      )}
+
     </div>
   );
 }
-

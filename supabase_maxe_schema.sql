@@ -1,0 +1,223 @@
+/* Run once in Supabase SQL Editor. All statements are safe to re-run. */
+alter table if exists public.profiles add column if not exists interests text;
+alter table if exists public.communities add column if not exists avatar_url text;
+alter table if exists public.communities enable row level security;
+drop policy if exists "Maxe communities update members" on public.communities;
+create policy "Maxe communities update members" on public.communities
+  for update to authenticated
+  using (
+    auth.uid() = created_by
+    or exists (
+      select 1
+      from public.community_members member
+      where member.community_id = communities.id
+        and member.user_id = auth.uid()
+    )
+  )
+  with check (
+    auth.uid() = created_by
+    or exists (
+      select 1
+      from public.community_members member
+      where member.community_id = communities.id
+        and member.user_id = auth.uid()
+    )
+  );
+create unique index if not exists profiles_username_lower_unique on public.profiles (lower(username)) where username is not null and username <> '';
+
+create table if not exists public.notifications (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  content text not null,
+  is_read boolean not null default false,
+  type text not null default 'general',
+  actor_id uuid references auth.users(id) on delete set null,
+  entity_id text,
+  url text,
+  created_at timestamptz not null default now()
+);
+alter table public.notifications add column if not exists is_read boolean not null default false;
+alter table public.notifications add column if not exists type text not null default 'general';
+alter table public.notifications add column if not exists actor_id uuid references auth.users(id) on delete set null;
+alter table public.notifications add column if not exists entity_id text;
+alter table public.notifications add column if not exists url text;
+alter table public.notifications add column if not exists created_at timestamptz not null default now();
+create index if not exists notifications_user_created_idx on public.notifications(user_id, created_at desc);
+alter table public.notifications replica identity full;
+alter table public.notifications enable row level security;
+drop policy if exists "Maxe notifications read own" on public.notifications;
+create policy "Maxe notifications read own" on public.notifications for select to authenticated using (auth.uid() = user_id);
+drop policy if exists "Maxe notifications update own" on public.notifications;
+create policy "Maxe notifications update own" on public.notifications for update to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+drop policy if exists "Maxe notifications delete own" on public.notifications;
+create policy "Maxe notifications delete own" on public.notifications for delete to authenticated using (auth.uid() = user_id);
+drop policy if exists "Maxe notifications insert authenticated" on public.notifications;
+create policy "Maxe notifications insert authenticated" on public.notifications for insert to authenticated with check (true);
+
+create table if not exists public.push_subscriptions (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  endpoint text not null unique,
+  p256dh text not null,
+  auth text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+create index if not exists push_subscriptions_user_idx on public.push_subscriptions(user_id);
+alter table public.push_subscriptions enable row level security;
+drop policy if exists "Maxe push subscriptions own rows" on public.push_subscriptions;
+create policy "Maxe push subscriptions own rows" on public.push_subscriptions
+  for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create table if not exists public.calendar_events (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  title text not null,
+  type text not null default 'reminder',
+  marks integer,
+  event_date date not null,
+  reminder_time time,
+  created_at timestamptz not null default now()
+);
+alter table public.calendar_events add column if not exists reminder_time time;
+create index if not exists calendar_events_user_date_idx on public.calendar_events(user_id, event_date);
+alter table public.calendar_events enable row level security;
+drop policy if exists "Maxe calendar own rows" on public.calendar_events;
+create policy "Maxe calendar own rows" on public.calendar_events for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create table if not exists public.community_messages (
+  id uuid primary key default gen_random_uuid(),
+  community_id uuid not null,
+  user_id uuid not null references auth.users(id) on delete cascade,
+  content text not null check (char_length(content) between 1 and 2000),
+  created_at timestamptz not null default now()
+);
+create index if not exists community_messages_group_created_idx on public.community_messages(community_id, created_at);
+alter table public.community_messages replica identity full;
+alter table public.community_messages enable row level security;
+drop policy if exists "Maxe community messages read" on public.community_messages;
+create policy "Maxe community messages read" on public.community_messages for select to authenticated using (true);
+drop policy if exists "Maxe community messages insert own" on public.community_messages;
+create policy "Maxe community messages insert own" on public.community_messages for insert to authenticated with check (auth.uid() = user_id);
+
+create table if not exists public.study_activity (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  activity_type text not null,
+  duration_minutes integer not null default 0 check (duration_minutes >= 0),
+  created_at timestamptz not null default now()
+);
+create index if not exists study_activity_user_created_idx on public.study_activity(user_id, created_at desc);
+alter table public.study_activity enable row level security;
+drop policy if exists "Maxe study activity own" on public.study_activity;
+create policy "Maxe study activity own" on public.study_activity for all to authenticated using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+do $$
+begin
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'notifications') then
+    alter publication supabase_realtime add table public.notifications;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'community_messages') then
+    alter publication supabase_realtime add table public.community_messages;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'communities') then
+    alter publication supabase_realtime add table public.communities;
+  end if;
+  if not exists (select 1 from pg_publication_tables where pubname = 'supabase_realtime' and schemaname = 'public' and tablename = 'profiles') then
+    alter publication supabase_realtime add table public.profiles;
+  end if;
+end $$;
+
+-- Database-side notification delivery. These triggers work even when the
+-- browser is backgrounded or a client-side insert is skipped.
+create or replace function public.maxe_notify_follow()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, content, is_read, type)
+  values (
+    new.following_id,
+    new.follower_id,
+    coalesce((select '@' || username from public.profiles where id = new.follower_id), '@someone') || ' sent you a friend request',
+    false,
+    'follow'
+  );
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_follow on public.follows;
+create trigger maxe_notify_follow
+after insert on public.follows
+for each row execute function public.maxe_notify_follow();
+
+create or replace function public.maxe_notify_community_message()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
+  select member.user_id, new.user_id, new.community_id::text,
+    new.content,
+    false, 'community_message'
+  from public.community_members member
+  where member.community_id = new.community_id and member.user_id <> new.user_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_community_message on public.community_messages;
+create trigger maxe_notify_community_message
+after insert on public.community_messages
+for each row execute function public.maxe_notify_community_message();
+
+create or replace function public.maxe_notify_community_post()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
+  select member.user_id, new.user_id, new.community_id::text,
+    coalesce((select '@' || username from public.profiles where id = new.user_id), '@someone') ||
+      ' posted new material in ' || coalesce((select name from public.communities where id = new.community_id), 'your group'),
+    false, 'community_post'
+  from public.community_members member
+  where member.community_id = new.community_id and member.user_id <> new.user_id;
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_community_post on public.community_posts;
+create trigger maxe_notify_community_post
+after insert on public.community_posts
+for each row execute function public.maxe_notify_community_post();
+
+create or replace function public.maxe_notify_community_update()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+begin
+  insert into public.notifications (user_id, actor_id, entity_id, content, is_read, type)
+  select member.user_id, auth.uid(), new.id::text,
+    coalesce((select '@' || username from public.profiles where id = auth.uid()), '@someone') ||
+      ' updated the group profile in ' || new.name,
+    false, 'community_profile'
+  from public.community_members member
+  where member.community_id = new.id and member.user_id <> auth.uid();
+  return new;
+end;
+$$;
+
+drop trigger if exists maxe_notify_community_update on public.communities;
+create trigger maxe_notify_community_update
+after update of name, avatar_url on public.communities
+for each row execute function public.maxe_notify_community_update();

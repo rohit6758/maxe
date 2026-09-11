@@ -68,11 +68,11 @@ self.addEventListener('periodicsync', event => {
 // ── Push Notifications ─────────────────────────────────────────────────────
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'Maxe - Study Hub';
+  const title = data.title || 'New notification';
   const options = {
     body: data.body || 'You have a new notification',
-    icon: '/icon-192x192.png',
-    badge: '/icon-96x96.png',
+    ...(data.icon ? { icon: data.icon } : {}),
+    image: data.image || undefined,
     data: { url: data.url || '/' },
     vibrate: [200, 100, 200],
     requireInteraction: false,

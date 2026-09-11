@@ -8,24 +8,31 @@ export default function ImageCropper({ imageSrc, onCropComplete, onCancel, aspec
   const [croppedAreaPixels, setCroppedAreaPixels] = useState(null);
 
   const onCropChange = (crop) => setCrop(crop);
-  const onZoomChange = (zoom) => setZoom(zoom);
+  const onZoomChange = (zoom) => setZoom(Number(zoom));
   const onCropCompleteHandler = useCallback((croppedArea, croppedAreaPixels) => {
     setCroppedAreaPixels(croppedAreaPixels);
   }, []);
 
   const handleSave = async () => {
     try {
+      if (!croppedAreaPixels) {
+        onCancel();
+        return;
+      }
       const croppedImageFile = await getCroppedImg(imageSrc, croppedAreaPixels);
-      onCropComplete(croppedImageFile);
+      if (croppedImageFile) onCropComplete(croppedImageFile);
     } catch (e) {
       console.error(e);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-[999] bg-black flex flex-col animate-fade-in">
+    <div className="fixed inset-0 z-[999] bg-black flex flex-col animate-fade-in" style={{ paddingTop: 'env(safe-area-inset-top)', paddingBottom: 'env(safe-area-inset-bottom)' }}>
       <div className="flex items-center justify-between p-4 bg-black/50 absolute top-0 left-0 right-0 z-10">
-        <h3 className="text-white font-bold">Crop Image</h3>
+        <div>
+          <h3 className="text-white font-bold">Crop Image</h3>
+          <p className="text-white/60 text-xs mt-0.5">Drag to position, then adjust the zoom</p>
+        </div>
         <button onClick={onCancel} className="p-2 text-white hover:bg-white/20 rounded-full transition-colors">
           <X size={20} />
         </button>

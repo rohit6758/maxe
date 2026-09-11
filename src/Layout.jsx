@@ -5,18 +5,18 @@ import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
-import StudyTrackerModal from './screens/StudyTrackerModal';
 import OnboardingPopup from './components/OnboardingPopup';
 import NotificationsMenu from './components/NotificationsMenu';
+import AppDialog from './components/AppDialog';
 
 export default function Layout() {
   const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTodoOpen, setIsTodoOpen] = useState(false);
-  const [isTrackerOpen, setIsTrackerOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
   useEffect(() => {
     const goOnline = () => setIsOnline(true);
@@ -84,13 +84,14 @@ export default function Layout() {
           </NavLink>
         ))}
         {/* Study Tracker right under Find */}
-        <button
-          onClick={() => { setIsTrackerOpen(true); setSidebarOpen(false); }}
-          className={`nav-item text-left w-full ${isTrackerOpen ? 'nav-item-active' : ''} ${userProfile?.is_premium ? 'text-orange-500' : ''}`}
+        <NavLink
+          to="/study-tracker"
+          onClick={() => setSidebarOpen(false)}
+          className={`nav-item text-left w-full ${userProfile?.is_premium ? 'text-orange-500' : ''}`}
         >
           <Flame size={18} className={userProfile?.is_premium ? 'animate-pulse' : ''} />
           <span>Study Tracker</span>
-        </button>
+        </NavLink>
       </nav>
 
       {/* Bottom actions */}
@@ -110,8 +111,8 @@ export default function Layout() {
           <User size={18} />
           <span>{userProfile?.name || 'Profile'}</span>
         </Link>
-        <button onClick={handleLogout} className="nav-item w-full text-red-400 hover:text-red-500">
-          <LogOut size={18} /> Sign Out
+        <button onClick={() => setShowLogoutConfirm(true)} className="nav-item w-full text-red-400 hover:text-red-500">
+          <LogOut size={18} /> Log out
         </button>
       </div>
     </div>
@@ -139,7 +140,7 @@ export default function Layout() {
       )}
 
       {/* Main */}
-      <div className="flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
+      <div className="app-shell flex-1 flex flex-col min-w-0 max-w-full md:max-w-3xl mx-auto">
 
         {/* Mobile Top Bar */}
         <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3"
@@ -149,6 +150,16 @@ export default function Layout() {
           </button>
           <h1 className="font-black text-lg" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
           <div className="flex items-center gap-1">
+            {installPrompt && (
+              <button
+                onClick={handleInstall}
+                aria-label="Install Maxe app"
+                className="p-2 rounded-xl"
+                style={{ color: 'var(--theme-primary)' }}
+              >
+                <Download size={20} />
+              </button>
+            )}
             <button onClick={() => setIsTodoOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-primary)' }}>
               <CheckSquare size={20} />
             </button>
@@ -182,7 +193,7 @@ export default function Layout() {
           </Link>
         </header>
 
-        <main className="flex-1 p-4 md:p-6 pb-[80px] md:pb-8">
+        <main className="app-content flex-1 p-4 md:p-6 pb-[calc(80px+env(safe-area-inset-bottom))] md:pb-8">
           {/* Offline Banner */}
           {!isOnline && (
             <div className="sticky top-0 z-50 bg-yellow-500 text-white text-xs font-bold text-center py-1.5 flex items-center justify-center gap-2">
@@ -193,7 +204,7 @@ export default function Layout() {
         </main>
 
         {/* Mobile Bottom Nav */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center h-[56px] px-2 z-30"
+        <nav className="maxe-mobile-nav md:hidden fixed bottom-0 left-0 right-0 flex justify-around items-center min-h-[56px] h-[calc(56px+env(safe-area-inset-bottom))] px-2 pb-[env(safe-area-inset-bottom)] z-30"
           style={{ background: 'var(--theme-sidebar)', boxShadow: '0 -1px 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
           {[
             { to: '/', icon: <LayoutGrid size={22} strokeWidth={2.5} />, label: 'Home' },
@@ -219,7 +230,18 @@ export default function Layout() {
 
       {isCalendarOpen && <CalendarModal onClose={() => setIsCalendarOpen(false)} />}
       {isTodoOpen && <TodoModal onClose={() => setIsTodoOpen(false)} />}
-      <StudyTrackerModal isOpen={isTrackerOpen} onClose={() => setIsTrackerOpen(false)} />
+      {showLogoutConfirm && (
+        <AppDialog
+          type="confirm"
+          title="Log out of Maxe?"
+          message="You can sign back in anytime."
+          confirmText="Log out"
+          cancelText="Stay signed in"
+          danger
+          onConfirm={handleLogout}
+          onCancel={() => setShowLogoutConfirm(false)}
+        />
+      )}
     </div>
   );
 }

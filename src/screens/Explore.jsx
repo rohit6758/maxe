@@ -1,10 +1,11 @@
 import { toast } from '../context/ToastContext';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
 import { Plus, MessageSquare, FileText, Download, Trash2, ArrowLeft, Send, Layers, User, Users, Check, UserPlus, X, Lock, Image as ImageIcon, Search } from 'lucide-react';
 import UserProfilePopup from '../components/UserProfilePopup';
 import ImageCropper from '../components/ImageCropper';
+import VerifiedBadge from '../components/VerifiedBadge';
 
 export default function Explore() {
   const { session, userProfile } = useAppContext();
@@ -15,8 +16,22 @@ export default function Explore() {
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [joinRequestStatus, setJoinRequestStatus] = useState(null);
-  const [typingUsers, setTypingUsers] = useState([]);
   const [posts, setPosts] = useState([]);
+  const [communityView, setCommunityView] = useState('resources');
+  const [chatMessages, setChatMessages] = useState([]);
+  const [chatProfiles, setChatProfiles] = useState({});
+  const [chatInput, setChatInput] = useState('');
+  const [isSendingChat, setIsSendingChat] = useState(false);
+  const [typingUsers, setTypingUsers] = useState({});
+  const chatChannelRef = useRef(null);
+  const typingTimerRef = useRef(null);
+  const typingStopTimerRef = useRef(null);
+  const chatInputRef = useRef(null);
+  const chatScrollRef = useRef(null);
+  const chatBottomRef = useRef(null);
+  const chatChannelReadyRef = useRef(false);
+  const shouldFollowChatRef = useRef(true);
+  const previousChatCountRef = useRef(0);
   const [myMemberships, setMyMemberships] = useState({});
 
   // Modals / Forms
@@ -49,7 +64,6 @@ export default function Explore() {
   const [followingMap, setFollowingMap] = useState({});
   const [selectedUser, setSelectedUser] = useState(null); // For Popup
   const [isAddingMember, setIsAddingMember] = useState(false);
-  const typingChannelRef = React.useRef(null);
   const [memberSearch, setMemberSearch] = useState('');
   const [memberSearchResults, setMemberSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -77,8 +91,36 @@ export default function Explore() {
           }
         })
         .subscribe();
+
+      const communityChannel = supabase.channel(`community_directory_${session.user.id}_${Date.now()}`)
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'communities' }, () => {
+          loadCommunities();
+        })
+        .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'communities' }, payload => {
+          setCommunities(prev => prev.map(community => (
+            community.id === payload.new.id ? { ...community, ...payload.new } : community
+          )));
+          setSelectedCommunity(prev => (
+            prev?.id === payload.new.id ? { ...prev, ...payload.new } : prev
+          ));
+        })
+        .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'communities' }, payload => {
+          setCommunities(prev => prev.filter(community => community.id !== payload.old.id));
+          setSelectedCommunity(prev => prev?.id === payload.old.id ? null : prev);
+        })
+        .subscribe();
+
+      // Realtime is preferred, but this also covers clients that temporarily
+      // lose their channel or have not enabled the table in the publication.
+      const communitySyncTimer = window.setInterval(() => loadCommunities({ silent: true }), 5000);
         
-      return () => { supabase.removeChannel(memberChannel); };
+      return () => {
+        window.clearInterval(communitySyncTimer);
+        memberChannel.unsubscribe();
+        communityChannel.unsubscribe();
+        supabase.removeChannel(memberChannel);
+        supabase.removeChannel(communityChannel);
+      };
     }
   }, [session, userProfile]);
 
@@ -87,20 +129,107 @@ export default function Explore() {
       const isMember = myMemberships[selectedCommunity.id] || isAdmin;
       if (isMember) {
         loadPosts(selectedCommunity.id);
+        loadChatMessages(selectedCommunity.id);
         
         const channel = supabase.channel(`community_posts_${Date.now()}`)
+          .on('broadcast', { event: 'typing' }, ({ payload }) => {
+            if (!payload?.userId || payload.userId === session.user.id) return;
+            if (payload.state === 'stopped') {
+              setTypingUsers(prev => {
+                const next = { ...prev };
+                delete next[payload.userId];
+                return next;
+              });
+              return;
+            }
+            setTypingUsers(prev => ({ ...prev, [payload.userId]: payload.name || 'Member' }));
+            setChatProfiles(prev => ({
+              ...prev,
+              [payload.userId]: {
+                ...(prev[payload.userId] || {}),
+                id: payload.userId,
+                name: payload.name || 'Member',
+                username: payload.username,
+                avatar_url: payload.avatarUrl
+              }
+            }));
+            window.clearTimeout(typingTimerRef.current);
+            typingTimerRef.current = window.setTimeout(() => setTypingUsers(prev => {
+              const next = { ...prev };
+              delete next[payload.userId];
+              return next;
+            }), 2200);
+          })
           .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_posts', filter: `community_id=eq.${selectedCommunity.id}` }, payload => {
             fetchSinglePost(payload.new.id);
           })
           .on('postgres_changes', { event: 'DELETE', schema: 'public', table: 'community_posts' }, payload => {
             setPosts(prev => prev.filter(p => p.id !== payload.old.id));
           })
-          .subscribe();
+          .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages', filter: `community_id=eq.${selectedCommunity.id}` }, async payload => {
+            const cachedSender = chatProfiles[payload.new.user_id];
+            if (!cachedSender?.avatar_url) {
+              const { data: sender } = await supabase.from('profiles').select('id, name, username, avatar_url').eq('id', payload.new.user_id).maybeSingle();
+              if (sender) setChatProfiles(prev => ({ ...prev, [sender.id]: sender }));
+            }
+            setChatMessages(prev => prev.some(item => item.id === payload.new.id) ? prev : [...prev, payload.new]);
+          })
+          .subscribe(status => {
+            chatChannelReadyRef.current = status === 'SUBSCRIBED';
+          });
+          chatChannelRef.current = channel;
           
-        return () => { supabase.removeChannel(channel); };
+        const syncTimer = window.setInterval(() => loadChatMessages(selectedCommunity.id), 1500);
+        return () => {
+          window.clearInterval(syncTimer);
+          chatChannelRef.current = null;
+          chatChannelReadyRef.current = false;
+          window.clearTimeout(typingStopTimerRef.current);
+          channel.unsubscribe();
+          supabase.removeChannel(channel);
+        };
       }
     }
   }, [selectedCommunity, myMemberships, isAdmin]);
+
+  useEffect(() => {
+    if (selectedCommunity && communityView === 'chat') {
+      window.requestAnimationFrame(() => chatInputRef.current?.focus());
+    }
+  }, [selectedCommunity, communityView]);
+
+  useEffect(() => {
+    if (!selectedCommunity || communityView !== 'chat') return;
+    previousChatCountRef.current = 0;
+    shouldFollowChatRef.current = true;
+  }, [selectedCommunity, communityView]);
+
+  useEffect(() => {
+    if (!selectedCommunity || communityView !== 'chat') return;
+    const countChanged = chatMessages.length !== previousChatCountRef.current;
+    previousChatCountRef.current = chatMessages.length;
+    if (countChanged && shouldFollowChatRef.current) {
+      window.requestAnimationFrame(() => {
+        const element = chatScrollRef.current;
+        if (element) element.scrollTop = element.scrollHeight;
+      });
+    }
+  }, [chatMessages, selectedCommunity, communityView]);
+
+  useEffect(() => {
+    if (!selectedCommunity || communityView !== 'chat' || !chatScrollRef.current) return;
+    const observer = new ResizeObserver(() => {
+      if (shouldFollowChatRef.current) chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    });
+    observer.observe(chatScrollRef.current);
+    return () => observer.disconnect();
+  }, [selectedCommunity, communityView]);
+
+  useEffect(() => {
+    const chatActive = Boolean(selectedCommunity && communityView === 'chat');
+    document.documentElement.classList.toggle('maxe-chat-active', chatActive);
+    return () => document.documentElement.classList.remove('maxe-chat-active');
+  }, [selectedCommunity, communityView]);
 
   useEffect(() => {
     if (selectedCommunity && !isCurrentMember) {
@@ -126,7 +255,7 @@ export default function Explore() {
            }
         }).subscribe();
         
-      return () => { supabase.removeChannel(channel); };
+      return () => { channel.unsubscribe(); supabase.removeChannel(channel); };
     }
   }, [selectedCommunity, isCurrentMember]);
 
@@ -153,8 +282,8 @@ export default function Explore() {
     if (data) setPosts(prev => [data, ...prev]);
   };
 
-  const loadCommunities = async () => {
-    setIsLoadingCommunities(true);
+  const loadCommunities = async ({ silent = false } = {}) => {
+    if (!silent) setIsLoadingCommunities(true);
     // Show all communities so user knows they exist
     let query = supabase.from('communities').select('*').order('created_at', { ascending: false });
     if (!isAdmin) {
@@ -170,20 +299,108 @@ export default function Explore() {
     }
     
     
-    const isPublicName = (name) => {
+    const hasBranchName = (name) => {
       const n = (name || '').toLowerCase();
       return n.includes('csm') || n.includes('cse') || n.includes('it') || n.includes('ece') || n.includes('eee') || n.includes('mech') || n.includes('civil') || n.includes('ds');
     };
     
     const visibleCommunities = (allCommunities || []).filter(c => {
       if (isAdmin) return true;
+      if (!hasBranchName(c.name)) return false;
       if (map[c.id]) return true; // Member
-      return isPublicName(c.name);
+      return hasBranchName(c.name);
     });
-    setCommunities(visibleCommunities);
+    setCommunities(prev => {
+      const previousKey = prev.map(community => `${community.id}:${community.name}:${community.avatar_url || ''}`).join('|');
+      const nextKey = visibleCommunities.map(community => `${community.id}:${community.name}:${community.avatar_url || ''}`).join('|');
+      return previousKey === nextKey ? prev : visibleCommunities;
+    });
+    setMyMemberships(prev => {
+      const previousKey = JSON.stringify(prev);
+      return previousKey === JSON.stringify(map) ? prev : map;
+    });
+    if (!silent) setIsLoadingCommunities(false);
+  };
 
-    setMyMemberships(map);
-    setIsLoadingCommunities(false);
+  const loadChatMessages = async (communityId) => {
+    const { data, error } = await supabase
+      .from('community_messages')
+      .select('id, community_id, user_id, content, created_at')
+      .eq('community_id', communityId)
+      .order('created_at', { ascending: true })
+      .limit(100);
+    if (error) {
+      if (error.code !== 'PGRST205') console.error('Failed to load community chat', error);
+      setChatMessages(prev => prev.filter(message => message.pending));
+      return;
+    }
+    const serverMessages = data || [];
+    setChatMessages(prev => {
+      const pendingMessages = prev.filter(message => message.pending);
+      const currentKey = prev.filter(message => !message.pending)
+        .map(message => `${message.id}:${message.content}:${message.created_at}`).join('|');
+      const nextKey = serverMessages
+        .map(message => `${message.id}:${message.content}:${message.created_at}`).join('|');
+      const unsentMessages = pendingMessages.filter(pendingMessage => !serverMessages.some(serverMessage => (
+          pendingMessage.user_id === serverMessage.user_id &&
+          pendingMessage.content === serverMessage.content &&
+          Math.abs(new Date(serverMessage.created_at).getTime() - new Date(pendingMessage.created_at).getTime()) < 30000
+        )));
+      if (currentKey === nextKey && unsentMessages.length === pendingMessages.length) return prev;
+      return [...serverMessages, ...unsentMessages];
+    });
+    if (userProfile?.id) setChatProfiles(prev => ({ ...prev, [userProfile.id]: userProfile }));
+    const senderIds = [...new Set((data || []).map(message => message.user_id))];
+    if (senderIds.length > 0) {
+      const { data: senders } = await supabase.from('profiles').select('id, name, username, avatar_url').in('id', senderIds);
+      const profileMap = {};
+      (senders || []).forEach(sender => { profileMap[sender.id] = sender; });
+      setChatProfiles(prev => {
+        const merged = { ...prev, ...profileMap };
+        return JSON.stringify(prev) === JSON.stringify(merged) ? prev : merged;
+      });
+    } else {
+      setChatProfiles(prev => Object.keys(prev).length === 0 ? prev : {});
+    }
+  };
+
+  const sendChatMessage = async (e) => {
+    e.preventDefault();
+    const content = chatInput.trim();
+    if (!content || !selectedCommunity || isSendingChat) return;
+    setIsSendingChat(true);
+    const optimisticId = `pending-${crypto.randomUUID()}`;
+    const optimisticMessage = {
+      id: optimisticId,
+      community_id: selectedCommunity.id,
+      user_id: session.user.id,
+      content,
+      created_at: new Date().toISOString(),
+      pending: true
+    };
+    setChatMessages(prev => [...prev, optimisticMessage]);
+    setChatProfiles(prev => ({ ...prev, [session.user.id]: userProfile }));
+    setChatInput('');
+    try {
+      const { error } = await supabase.from('community_messages').insert([{
+        community_id: selectedCommunity.id,
+        user_id: session.user.id,
+        content
+      }]);
+      if (error) {
+        setChatMessages(prev => prev.filter(message => message.id !== optimisticId));
+        if (error.code === 'PGRST205') toast('Community chat needs the Supabase table setup shown in the deployment notes.', 'error');
+        else toast(`Could not send message: ${error.message}`, 'error');
+      } else {
+        await loadChatMessages(selectedCommunity.id);
+      }
+    } catch (error) {
+      setChatMessages(prev => prev.filter(message => message.id !== optimisticId));
+      console.error('Failed to send community message', error);
+      toast('Could not send message. Please try again.', 'error');
+    } finally {
+      setIsSendingChat(false);
+    }
   };
 
   const loadPosts = async (communityId) => {
@@ -295,18 +512,6 @@ export default function Explore() {
 
       if (error) throw error;
       
-      try {
-        const { data: mems } = await supabase.from('community_members').select('user_id').eq('community_id', selectedCommunity.id);
-        if (mems) {
-          const notifs = mems.filter(m => m.user_id !== session.user.id).map(m => ({
-            user_id: m.user_id,
-            content: `@${userProfile?.username || 'someone'} posted new material in ${selectedCommunity.name}`, type: 'community'
-          }));
-          if (notifs.length > 0) {
-            await supabase.from('notifications').insert(notifs);
-          }
-        }
-      } catch (e) { console.error("Notification failed", e); }
       setShowShareModal(false);
       setShareData({ subject_name: '', title: '', type: 'pdf', url: '', file: null });
     } catch (err) {
@@ -329,10 +534,11 @@ export default function Explore() {
     }
     setIsSavingInfo(true);
     try {
-      const { data, error } = await supabase.from('communities').update({ name: editCommunityName.trim() }).eq('id', selectedCommunity.id).select().single();
+      const { error } = await supabase.from('communities').update({ name: editCommunityName.trim() }).eq('id', selectedCommunity.id);
       if (error) throw error;
-      setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
-      setSelectedCommunity(data);
+      const updated = { ...selectedCommunity, name: editCommunityName.trim() };
+      setCommunities(communities.map(c => c.id === selectedCommunity.id ? updated : c));
+      setSelectedCommunity(updated);
       setIsEditingName(false);
     } catch(e) { toast(e.message); }
     setIsSavingInfo(false);
@@ -352,16 +558,28 @@ export default function Explore() {
     if (!file) return;
     setIsSavingInfo(true);
     try {
-      const fileName = `avatar_${selectedCommunity.id}_${Math.random()}.jpg`;
+      const fileName = `avatar_${selectedCommunity.id}_${crypto.randomUUID()}.jpg`;
       const { error: uploadError } = await supabase.storage.from('uploads').upload(`community_avatars/${fileName}`, file, { contentType: 'image/jpeg' });
       if (uploadError) throw uploadError;
       
       const { data: { publicUrl } } = supabase.storage.from('uploads').getPublicUrl(`community_avatars/${fileName}`);
-      const { data, error } = await supabase.from('communities').update({ avatar_url: publicUrl }).eq('id', selectedCommunity.id).select().single();
+      const { data: updatedCommunities, error } = await supabase
+        .from('communities')
+        .update({ avatar_url: publicUrl })
+        .eq('id', selectedCommunity.id)
+        .select('*')
+        .limit(1);
       if (error) throw error;
+      const updatedCommunity = updatedCommunities?.[0];
+      if (!updatedCommunity) throw new Error('Group photo was not saved. Check community update permissions.');
       
-      setCommunities(communities.map(c => c.id === selectedCommunity.id ? data : c));
-      setSelectedCommunity(data);
+      setCommunities(prev => prev.map(community => (
+        community.id === selectedCommunity.id ? updatedCommunity : community
+      )));
+      setSelectedCommunity(prev => prev?.id === selectedCommunity.id
+        ? updatedCommunity
+        : prev);
+      toast('Group photo updated');
     } catch(err) { toast(err.message); }
     setIsSavingInfo(false);
   };
@@ -375,6 +593,22 @@ export default function Explore() {
       setCommunities(communities.filter(c => c.id !== communityId));
       if (selectedCommunity?.id === communityId) setSelectedCommunity(null);
     }
+  };
+
+  const handleLeaveCommunity = async () => {
+    if (!selectedCommunity || !session?.user?.id) return;
+    if (!window.confirm(`Leave ${selectedCommunity.name}?`)) return;
+    const { error } = await supabase.from('community_members')
+      .delete()
+      .match({ community_id: selectedCommunity.id, user_id: session.user.id });
+    if (error) return toast(`Could not leave group: ${error.message}`);
+    setMyMemberships(prev => {
+      const next = { ...prev };
+      delete next[selectedCommunity.id];
+      return next;
+    });
+    setShowGroupInfo(false);
+    setSelectedCommunity(null);
   };
 
   const initiateImport = (post) => {
@@ -469,8 +703,13 @@ export default function Explore() {
     try {
       await supabase.from('community_members').insert([{ community_id: req.community_id, user_id: req.user_id, role: 'member' }]);
       await supabase.from('community_requests').update({ status: 'accepted' }).eq('id', req.id);
-      // Notify the user
-      try { await supabase.from('notifications').insert([{ user_id: req.user_id, content: `Your request to join ${selectedCommunity?.name} was accepted! 🎉`, type: 'request' }]); } catch(e) {}
+      const { error: notificationError } = await supabase.from('notifications').insert([{
+        user_id: req.user_id,
+        actor_id: session.user.id,
+        content: `Your request to join ${selectedCommunity?.name} was accepted!`,
+        type: 'request'
+      }]);
+      if (notificationError) console.error('Request acceptance notification failed', notificationError);
       setCommunityRequests(prev => prev.filter(r => r.id !== req.id));
       toast('Request accepted!');
       openMembersModal(); // reload members
@@ -480,8 +719,13 @@ export default function Explore() {
   const handleRejectRequest = async (req) => {
     try {
       await supabase.from('community_requests').update({ status: 'rejected' }).eq('id', req.id);
-      // Notify the user
-      try { await supabase.from('notifications').insert([{ user_id: req.user_id, content: `Your request to join ${selectedCommunity?.name} was declined.`, type: 'request' }]); } catch(e) {}
+      const { error: notificationError } = await supabase.from('notifications').insert([{
+        user_id: req.user_id,
+        actor_id: session.user.id,
+        content: `Your request to join ${selectedCommunity?.name} was declined.`,
+        type: 'request'
+      }]);
+      if (notificationError) console.error('Request rejection notification failed', notificationError);
       setCommunityRequests(prev => prev.filter(r => r.id !== req.id));
       toast('Request declined.');
     } catch (e) { toast(e.message, 'error'); }
@@ -537,7 +781,11 @@ export default function Explore() {
       await supabase.from('follows').delete().match({ follower_id: session.user.id, following_id: userId });
       setFollowingMap(prev => ({ ...prev, [userId]: false }));
     } else {
-      await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      const { error: followError } = await supabase.from('follows').insert([{ follower_id: session.user.id, following_id: userId }]);
+      if (followError) {
+        console.error('Follow failed', followError);
+        return;
+      }
       setFollowingMap(prev => ({ ...prev, [userId]: true }));
     }
   };
@@ -697,7 +945,127 @@ export default function Explore() {
                 </button>
               </div>
 
-              {/* Chat Messages */}
+              <div className="sticky top-0 z-20 px-3 pt-2 bg-surface border-b border-primary/10 sm:px-4 sm:pt-3">
+                <div className="flex gap-1 rounded-xl bg-background p-1">
+                  {[
+                    { id: 'resources', label: 'Resources', icon: FileText },
+                    { id: 'chat', label: 'Group chat', icon: MessageSquare }
+                  ].map(tab => (
+                    <button
+                      key={tab.id}
+                      onClick={() => setCommunityView(tab.id)}
+                      className={`flex-1 rounded-lg py-2.5 text-xs font-bold transition-all flex items-center justify-center gap-1.5 ${communityView === tab.id ? 'bg-surface text-primary shadow-sm' : 'text-body hover:text-primary'}`}
+                    >
+                      <tab.icon size={15} />
+                      <span>{tab.label}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {communityView === 'chat' ? (
+                <div className="flex-1 min-h-0 flex flex-col">
+                  <div
+                    ref={chatScrollRef}
+                    onScroll={event => {
+                      const element = event.currentTarget;
+                      shouldFollowChatRef.current = element.scrollHeight - element.scrollTop - element.clientHeight < 100;
+                    }}
+                    className="flex-1 overflow-y-auto p-3"
+                  >
+                    {chatMessages.length === 0 ? (
+                      <div className="h-full flex flex-col items-center justify-center text-center text-body text-sm">
+                        <MessageSquare size={32} className="mb-3 text-primary/50" />
+                        <p className="font-bold text-header">Start the group conversation</p>
+                        <p className="mt-1">Ask for PDFs, links, or question papers.</p>
+                      </div>
+                    ) : chatMessages.map((message, messageIndex) => {
+                      const sender = chatProfiles[message.user_id];
+                      const isMine = message.user_id === session?.user?.id;
+                      const previousMessage = chatMessages[messageIndex - 1];
+                      const grouped = previousMessage?.user_id === message.user_id;
+                      return (
+                      <div key={message.id} className={`flex items-end gap-1.5 ${isMine ? 'justify-end' : 'justify-start'} ${grouped ? 'mt-1' : 'mt-3'}`}>
+                        {!isMine && (
+                          <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                            {grouped ? <span className="w-7" /> : sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={14} className="text-primary" />}
+                          </div>
+                        )}
+                        <div className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm ${isMine ? 'bg-primary text-white rounded-br-sm' : 'bg-surface border border-primary/10 text-header rounded-bl-sm'} ${message.pending ? 'opacity-70' : ''}`}>
+                          {!grouped && <p className="mb-1 text-[11px] font-black opacity-80">
+                            {sender?.name || sender?.username || 'Member'}
+                            {sender?.name && sender?.username ? ` · @${sender.username}` : ''}
+                          </p>}
+                          <p>{message.content}</p>
+                          <time className="block mt-0.5 text-[10px] opacity-60">
+                            {new Date(message.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            {message.pending ? ' · Sending…' : ''}
+                          </time>
+                        </div>
+                        {isMine && (
+                          <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                            {grouped ? <span className="w-7" /> : sender?.avatar_url ? <img src={sender.avatar_url} alt="" className="w-full h-full object-cover" /> : <User size={14} className="text-primary" />}
+                          </div>
+                        )}
+                      </div>
+                      );
+                    })}
+                    <div ref={chatBottomRef} aria-hidden="true" className="h-px" />
+                  </div>
+                  {Object.keys(typingUsers).length > 0 && (
+                    <div className="px-3 pb-2 flex items-end gap-1.5">
+                      <div className="w-7 h-7 rounded-full overflow-hidden bg-primary/10 flex items-center justify-center shrink-0">
+                        {(() => {
+                          const typingUserId = Object.keys(typingUsers)[0];
+                          const typingProfile = chatProfiles[typingUserId];
+                          return typingProfile?.avatar_url
+                            ? <img src={typingProfile.avatar_url} alt="" className="w-full h-full object-cover" />
+                            : <User size={14} className="text-primary" />;
+                        })()}
+                      </div>
+                      <div className="rounded-2xl rounded-bl-sm bg-surface border border-primary/10 px-3 py-2 flex items-center gap-1">
+                        <span className="text-[11px] font-black text-header mr-1">{Object.values(typingUsers)[0]}</span>
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" />
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '120ms' }} />
+                        <i className="w-1.5 h-1.5 rounded-full bg-primary animate-bounce" style={{ animationDelay: '240ms' }} />
+                      </div>
+                    </div>
+                  )}
+                  <form onSubmit={sendChatMessage} className="sticky bottom-0 z-20 p-3 bg-surface border-t border-primary/10 flex gap-2 pb-[calc(0.75rem+env(safe-area-inset-bottom))]">
+                    <input
+                      ref={chatInputRef}
+                      value={chatInput}
+                      onChange={e => {
+                        setChatInput(e.target.value);
+                        if (!chatChannelReadyRef.current) return;
+                        const payload = {
+                          userId: session?.user?.id,
+                          name: userProfile?.name || userProfile?.username || 'Member',
+                          username: userProfile?.username,
+                          avatarUrl: userProfile?.avatar_url,
+                          state: 'typing'
+                        };
+                        chatChannelRef.current?.send({ type: 'broadcast', event: 'typing', payload });
+                        window.clearTimeout(typingStopTimerRef.current);
+                        typingStopTimerRef.current = window.setTimeout(() => {
+                          chatChannelRef.current?.send({
+                            type: 'broadcast',
+                            event: 'typing',
+                            payload: { ...payload, state: 'stopped' }
+                          });
+                        }, 1200);
+                      }}
+                      placeholder="Ask for a PDF, link, or question paper..."
+                      className="app-input flex-1"
+                      maxLength={1000}
+                    />
+                    <button disabled={!chatInput.trim() || isSendingChat} className="btn-primary px-4 disabled:opacity-50">
+                      <Send size={16} />
+                    </button>
+                  </form>
+                </div>
+              ) : (
+              /* Shared resources */
               <div className="flex-1 overflow-y-auto p-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 items-start content-start">
                 {isLoadingPosts ? (
                   <div className="flex flex-col items-center justify-center p-8 space-y-3">
@@ -766,6 +1134,7 @@ export default function Explore() {
                   })
                 )}
               </div>
+              )}
             </>
           )}
         </div>
@@ -915,6 +1284,11 @@ export default function Explore() {
             </div>
             
             <button aria-label="Close" onClick={() => setShowMembersModal(false)} className="btn-outline w-full py-2 mt-4">Done</button>
+            {isCurrentMember && (
+              <button onClick={handleLeaveCommunity} className="w-full py-2 mt-2 rounded-xl border border-red-200 text-red-500 font-bold text-sm">
+                Leave group
+              </button>
+            )}
           </div>
         </div>
       )}
@@ -1073,6 +1447,11 @@ export default function Explore() {
                     <div className="w-8 h-8 rounded-full bg-primary/20 flex items-center justify-center text-primary"><Users size={16} /></div>
                     View all Members
                   </button>
+                  {isCurrentMember && (
+                    <button onClick={handleLeaveCommunity} className="w-full p-3 rounded-2xl border border-red-200 text-red-500 font-bold text-sm hover:bg-red-50">
+                      Leave group
+                    </button>
+                  )}
                 </div>
               </div>
             </div>

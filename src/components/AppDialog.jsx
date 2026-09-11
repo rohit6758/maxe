@@ -36,7 +36,7 @@ export default function AppDialog({ type = 'prompt', title, message, placeholder
       <div className="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-5 space-y-4 border border-primary/10 animate-slide-up">
         <div className="flex items-start justify-between gap-2">
           <h3 className="text-base font-black text-header">{title}</h3>
-          <button onClick={onCancel} className="text-body/50 hover:text-header shrink-0 mt-0.5">
+          <button aria-label="Close dialog" onClick={onCancel} className="text-body/50 hover:text-header shrink-0 mt-0.5">
             <X size={18} />
           </button>
         </div>

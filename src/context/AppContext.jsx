@@ -54,6 +54,15 @@ export function AppProvider({ children }) {
 
   useEffect(() => {
     document.documentElement.setAttribute('data-theme', theme);
+    const themeColor = getComputedStyle(document.documentElement)
+      .getPropertyValue('--theme-sidebar')
+      .trim() || getComputedStyle(document.documentElement).getPropertyValue('--theme-bg').trim();
+    if (themeColor) {
+      const themeMeta = document.querySelector('meta[name="theme-color"]');
+      if (themeMeta) themeMeta.setAttribute('content', themeColor);
+      const appleMeta = document.querySelector('meta[name="apple-mobile-web-app-status-bar-style"]');
+      if (appleMeta) appleMeta.setAttribute('content', 'default');
+    }
   }, [theme]);
 
   // Ensure DB always has latest effects from local storage
@@ -95,6 +104,21 @@ export function AppProvider({ children }) {
       
     if (data) {
       setUserProfile(data);
+      if (typeof data.interests === 'string' && data.interests.startsWith('{')) {
+        try {
+          const savedSettings = JSON.parse(data.interests);
+          if (savedSettings.theme) {
+            setThemeState(savedSettings.theme);
+            localStorage.setItem('maxe_theme', savedSettings.theme);
+          }
+          if (savedSettings.profileEffects) {
+            setProfileEffectsState(savedSettings.profileEffects);
+            localStorage.setItem('maxe_effects', JSON.stringify(savedSettings.profileEffects));
+          }
+        } catch (error) {
+          console.error('Could not load profile appearance settings', error);
+        }
+      }
       // Auto-select the user's branch for the Hub if not already selected
       if (data.branch && !activeBranch) {
         setActiveBranch(data.branch);
