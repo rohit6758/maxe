@@ -60,9 +60,13 @@ Deno.serve(async request => {
       ? admin.from("communities").select("name, avatar_url").eq("id", record.entity_id).maybeSingle()
       : Promise.resolve({ data: null })
   ]);
-  const senderName = sender?.name || (sender?.username ? `@${sender.username}` : "New message");
-  const senderHandle = sender?.username ? `@${sender.username}: ` : "";
-  const body = `${senderHandle}${record.content}${community?.name ? ` · ${community.name}` : ""}`;
+
+  // WhatsApp-style format:
+  // Title  = Sender name (e.g. "Rohit")
+  // Body   = message · Community Name (e.g. "hi · (1/4) CSM-B")
+  const senderName = sender?.name || (sender?.username ? `@${sender.username}` : "Maxe");
+  const communityPart = community?.name ? ` · ${community.name}` : "";
+  const body = `${record.content}${communityPart}`;
 
   const message = JSON.stringify({
     title: senderName,
@@ -70,9 +74,9 @@ Deno.serve(async request => {
     url: record.url || "/",
     notificationId: record.id,
     type: record.type || "default",
+    // Sender profile picture = large icon on the left of the notification
     icon: sender?.avatar_url || undefined,
-    // Chrome uses image as the expanded/right-side artwork. Do not send a
-    // Maxe badge: badge is reserved for the small monochrome status icon.
+    // Community/group avatar = expanded image shown below the notification text
     image: community?.avatar_url || undefined
   });
   const expired: string[] = [];

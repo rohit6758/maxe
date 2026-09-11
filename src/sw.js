@@ -68,14 +68,20 @@ self.addEventListener('periodicsync', event => {
 // ── Push Notifications ─────────────────────────────────────────────────────
 self.addEventListener('push', event => {
   const data = event.data ? event.data.json() : {};
-  const title = data.title || 'New notification';
+  const title = data.title || 'Maxe';
   const options = {
     body: data.body || 'You have a new notification',
-    ...(data.icon ? { icon: data.icon } : {}),
-    image: data.image || undefined,
+    // Sender profile pic as the large left icon
+    icon: data.icon || '/icon-192x192.png',
+    // Compact Maxe M badge for the status bar / notification tray small icon
+    badge: '/maxe-badge.svg',
+    // Community/group avatar shown as expanded image below the notification
+    ...(data.image ? { image: data.image } : {}),
     data: { url: data.url || '/' },
     vibrate: [200, 100, 200],
     requireInteraction: false,
+    // Tag prevents duplicate notifications for same conversation
+    tag: data.type === 'community' ? `community-${data.notificationId || 'msg'}` : `notif-${data.notificationId || Date.now()}`,
   };
   event.waitUntil(self.registration.showNotification(title, options));
 });
