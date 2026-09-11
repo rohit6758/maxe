@@ -114,16 +114,16 @@ export default function Layout() {
           <User size={18} />
           <span>{userProfile?.name || 'Profile'}</span>
         </Link>
-        {/* Switch Account — Instagram style */}
+        {/* Switch Account — Desktop only (mobile has it in the header) */}
         <button
           onClick={() => { setShowSwitchAccount(true); setSidebarOpen(false); }}
-          className="nav-item w-full"
+          className="hidden md:flex nav-item w-full"
           style={{ color: 'var(--theme-primary)' }}
         >
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0">
             <path d="M17 1l4 4-4 4"/><path d="M3 11V9a4 4 0 014-4h14"/><path d="M7 23l-4-4 4-4"/><path d="M21 13v2a4 4 0 01-4 4H3"/>
           </svg>
-          Switch Account
+          <span className="truncate">Switch Account</span>
         </button>
         <button onClick={() => setShowLogoutConfirm(true)} className="nav-item w-full text-red-400 hover:text-red-500">
           <LogOut size={18} /> Log out

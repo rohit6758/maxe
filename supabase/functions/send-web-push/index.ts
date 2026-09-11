@@ -74,10 +74,13 @@ Deno.serve(async request => {
     url: record.url || "/",
     notificationId: record.id,
     type: record.type || "default",
-    // Sender profile picture = large icon on the left of the notification
-    icon: sender?.avatar_url || undefined,
-    // Community/group avatar = expanded image shown below the notification text
-    image: community?.avatar_url || undefined
+    // The 'icon' field usually appears on the right in Android Web Push.
+    // The user requested the group logo on the right.
+    icon: community?.avatar_url || sender?.avatar_url || undefined,
+    
+    // The 'image' field appears as a large expanded image below. 
+    // We can put the sender profile there since Chrome doesn't let Web Push override the left app logo.
+    image: sender?.avatar_url || undefined
   });
   const expired: string[] = [];
 
