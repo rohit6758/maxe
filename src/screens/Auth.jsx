@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate, Navigate } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import { Eye, EyeOff, Mail, Lock, AtSign, ArrowLeft } from 'lucide-react';
 
@@ -10,6 +12,14 @@ export default function Auth() {
     }
     return 'login';
   });
+  const { session } = useAppContext();
+  const navigate = useNavigate();
+
+  // If already logged in and NOT resetting password, redirect to app
+  if (session && tab !== 'update') {
+    return <Navigate to="/" replace />;
+  }
+
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
 
