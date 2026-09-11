@@ -1,9 +1,9 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+﻿import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
 import { UserPlus, Users, Calendar, MessageSquare, Bell, Flame, X } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from './AppContext';
 
-// ─── icon map ───────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ icon map ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export const NOTIF_META = {
   follow:    { icon: UserPlus,      color: '#3B82F6', bg: '#EFF6FF', label: 'New Follower' },
   community: { icon: MessageSquare, color: '#16A34A', bg: '#F0FDF4', label: 'Community' },
@@ -22,11 +22,11 @@ export function timeAgo(dateStr) {
   return new Date(dateStr).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
 }
 
-// ─── context ────────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ context ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 const NotifCtx = createContext(null);
 export const useNotifications = () => useContext(NotifCtx);
 
-// ─── Top Banner (Instagram-style slide-in) ──────────────────────────────────
+// ΓöÇΓöÇΓöÇ Top Banner (Instagram-style slide-in) ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 function NotifBanner({ notif, onDismiss }) {
   const meta = NOTIF_META[notif.type] || NOTIF_META.default;
   const Icon = meta.icon;
@@ -62,7 +62,7 @@ function NotifBanner({ notif, onDismiss }) {
   );
 }
 
-// ─── Provider ───────────────────────────────────────────────────────────────
+// ΓöÇΓöÇΓöÇ Provider ΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇΓöÇ
 export function NotificationsProvider({ children }) {
   const { session } = useAppContext();
   const [notifications, setNotifications] = useState([]);
