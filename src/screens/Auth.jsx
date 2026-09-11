@@ -3,7 +3,13 @@ import { supabase } from '../lib/supabase';
 import { Eye, EyeOff, Mail, Lock, AtSign, ArrowLeft } from 'lucide-react';
 
 export default function Auth() {
-  const [tab, setTab] = useState('login'); // 'login' | 'signup' | 'forgot' | 'update'
+  const [tab, setTab] = useState(() => {
+    // Supabase appends #access_token=...&type=recovery or ?type=recovery
+    if (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery')) {
+      return 'update';
+    }
+    return 'login';
+  });
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
 
@@ -126,6 +132,7 @@ export default function Auth() {
       setOk('Password updated successfully! You can now log in.');
       setTab('login');
       setLoginPass('');
+      window.history.replaceState(null, '', window.location.pathname); // clear the #access_token from URL
     } catch (err) {
       setErr(err.message);
     } finally {
