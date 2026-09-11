@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { Eye, EyeOff, Mail, Lock, AtSign } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, AtSign, ArrowLeft } from 'lucide-react';
 
 export default function Auth() {
-  const [tab, setTab] = useState('login');
+  const [tab, setTab] = useState('login'); // 'login' | 'signup' | 'forgot' | 'update'
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
 
-  // Pre-fill from ?hint= param (set by Switch Account flow)
+  // Pre-fill from ?hint= param
   const [loginId, setLoginId] = useState(() => {
     const params = new URLSearchParams(window.location.search);
     return params.get('hint') || '';
@@ -15,8 +15,26 @@ export default function Auth() {
   const [loginPass, setLoginPass] = useState('');
   const [showPass, setShowPass] = useState(false);
 
+  // Reset/Update fields
+  const [resetEmail, setResetEmail] = useState('');
+  const [newPass, setNewPass] = useState('');
+
   const setErr = (text) => setMsg({ type: 'error', text });
   const setOk  = (text) => setMsg({ type: 'success', text });
+
+  useEffect(() => {
+    // Check if we just clicked a recovery link in email
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      if (event === 'PASSWORD_RECOVERY') {
+        setTab('update');
+        setMsg(null);
+      }
+    });
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, []);
 
   /* ── Google OAuth ── */
   const handleGoogle = async () => {
@@ -44,11 +62,10 @@ export default function Auth() {
     try {
       let email = loginId.trim();
 
-      // If the user typed a username (no @) resolve to email via profiles table
       if (!email.includes('@')) {
         const { data: profile, error: profErr } = await supabase
           .from('profiles')
-          .select('id')
+          .select('id, email')
           .eq('username', email.toLowerCase())
           .maybeSingle();
 
@@ -57,19 +74,11 @@ export default function Auth() {
           return setErr('No account found with that username.');
         }
 
-        // Get the email from Supabase auth via admin? No – we can't without service role.
-        // Instead fetch email stored in profiles (add email column via trigger if not there).
-        const { data: profileWithEmail } = await supabase
-          .from('profiles')
-          .select('email')
-          .eq('username', email.toLowerCase())
-          .maybeSingle();
-
-        if (!profileWithEmail?.email) {
+        if (!profile.email) {
           setLoading(false);
           return setErr('Could not find email for that username. Try signing in with your email instead.');
         }
-        email = profileWithEmail.email;
+        email = profile.email;
       }
 
       const { error } = await supabase.auth.signInWithPassword({ email, password: loginPass });
@@ -79,7 +88,44 @@ export default function Auth() {
         }
         throw error;
       }
-      // success — AppContext will pick up the session automatically
+    } catch (err) {
+      setErr(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ── Forgot Password ── */
+  const handleForgotPassword = async (e) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) return setErr('Please enter your email.');
+    setLoading(true);
+    setMsg(null);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail.trim(), {
+        redirectTo: `${window.location.origin}/auth?type=recovery`,
+      });
+      if (error) throw error;
+      setOk('Password reset email sent! Check your inbox.');
+    } catch (err) {
+      setErr(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  /* ── Update Password (after clicking recovery link) ── */
+  const handleUpdatePassword = async (e) => {
+    e.preventDefault();
+    if (!newPass) return setErr('Please enter a new password.');
+    setLoading(true);
+    setMsg(null);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: newPass });
+      if (error) throw error;
+      setOk('Password updated successfully! You can now log in.');
+      setTab('login');
+      setLoginPass('');
     } catch (err) {
       setErr(err.message);
     } finally {
@@ -115,12 +161,10 @@ export default function Auth() {
       className="min-h-screen flex items-center justify-center p-4 animate-fade-in"
       style={{ background: 'var(--theme-bg)' }}
     >
-      {/* Decorative bg blobs */}
       <div className="fixed top-0 right-0 w-72 h-72 rounded-full pointer-events-none" style={{ background: 'rgba(107,168,152,0.08)', transform: 'translate(30%,-30%)' }} />
       <div className="fixed bottom-0 left-0 w-64 h-64 rounded-full pointer-events-none" style={{ background: 'rgba(168,197,184,0.1)', transform: 'translate(-30%,30%)' }} />
 
       <div className="w-full max-w-sm relative z-10">
-        {/* Logo */}
         <div className="text-center mb-8">
           <img src="/icon-192x192.png" alt="Maxe Logo" className="w-20 h-20 mx-auto mb-4 rounded-2xl shadow-md" />
           <h1 className="text-3xl font-black" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
@@ -128,24 +172,25 @@ export default function Auth() {
         </div>
 
         <div className="card p-6 space-y-5">
-          {/* Tab switcher */}
-          <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 60%, transparent)' }}>
-            {['login', 'signup'].map(t => (
-              <button
-                key={t}
-                onClick={() => { setTab(t); setMsg(null); }}
-                className="flex-1 py-2.5 text-sm font-bold capitalize transition-all"
-                style={{
-                  background: tab === t ? 'var(--theme-primary)' : 'transparent',
-                  color: tab === t ? '#fff' : 'var(--theme-body)',
-                }}
-              >
-                {t === 'login' ? 'Log In' : 'Sign Up'}
-              </button>
-            ))}
-          </div>
+          {/* Tab switcher - hide during forgot/update flows */}
+          {(tab === 'login' || tab === 'signup') && (
+            <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 60%, transparent)' }}>
+              {['login', 'signup'].map(t => (
+                <button
+                  key={t}
+                  onClick={() => { setTab(t); setMsg(null); }}
+                  className="flex-1 py-2.5 text-sm font-bold capitalize transition-all"
+                  style={{
+                    background: tab === t ? 'var(--theme-primary)' : 'transparent',
+                    color: tab === t ? '#fff' : 'var(--theme-body)',
+                  }}
+                >
+                  {t === 'login' ? 'Log In' : 'Sign Up'}
+                </button>
+              ))}
+            </div>
+          )}
 
-          {/* Error / success message */}
           {msg && (
             <div
               className="p-3 rounded-xl text-xs font-medium text-center"
@@ -175,30 +220,38 @@ export default function Auth() {
                     autoComplete="username"
                   />
                 </div>
-                <div className="relative">
-                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
-                  <input
-                    className="app-input w-full"
-                    style={{ paddingLeft: '36px', paddingRight: '40px' }}
-                    type={showPass ? 'text' : 'password'}
-                    placeholder="Password"
-                    value={loginPass}
-                    onChange={e => setLoginPass(e.target.value)}
-                    autoComplete="current-password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPass(p => !p)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-body hover:text-header"
-                  >
-                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                <div>
+                  <div className="relative">
+                    <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
+                    <input
+                      className="app-input w-full"
+                      style={{ paddingLeft: '36px', paddingRight: '40px' }}
+                      type={showPass ? 'text' : 'password'}
+                      placeholder="Password"
+                      value={loginPass}
+                      onChange={e => setLoginPass(e.target.value)}
+                      autoComplete="current-password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPass(p => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-body hover:text-header"
+                    >
+                      {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  <div className="text-right mt-1.5">
+                    <button 
+                      type="button" 
+                      onClick={() => { setTab('forgot'); setMsg(null); }}
+                      className="text-xs font-semibold hover:underline"
+                      style={{ color: 'var(--theme-primary)' }}
+                    >
+                      Forgot Password?
+                    </button>
+                  </div>
                 </div>
-                <button
-                  type="submit"
-                  disabled={loading}
-                  className="btn-primary w-full py-3 font-bold text-sm"
-                >
+                <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-bold text-sm mt-2">
                   {loading ? 'Logging in…' : 'Log In'}
                 </button>
               </form>
@@ -210,7 +263,7 @@ export default function Auth() {
               </div>
 
               <GoogleButton />
-
+              
               <p className="text-center text-xs" style={{ color: 'var(--theme-body)' }}>
                 Signed up with Google? Use the Google button above.
               </p>
@@ -233,15 +286,87 @@ export default function Auth() {
 
               <p className="text-center text-xs" style={{ color: 'var(--theme-body)' }}>
                 Already have an account?{' '}
-                <button
-                  onClick={() => setTab('login')}
-                  className="font-bold underline"
-                  style={{ color: 'var(--theme-primary)' }}
-                >
+                <button onClick={() => setTab('login')} className="font-bold underline" style={{ color: 'var(--theme-primary)' }}>
                   Log in instead
                 </button>
               </p>
             </>
+          )}
+
+          {/* ── FORGOT PASSWORD TAB ── */}
+          {tab === 'forgot' && (
+            <div className="space-y-4 animate-fade-in">
+              <button 
+                onClick={() => setTab('login')} 
+                className="flex items-center gap-1 text-sm font-bold mb-4"
+                style={{ color: 'var(--theme-primary)' }}
+              >
+                <ArrowLeft size={16} /> Back to Login
+              </button>
+              
+              <div className="text-center mb-4">
+                <h3 className="font-bold text-lg" style={{ color: 'var(--theme-header)' }}>Reset Password</h3>
+                <p className="text-xs mt-1" style={{ color: 'var(--theme-body)' }}>
+                  Enter your email address and we'll send you a link to reset your password.
+                </p>
+              </div>
+
+              <form onSubmit={handleForgotPassword} className="space-y-3">
+                <div className="relative">
+                  <Mail size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
+                  <input
+                    className="app-input w-full"
+                    style={{ paddingLeft: '36px' }}
+                    type="email"
+                    placeholder="Email address"
+                    value={resetEmail}
+                    onChange={e => setResetEmail(e.target.value)}
+                    required
+                  />
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-bold text-sm">
+                  {loading ? 'Sending link…' : 'Send Reset Link'}
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* ── UPDATE PASSWORD TAB (RECOVERY) ── */}
+          {tab === 'update' && (
+            <div className="space-y-4 animate-fade-in">
+              <div className="text-center mb-4">
+                <h3 className="font-bold text-lg" style={{ color: 'var(--theme-header)' }}>Set New Password</h3>
+                <p className="text-xs mt-1" style={{ color: 'var(--theme-body)' }}>
+                  Please enter your new password below.
+                </p>
+              </div>
+
+              <form onSubmit={handleUpdatePassword} className="space-y-3">
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
+                  <input
+                    className="app-input w-full"
+                    style={{ paddingLeft: '36px', paddingRight: '40px' }}
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="New Password"
+                    value={newPass}
+                    onChange={e => setNewPass(e.target.value)}
+                    required
+                    minLength={6}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowPass(p => !p)}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-body hover:text-header"
+                  >
+                    {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
+                  </button>
+                </div>
+                <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-bold text-sm">
+                  {loading ? 'Updating…' : 'Update Password'}
+                </button>
+              </form>
+            </div>
           )}
         </div>
       </div>
