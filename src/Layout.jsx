@@ -132,7 +132,7 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex min-h-screen" style={{ background: 'var(--theme-bg)' }}>
+    <div className="flex min-h-[100dvh]" style={{ background: 'var(--theme-bg)' }}>
       {(!userProfile || !userProfile.username || !userProfile.branch || !userProfile.college) && <OnboardingPopup />}
 
       {/* Desktop Sidebar */}

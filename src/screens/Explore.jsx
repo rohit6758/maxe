@@ -798,7 +798,7 @@ export default function Explore() {
 
 
   return (
-    <div className="flex flex-col h-[calc(100vh-80px)] md:h-[calc(100vh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-primary/15">
+    <div className="flex flex-col h-[calc(100dvh-80px)] md:h-[calc(100dvh-40px)] bg-background -m-4 md:-m-0 md:rounded-2xl overflow-hidden border border-primary/15">
       
       <div className="flex flex-1 h-full overflow-hidden">
         

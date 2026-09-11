@@ -166,7 +166,8 @@ export default function Auth() {
                 <div className="relative">
                   <AtSign size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
                   <input
-                    className="app-input pl-9 w-full"
+                    className="app-input w-full"
+                    style={{ paddingLeft: '36px' }}
                     type="text"
                     placeholder="Email or username"
                     value={loginId}
@@ -177,7 +178,8 @@ export default function Auth() {
                 <div className="relative">
                   <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
                   <input
-                    className="app-input pl-9 pr-10 w-full"
+                    className="app-input w-full"
+                    style={{ paddingLeft: '36px', paddingRight: '40px' }}
                     type={showPass ? 'text' : 'password'}
                     placeholder="Password"
                     value={loginPass}
