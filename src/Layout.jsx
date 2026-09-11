@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { NavLink, Outlet, Link } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame } from 'lucide-react';
+import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame, ChevronDown } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
@@ -11,6 +11,7 @@ import AppDialog from './components/AppDialog';
 import SwitchAccountModal from './components/SwitchAccountModal';
 
 export default function Layout() {
+  const location = useLocation();
   const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTodoOpen, setIsTodoOpen] = useState(false);
@@ -158,11 +159,27 @@ export default function Layout() {
         {/* Mobile Top Bar */}
         <header className="md:hidden sticky top-0 z-30 flex items-center justify-between px-4 py-3"
           style={{ background: 'var(--theme-sidebar)', boxShadow: '0 1px 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
-          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl" style={{ color: 'var(--theme-body)' }}>
+          <button onClick={() => setSidebarOpen(true)} className="p-2 rounded-xl shrink-0" style={{ color: 'var(--theme-body)' }}>
             <Menu size={22} />
           </button>
-          <h1 className="font-black text-lg" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
-          <div className="flex items-center gap-1">
+          
+          {/* Title / Account Switcher (Instagram Style) */}
+          <div className="flex-1 flex justify-center min-w-0">
+            {location.pathname === '/profile' && userProfile ? (
+              <button 
+                onClick={() => setShowSwitchAccount(true)}
+                className="flex items-center gap-1 max-w-full px-2 py-1 rounded-lg active:scale-95 transition-transform"
+                style={{ color: 'var(--theme-header)' }}
+              >
+                <span className="font-black text-lg truncate">{userProfile.username || 'Profile'}</span>
+                <ChevronDown size={18} strokeWidth={2.5} className="shrink-0" />
+              </button>
+            ) : (
+              <h1 className="font-black text-lg truncate" style={{ color: 'var(--theme-header)' }}>Maxe</h1>
+            )}
+          </div>
+
+          <div className="flex items-center justify-end gap-1 shrink-0">
             {installPrompt && (
               <button
                 onClick={handleInstall}
