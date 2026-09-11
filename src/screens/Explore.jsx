@@ -1241,7 +1241,7 @@ export default function Explore() {
               </div>
 
               {/* Add Members */}
-              {isCommunityAdmin && (
+              {isCurrentMember && (
               <div className="pt-2 border-t border-primary/15">
                 <div className="flex items-center justify-between mb-2">
                   <p className="text-xs font-bold uppercase text-primary">Add People</p>
