@@ -210,14 +210,18 @@ export default function StudyTracker() {
 
   return (
     <div className="space-y-6 pb-24 relative px-4 md:px-6 pt-6">
-      {!userProfile?.is_premium && (
-        <div 
-          className="absolute inset-0 z-50 backdrop-blur-[3px] bg-[var(--theme-surface)]/20 rounded-2xl cursor-pointer"
-          onClick={() => setShowProModal(true)}
-        />
-      )}
       {showProModal && <ProSettingsModal isOpen={showProModal} onClose={() => setShowProModal(false)} />}
-      <div className={!userProfile?.is_premium ? "pointer-events-none select-none" : ""}>
+      {!userProfile?.is_premium ? (
+        <div className="flex flex-col items-center justify-center p-8 text-center min-h-[60vh]">
+          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+            <LockKeyhole size={32} className="text-primary" />
+          </div>
+          <h2 className="text-3xl font-black text-header mb-3">Study Lab</h2>
+          <p className="text-sm text-body max-w-sm mb-8 mx-auto">This is an exclusive Pro feature. Upgrade to unlock the live focus timer, semester roadmaps, rival mode, and audiobook reader.</p>
+          <button onClick={() => setShowProModal(true)} className="btn-primary py-3 px-10 text-lg font-bold shadow-xl shadow-primary/20">Upgrade to Pro</button>
+        </div>
+      ) : (
+        <>
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[.2em] font-bold text-primary">Maxe Pro</p>
@@ -311,7 +315,8 @@ export default function StudyTracker() {
           <div className="rounded-xl bg-primary/5 p-3 text-xs text-body flex gap-2"><CalendarDays size={15} className="text-primary shrink-0" /> Use this goal for exam preparation, revision blocks, and weekly planning.</div>
         </div>
       </section>}
-          </div>
+        </>
+      )}
     </div>
   );
 }
