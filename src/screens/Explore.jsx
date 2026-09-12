@@ -865,7 +865,14 @@ export default function Explore() {
                     )}
                   </div>
                   <div className="flex-1 text-left">
-                    <h3 className="font-bold text-header text-sm line-clamp-1">{comm.name}</h3>
+                    <div className="flex items-center justify-between w-full">
+                      <h3 className="font-bold text-header text-sm line-clamp-1">{comm.name}</h3>
+                      {unreadCounts[comm.id] > 0 && (
+                        <span className="w-5 h-5 bg-green-500 text-white rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 shadow-sm animate-fade-in">
+                          {unreadCounts[comm.id]}
+                        </span>
+                      )}
+                    </div>
                     <p className="text-xs text-body line-clamp-1">{myMemberships[comm.id] === 'admin' ? 'Admin' : myMemberships[comm.id] ? 'Member' : 'Private Group'}</p>
                     {isAdmin && comm.college && (
                       <span className="text-[10px] font-bold text-white bg-primary px-1.5 py-0.5 rounded-full inline-block mt-1">
