@@ -190,7 +190,7 @@ export default function Layout() {
       {userProfile && (!userProfile.username || !userProfile.branch || !userProfile.college) && <OnboardingPopup />}
 
       {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{ boxShadow: '1px 0 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
+      <aside className="hidden md:flex flex-col w-60 shrink-0 sticky top-0 h-[100dvh] overflow-y-auto no-scrollbar" style={{ boxShadow: '1px 0 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>
         <SidebarContent />
       </aside>
 
