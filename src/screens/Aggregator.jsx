@@ -26,6 +26,9 @@ export default function Aggregator() {
   const [isLoadingSubs, setIsLoadingSubs] = useState(false);
   const [isLoadingRes, setIsLoadingRes] = useState(false);
   const [showTodoModal, setShowTodoModal] = useState(false);
+  const [selectedPdf, setSelectedPdf] = useState(null);
+  const [pdfDarkMode, setPdfDarkMode] = useState(false);
+
   const [dialog, setDialog] = useState(null); // { type, title, placeholder, danger, onConfirm }
 
   const showPrompt = ({ title, placeholder, onConfirm }) =>

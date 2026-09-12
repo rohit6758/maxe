@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame, ChevronDown, Sparkles } from 'lucide-react';
+import { toast } from './context/ToastContext';
 import { supabase } from './lib/supabase';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame, ChevronDown, Sparkles } from 'lucide-react';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
 import TodoModal from './screens/TodoModal';
@@ -12,6 +13,49 @@ import SwitchAccountModal from './components/SwitchAccountModal';
 
 export default function Layout() {
   const location = useLocation();
+
+  
+  
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    
+    let activeChannel;
+    
+    // First, fetch the communities the user is a part of to filter notifications
+    const setupNotifications = async () => {
+      const { data: myMemberships } = await supabase
+        .from('community_members')
+        .select('community_id, communities(name)')
+        .eq('user_id', session.user.id);
+        
+      const myCommunityIds = myMemberships ? myMemberships.map(m => m.community_id) : [];
+      const communityNames = myMemberships ? Object.fromEntries(myMemberships.map(m => [m.community_id, m.communities?.name])) : {};
+      
+      activeChannel = supabase.channel('global_notifications')
+        .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages' }, async (payload) => {
+          // If the message is from me, don't toast
+          if (payload.new.user_id === session.user.id) return;
+          
+          // Only toast if I am a member of this community
+          if (myCommunityIds.includes(payload.new.community_id)) {
+            // Get sender name
+            const { data: sender } = await supabase.from('profiles').select('name').eq('id', payload.new.user_id).single();
+            const senderName = sender?.name || 'Someone';
+            const commName = communityNames[payload.new.community_id] || 'a community';
+            
+            toast(`New message in ${commName} from ${senderName}`);
+          }
+        })
+        .subscribe();
+    };
+    
+    setupNotifications();
+    
+    return () => {
+      if (activeChannel) supabase.removeChannel(activeChannel);
+    };
+  }, [session]);
+
   const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTodoOpen, setIsTodoOpen] = useState(false);
