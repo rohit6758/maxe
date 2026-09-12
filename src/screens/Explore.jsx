@@ -13,6 +13,11 @@ export default function Explore() {
 
   const [communities, setCommunities] = useState([]);
   const [selectedCommunity, setSelectedCommunity] = useState(null);
+
+  useEffect(() => {
+    window.activeChatCommunityId = selectedCommunity?.id || null;
+    return () => { window.activeChatCommunityId = null; };
+  }, [selectedCommunity]);
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(true);
   const [isLoadingPosts, setIsLoadingPosts] = useState(false);
   const [joinRequestStatus, setJoinRequestStatus] = useState(null);

@@ -40,7 +40,7 @@ export function ToastContainer() {
           return (
             <div key={t.id} className="bg-gray-900/95 backdrop-blur text-white rounded-2xl shadow-2xl p-4 flex items-center gap-3 transform transition-all duration-300 ease-out animate-slide-down pointer-events-auto w-full">
               {/* Left Side (Sender) */}
-              <img src={t.senderAvatar || '/icon-192x192.png'} alt="Sender" className="w-12 h-12 rounded-full object-cover shrink-0" />
+              {t.senderAvatar ? <img src={t.senderAvatar} alt="Sender" className="w-12 h-12 rounded-full object-cover shrink-0" /> : <div className="w-12 h-12 rounded-full bg-gray-700 shrink-0 flex items-center justify-center"><User size={20} className="text-gray-400" /></div>}
               
               {/* Middle (Content) */}
               <div className="flex-1 min-w-0">
@@ -49,7 +49,7 @@ export function ToastContainer() {
               </div>
 
               {/* Right Side (Community Badge) */}
-              <img src={t.groupAvatar || '/icon-192x192.png'} alt="Group" className="w-6 h-6 rounded-md object-cover ml-auto shrink-0" />
+              {t.groupAvatar && <img src={t.groupAvatar} alt="Group" className="w-6 h-6 rounded-md object-cover ml-auto shrink-0" />}
             </div>
           );
         }

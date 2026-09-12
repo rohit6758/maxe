@@ -59,6 +59,9 @@ export default function Layout() {
           let senderName = 'Someone';
           if (payload.new.user_id === session.user.id) { senderName = 'You'; }
           
+          // Don't toast if the user is currently chatting in this exact community!
+          if (window.activeChatCommunityId === payload.new.community_id) return;
+          
           // Only toast if I am a member of this community
           if (myCommunityIds.includes(payload.new.community_id)) {
             // Get sender name
@@ -72,7 +75,7 @@ export default function Layout() {
             // 1. In-App Toast
             toast(
               `${commName}`, 
-              `${senderName}: ${payload.new.text}`, 
+              `${senderName}: ${(payload.new.content || "Attachment")}`, 
               { 
                 type: 'message', 
                 senderAvatar: sender?.avatar_url, 
@@ -82,7 +85,7 @@ export default function Layout() {
             
             // 2. Native OS Floating Web Notification (like WhatsApp Web/Insta)
             fireOSNotification(commName, {
-                 body: `${senderName}: ${payload.new.text}`
+                 body: `${senderName}: ${(payload.new.content || "Attachment")}`
                });
           }
         })
