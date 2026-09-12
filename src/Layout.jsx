@@ -70,7 +70,8 @@ export default function Layout() {
             if ('Notification' in window && Notification.permission === 'granted') {
                new Notification(commName, {
                  body: `${senderName}: ${payload.new.text}`,
-                 icon: comm?.avatar_url || '/icon-192x192.png'
+                 icon: sender?.avatar_url || '/icon-192x192.png',
+                 badge: comm?.avatar_url || '/icon-192x192.png'
                });
             }
           }

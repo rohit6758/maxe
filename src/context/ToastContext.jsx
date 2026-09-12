@@ -24,7 +24,7 @@ export function ToastContainer() {
       
       setTimeout(() => {
         setToasts(prev => prev.filter(t => t.id !== id));
-      }, 5000); // 5 seconds for rich notifications
+      }, 4000);
     });
     return unsubscribe;
   }, []);
@@ -34,32 +34,22 @@ export function ToastContainer() {
   };
 
   return (
-    <div className="fixed top-4 md:top-6 left-1/2 -translate-x-1/2 z-[9999] flex flex-col gap-2 pointer-events-none w-[95%] max-w-sm">
+    <div className="fixed top-4 inset-x-4 max-w-md mx-auto z-[9999] pointer-events-none flex flex-col gap-2">
       {toasts.map((t) => {
         if (t.type === 'message') {
           return (
-            <div key={t.id} className="animate-slide-down pointer-events-auto bg-white/90 backdrop-blur-xl shadow-2xl rounded-2xl p-3 flex items-center gap-3 border border-gray-100 overflow-hidden relative">
-              {/* Left: Sender Profile Pic */}
-              <div className="w-10 h-10 rounded-full shrink-0 bg-gray-200 overflow-hidden">
-                {t.senderAvatar ? <img src={t.senderAvatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/20" />}
-              </div>
+            <div key={t.id} className="bg-gray-900/95 backdrop-blur text-white rounded-2xl shadow-2xl p-4 flex items-center gap-3 transform transition-all duration-300 ease-out animate-slide-down pointer-events-auto w-full">
+              {/* Left Side (Sender) */}
+              <img src={t.senderAvatar || '/icon-192x192.png'} alt="Sender" className="w-12 h-12 rounded-full object-cover shrink-0" />
               
-              {/* Middle: Content */}
+              {/* Middle (Content) */}
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-bold text-gray-500 truncate">{t.title}</p>
-                <p className="text-sm font-bold text-gray-900 truncate">{t.message}</p>
+                <p className="text-sm font-bold truncate text-white">{t.title}</p>
+                <p className="text-xs text-gray-300 truncate">{t.message}</p>
               </div>
 
-              {/* Right: Group Profile Pic & M Logo overlay */}
-              <div className="w-10 h-10 rounded-xl shrink-0 bg-gray-100 overflow-hidden relative border border-gray-200">
-                {t.groupAvatar ? <img src={t.groupAvatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10" />}
-                
-              </div>
-              
-              {/* Close Button overlay (appears on hover) */}
-              <button onClick={() => removeToast(t.id)} className="absolute top-1 right-1 opacity-0 hover:opacity-100 transition-opacity bg-white/80 rounded-full p-0.5">
-                <X size={12} className="text-gray-500" />
-              </button>
+              {/* Right Side (Community Badge) */}
+              <img src={t.groupAvatar || '/icon-192x192.png'} alt="Group" className="w-6 h-6 rounded-md object-cover ml-auto shrink-0" />
             </div>
           );
         }
