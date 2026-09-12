@@ -148,7 +148,7 @@ export default function AICoach() {
                     {msg.text}
                   </div>
                 </div>
-              )i}
+              ))}
               {loading && (
                 <div className="flex gap-3 max-w-[85%]">
                   <div className="w-8 h-8 rounded-full shrink-0 flex items-center justify-center bg-primary text-white">
