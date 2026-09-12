@@ -15,6 +15,43 @@ export default function StudyTracker() {
   const [loading, setLoading] = useState(true);
   const [showProModal, setShowProModal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
+  const [timerStatus, setTimerStatus] = useState('idle');
+  const [timerSeconds, setTimerSeconds] = useState(0);
+
+  useEffect(() => {
+    let interval;
+    if (timerStatus === 'running') {
+      interval = setInterval(() => setTimerSeconds(prev => prev + 1), 1000);
+    }
+    return () => clearInterval(interval);
+  }, [timerStatus]);
+
+  const toggleTimer = async () => {
+    if (timerStatus === 'idle') {
+      setTimerStatus('running');
+    } else {
+      setTimerStatus('idle');
+      const durationMinutes = Math.floor(timerSeconds / 60);
+      setTimerSeconds(0);
+      
+      if (durationMinutes >= 1) {
+        setLoading(true);
+        const { error } = await supabase.from('study_activity').insert([{
+          user_id: session.user.id,
+          activity_type: 'deep_work',
+          duration_minutes: durationMinutes
+        }]);
+        if (!error) {
+           const { data } = await supabase.from('study_activity').select('activity_type, duration_minutes, created_at')
+            .eq('user_id', session.user.id)
+            .gte('created_at', new Date(Date.now() - 90 * 86400000).toISOString())
+            .order('created_at', { ascending: true });
+           setActivities(data || []);
+        }
+        setLoading(false);
+      }
+    }
+  };
   const [roadmap, setRoadmap] = useState(() => JSON.parse(localStorage.getItem('maxe_roadmap') || '[]'));
   const [newSubject, setNewSubject] = useState('');
   const [newUnit, setNewUnit] = useState('');
@@ -171,7 +208,7 @@ export default function StudyTracker() {
   
 
   return (
-    <div className="space-y-5 pb-24 relative">
+    <div className="space-y-6 pb-24 relative px-4 md:px-6 pt-6">
       {!userProfile?.is_premium && (
         <div 
           className="absolute inset-0 z-50 backdrop-blur-[3px] bg-[var(--theme-surface)]/20 rounded-2xl cursor-pointer"
@@ -189,7 +226,7 @@ export default function StudyTracker() {
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><BarChart3 size={23} /></div>
       </header>
 
-      <nav className="card p-1 flex gap-1 overflow-x-auto">
+      <nav className="card p-2 flex gap-2 overflow-x-auto no-scrollbar mx-[-1rem] md:mx-0 px-4 md:px-2 rounded-none md:rounded-2xl border-x-0 md:border-x">
         {[
           ['overview', 'Overview', BarChart3],
           ['roadmap', 'Semester roadmap', Target],
@@ -229,6 +266,12 @@ export default function StudyTracker() {
           <div className="flex items-end gap-2 mt-2"><span className="text-5xl font-black text-header">{formatMinutes(stats.today)}</span><span className="text-sm text-body mb-2">/ {formatMinutes(goal)}</span></div>
           <div className="h-2 rounded-full bg-primary/10 mt-4 max-w-md overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, (stats.today / goal) * 100)}%` }} /></div>
           <p className="text-xs text-body mt-2">{stats.today >= goal ? 'Daily goal complete. Protect the streak.' : `${formatMinutes(Math.max(0, goal - stats.today))} left to reach today’s goal.`}</p>
+          <div className="flex gap-2 mt-5">
+            <button onClick={toggleTimer} className={`flex-1 py-3 font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${timerStatus === 'running' ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20' : 'btn-primary shadow-primary/20'}`}>
+               {timerStatus === 'running' ? <Square size={16} /> : <Play size={16} />} 
+               {timerStatus === 'running' ? `Stop & Save (${Math.floor(timerSeconds / 60)}:${(timerSeconds % 60).toString().padStart(2, '0')})` : 'Start Focus Timer'}
+            </button>
+          </div>
         </div>
         <div className="w-28 h-28 rounded-full border-[10px] border-primary/10 flex items-center justify-center relative" style={{ borderTopColor: 'var(--theme-primary)', transform: `rotate(${Math.min(360, (stats.today / goal) * 360)}deg)` }}><Target size={28} className="text-primary" style={{ transform: `rotate(-${Math.min(360, (stats.today / goal) * 360)}deg)` }} /></div>
       </section>
