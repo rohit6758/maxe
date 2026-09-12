@@ -65,24 +65,29 @@ export default function SwitchAccountModal({ onClose }) {
   const handleSwitch = async (account) => {
     if (account.id === currentId) return; // already active
     setSwitching(account.id);
-    // Sign out current user
+    
+    // Attempt 1-tap fast switch without password
+    if (account.token) {
+      const { error } = await supabase.auth.setSession({
+        access_token: account.token.access_token,
+        refresh_token: account.token.refresh_token
+      });
+      if (!error) {
+        onClose();
+        return; // Success! AppContext will automatically update the UI.
+      }
+    }
+
+    // Fallback if token expired: sign out and go to auth
     await supabase.auth.signOut();
-    // Redirect to auth page — the user will log in to the other account
-    // We can pre-fill the username in URL params as a hint
     const hint = account.username || account.email || '';
     window.location.href = `${window.location.origin}/auth?hint=${encodeURIComponent(hint)}`;
   };
 
   const handleAddAccount = async () => {
-    // Sign out and go to auth to log in a new account
-    await supabase.auth.signOut();
-    window.location.href = `${window.location.origin}/auth`;
-  };
-
-  const handleRemoveSaved = (e, id) => {
-    e.stopPropagation();
-    removeAccount(id);
-    setAccounts(prev => prev.filter(a => a.id !== id));
+    // DO NOT sign out immediately! Just go to auth with mode=add_account
+    // This allows the user to click 'Back' if they change their mind
+    window.location.href = `${window.location.origin}/auth?mode=add_account`;
   };
 
   return (
@@ -149,20 +154,11 @@ export default function SwitchAccountModal({ onClose }) {
                   {isActive && (
                     <span className="flex items-center gap-1 text-[10px] font-black uppercase px-2 py-1 rounded-full"
                       style={{ background: 'var(--theme-primary)', color: '#fff' }}>
-                      <Check size={10} /> Active
+                      Active
                     </span>
                   )}
-                  {!isActive && (
-                    <>
-                      <ChevronRight size={16} style={{ color: 'var(--theme-body)' }} />
-                      <button
-                        onClick={e => handleRemoveSaved(e, account.id)}
-                        className="p-1 rounded-full hover:bg-red-50"
-                        title="Remove from saved accounts"
-                      >
-                        <X size={13} className="text-red-400" />
-                      </button>
-                    </>
+                  {!isActive && !isSwitching && (
+                    <ChevronRight size={16} style={{ color: 'var(--theme-body)' }} />
                   )}
                   {isSwitching && (
                     <div className="w-4 h-4 border-2 border-primary border-t-transparent rounded-full animate-spin" />

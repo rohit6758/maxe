@@ -16,7 +16,9 @@ export default function Auth() {
   const navigate = useNavigate();
 
   // If already logged in and NOT resetting password, redirect to app
-  if (session && tab !== 'update') {
+  // unless we are in the middle of adding a new account via the Switch Account menu
+  const isAddingAccount = window.location.search.includes('mode=add_account');
+  if (session && tab !== 'update' && !isAddingAccount) {
     return <Navigate to="/" replace />;
   }
 
@@ -177,6 +179,16 @@ export default function Auth() {
         </div>
 
         <div className="card p-6 space-y-5">
+          {isAddingAccount && (
+            <button 
+              onClick={() => navigate('/')} 
+              className="flex items-center gap-1 text-sm font-bold mb-2 w-full justify-center py-2 bg-primary/5 rounded-lg hover:bg-primary/10 transition-colors"
+              style={{ color: 'var(--theme-primary)' }}
+            >
+              <ArrowLeft size={16} /> Cancel & return to current account
+            </button>
+          )}
+
           {/* Tab switcher - hide during forgot/update flows */}
           {(tab === 'login' || tab === 'signup') && (
             <div className="flex rounded-xl overflow-hidden border" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 60%, transparent)' }}>

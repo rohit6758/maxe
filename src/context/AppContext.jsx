@@ -111,7 +111,18 @@ export function AppProvider({ children }) {
         const saved = JSON.parse(localStorage.getItem(SAVED_KEY) || '[]');
         const { data: { session: s } } = await supabase.auth.getSession();
         const email = s?.user?.email || null;
-        const entry = { id: data.id, name: data.name || 'Unnamed', username: data.username || '', avatar_url: data.avatar_url || null, email, saved_at: Date.now() };
+        
+        // Save token so we can quick-switch without password
+        const entry = { 
+          id: data.id, 
+          name: data.name || 'Unnamed', 
+          username: data.username || '', 
+          avatar_url: data.avatar_url || null, 
+          email, 
+          saved_at: Date.now(),
+          token: s ? { access_token: s.access_token, refresh_token: s.refresh_token } : null
+        };
+        
         const idx = saved.findIndex(a => a.id === data.id);
         if (idx >= 0) saved[idx] = entry; else saved.push(entry);
         localStorage.setItem(SAVED_KEY, JSON.stringify(saved));
