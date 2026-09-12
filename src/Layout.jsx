@@ -129,6 +129,28 @@ export default function Layout() {
           calendarTimeouts.push(timeoutId);
         }
       });
+      
+      // Daily Study Tracker Reminder
+      const studyReminder = localStorage.getItem('maxe_study_reminder');
+      if (studyReminder) {
+        const [hours, mins] = studyReminder.split(':').map(Number);
+        const reminderTime = new Date(now);
+        reminderTime.setHours(hours, mins, 0, 0);
+        const msUntilStudy = reminderTime.getTime() - now.getTime();
+        
+        const lastFired = localStorage.getItem('maxe_study_reminder_last');
+        if (msUntilStudy > 0 && lastFired !== dateStr) {
+          const timeoutId = setTimeout(() => {
+            fireOSNotification('Study Lab', { 
+                body: `Time to hit your daily focus goal! Open Maxe to start your timer.`,
+                icon: "https://api.dicebear.com/7.x/initials/svg?seed=Study",
+                tag: 'study-reminder'
+              });
+            localStorage.setItem('maxe_study_reminder_last', dateStr);
+          }, msUntilStudy);
+          calendarTimeouts.push(timeoutId);
+        }
+      }
     };
     
     setupCalendarNotifications();
