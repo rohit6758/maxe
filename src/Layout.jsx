@@ -75,9 +75,19 @@ export default function Layout() {
             
             
             // 2. Native OS Floating Web Notification (like WhatsApp Web/Insta)
-            fireOSNotification(commName, {
-                 body: `${senderName}: ${(payload.new.content || "Attachment")}`
+            fireOSNotification(senderName || "New Message", {
+                 body: payload.new.content || "Attachment",
+                 icon: comm?.avatar_url || "https://api.dicebear.com/7.x/initials/svg?seed=Group",
+                 badge: sender?.avatar_url || "https://api.dicebear.com/7.x/initials/svg?seed=User",
+                 tag: payload.new.community_id,
+                 renotify: true,
+                 data: { url: `/explore` }
                });
+               
+               window.globalUnreadCount = (window.globalUnreadCount || 0) + 1;
+               if ('setAppBadge' in navigator) {
+                 navigator.setAppBadge(window.globalUnreadCount);
+               }
           }
         })
         .subscribe();
@@ -112,7 +122,8 @@ export default function Layout() {
         if (msUntil > 0) {
           const timeoutId = setTimeout(() => {
             fireOSNotification(event.title, { 
-                body: `Your ${event.type} is starting now!`
+                body: `Your ${event.type} is starting now!`,
+                icon: "https://api.dicebear.com/7.x/initials/svg?seed=Calendar"
               });
           }, msUntil);
           calendarTimeouts.push(timeoutId);
