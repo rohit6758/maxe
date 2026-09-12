@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { BRANCHES, COLLEGES } from '../lib/constants';
 import { useAppContext } from '../context/AppContext';
-import { User, Save, UploadCloud, LogOut, Camera, Users, X } from 'lucide-react';
+import { User, Save, UploadCloud, LogOut, Camera, Users, X, Sparkles, CheckSquare } from 'lucide-react';
 import VerifiedBadge from '../components/VerifiedBadge';
 import UserProfilePopup from '../components/UserProfilePopup';
 import ProSettingsModal from '../components/ProSettingsModal';
