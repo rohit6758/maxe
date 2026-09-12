@@ -17,6 +17,7 @@ export default function StudyTracker() {
   const [activeTab, setActiveTab] = useState('overview');
   const [timerStatus, setTimerStatus] = useState('idle');
   const [timerSeconds, setTimerSeconds] = useState(0);
+  const [activityType, setActivityType] = useState('deep_work');
 
   useEffect(() => {
     let interval;
@@ -38,7 +39,7 @@ export default function StudyTracker() {
         setLoading(true);
         const { error } = await supabase.from('study_activity').insert([{
           user_id: session.user.id,
-          activity_type: 'deep_work',
+          activity_type: activityType,
           duration_minutes: durationMinutes
         }]);
         if (!error) {
@@ -267,6 +268,18 @@ export default function StudyTracker() {
           <div className="h-2 rounded-full bg-primary/10 mt-4 max-w-md overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, (stats.today / goal) * 100)}%` }} /></div>
           <p className="text-xs text-body mt-2">{stats.today >= goal ? 'Daily goal complete. Protect the streak.' : `${formatMinutes(Math.max(0, goal - stats.today))} left to reach today’s goal.`}</p>
           <div className="flex gap-2 mt-5">
+            <select 
+              value={activityType} 
+              onChange={e => setActivityType(e.target.value)} 
+              disabled={timerStatus === 'running'}
+              className="app-input w-32 text-xs font-bold bg-transparent border-primary/20"
+            >
+              <option value="deep_work">Deep Work</option>
+              <option value="pdf">PDF Study</option>
+              <option value="video">Video Lecture</option>
+              <option value="ai_chat">AI Revision</option>
+              <option value="quiz">Quiz Practice</option>
+            </select>
             <button onClick={toggleTimer} className={`flex-1 py-3 font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${timerStatus === 'running' ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20' : 'btn-primary shadow-primary/20'}`}>
                {timerStatus === 'running' ? <Square size={16} /> : <Play size={16} />} 
                {timerStatus === 'running' ? `Stop & Save (${Math.floor(timerSeconds / 60)}:${(timerSeconds % 60).toString().padStart(2, '0')})` : 'Start Focus Timer'}
