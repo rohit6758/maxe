@@ -136,8 +136,8 @@ export default function AICoach() {
   };
 
   return (
-    <div className="flex flex-col absolute top-0 left-0 right-0 bottom-16 md:bottom-0" style={{ background: 'var(--theme-bg)' }}>
-      <div className="shrink-0 px-4 py-4 border-b flex items-center justify-between" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 30%, transparent)' }}>
+    <div className="max-w-4xl mx-auto space-y-5 pb-24 relative">
+      <div className="shrink-0 px-4 py-4 flex items-center justify-between">
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-tr from-primary to-accent text-white shadow-sm">
             <Sparkles size={16} />
@@ -173,8 +173,8 @@ export default function AICoach() {
       <div className="flex-1 min-h-0 relative">
         
         {activeTab === 'chat' && (
-          <div className="absolute inset-0 flex flex-col">
-            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex flex-col">
+            <div className="flex-1 p-4 space-y-4 mb-4">
               {messages.map((msg, idx) => (
                 <div key={idx} className={`flex gap-3 max-w-[85%] ${msg.role === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
                   <div className={`w-8 h-8 rounded-full shrink-0 flex items-center justify-center ${msg.role === 'user' ? 'bg-primary/10' : 'bg-primary text-white'}`}>
@@ -198,31 +198,28 @@ export default function AICoach() {
               <div ref={messagesEndRef} />
             </div>
             
-            <div className="shrink-0 p-4 bg-white/50 backdrop-blur-md border-t" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 30%, transparent)' }}>
-              <form onSubmit={handleSendMessage} className="relative max-w-2xl mx-auto">
-                <input
-                  type="text"
-                  placeholder="Ask me anything..."
-                  value={input}
-                  onChange={e => setInput(e.target.value)}
-                  disabled={loading}
-                  className="w-full bg-white border rounded-full pl-5 pr-12 py-3 text-sm focus:outline-none focus:ring-2"
-                  style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 50%, transparent)', color: 'var(--theme-body)' }}
-                />
-                <button 
-                  type="submit" 
-                  disabled={!input.trim() || loading}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full flex items-center justify-center text-white bg-primary disabled:opacity-50 transition-opacity"
-                >
-                  <Send size={14} className="ml-0.5" />
-                </button>
-              </form>
-            </div>
+            <form onSubmit={handleSendMessage} className="sticky bottom-[calc(0.75rem+env(safe-area-inset-bottom))] md:bottom-4 mx-4 z-20 p-2 bg-surface border border-primary/20 rounded-full shadow-lg flex gap-2" style={{ background: 'var(--theme-surface)' }}>
+              <input
+                type="text"
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                disabled={loading}
+                className="flex-1 app-input !border-none !bg-transparent !shadow-none rounded-full text-sm py-2.5 px-4"
+                placeholder="Ask your coach anything..."
+              />
+              <button
+                type="submit"
+                disabled={!input.trim() || loading}
+                className="w-10 h-10 rounded-full flex items-center justify-center bg-primary text-white shrink-0 shadow-md hover:scale-105 active:scale-95 transition-transform disabled:opacity-50 disabled:hover:scale-100"
+              >
+                <Send size={16} className="ml-0.5" />
+              </button>
+            </form>
           </div>
         )}
 
         {activeTab === 'tools' && (
-          <div className="absolute inset-0 overflow-y-auto p-4 md:p-6 lg:p-8">
+          <div className="p-4 md:p-6 lg:p-8">
             <div className="max-w-3xl mx-auto space-y-6">
               
               <div className="card p-5">
