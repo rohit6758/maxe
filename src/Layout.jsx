@@ -28,6 +28,20 @@ export default function Layout() {
     let isCancelled = false; // Fixes the async race condition that causes double notifications
     
     // First, fetch the communities the user is a part of to filter notifications
+    
+    const fireOSNotification = (title, options) => {
+      if (Notification.permission !== 'granted') return;
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(registration => {
+          registration.showNotification(title, options);
+        }).catch(() => {
+          new Notification(title, options);
+        });
+      } else {
+        new Notification(title, options);
+      }
+    };
+
     const setupNotifications = async () => {
       const { data: myMemberships } = await supabase
         .from('community_members')
@@ -67,13 +81,11 @@ export default function Layout() {
             );
             
             // 2. Native OS Floating Web Notification (like WhatsApp Web/Insta)
-            if ('Notification' in window && Notification.permission === 'granted') {
-               new Notification(commName, {
+            fireOSNotification(commName, {
                  body: `${senderName}: ${payload.new.text}`,
                  icon: sender?.avatar_url || '/icon-192x192.png',
                  badge: comm?.avatar_url || '/icon-192x192.png'
                });
-            }
           }
         })
         .subscribe();
@@ -107,12 +119,10 @@ export default function Layout() {
         // If event is in the future today, schedule the native notification
         if (msUntil > 0) {
           const timeoutId = setTimeout(() => {
-            if ('Notification' in window && Notification.permission === 'granted') {
-              new Notification(event.title, { 
+            fireOSNotification(event.title, { 
                 body: `Your ${event.type} is starting now!`,
                 icon: '/icon-192x192.png'
               });
-            }
           }, msUntil);
           calendarTimeouts.push(timeoutId);
         }
