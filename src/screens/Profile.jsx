@@ -388,7 +388,7 @@ const loadFollowStats = async () => {
           <p className="text-xs text-body mb-4">Unlock the ultimate college companion experience.</p>
           
           <ul className="space-y-2 mb-5">
-            <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Unlimited AI Coach</li>
+            <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Full Study Tracker Access</li>
             <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Custom Profile Themes</li>
             <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Advanced Analytics</li>
           </ul>

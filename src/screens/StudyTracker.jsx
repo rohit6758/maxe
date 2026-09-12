@@ -26,7 +26,7 @@ export default function StudyTracker() {
   const [audioIndex, setAudioIndex] = useState(0);
 
   useEffect(() => {
-    if (!session || !userProfile?.is_premium) return;
+    if (!session) return;
     let mounted = true;
     supabase.from('study_activity').select('activity_type, duration_minutes, created_at')
       .eq('user_id', session.user.id)
