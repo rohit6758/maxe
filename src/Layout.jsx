@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink, Outlet, Link, useLocation } from 'react-router-dom';
-import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame, ChevronDown } from 'lucide-react';
+import { LayoutGrid, CheckSquare, BookOpen, Calendar, User, LogOut, Download, Menu, Users, Search, Flame, ChevronDown, Sparkles } from 'lucide-react';
 import { supabase } from './lib/supabase';
 import { useAppContext } from './context/AppContext';
 import CalendarModal from './screens/CalendarModal';
@@ -58,6 +58,7 @@ export default function Layout() {
     { to: '/personals', icon: <BookOpen size={18} />, label: 'Improvements' },
     { to: '/explore', icon: <Users size={18} />, label: 'Community' },
     { to: '/search', icon: <Search size={18} />, label: 'Find' },
+    { to: '/ai-coach', icon: <Sparkles size={18} />, label: 'AI Coach' },
   ];
 
   const SidebarContent = () => (

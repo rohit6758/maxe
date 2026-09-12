@@ -9,6 +9,7 @@ import Profile from './screens/Profile';
 import Explore from './screens/Explore';
 import UserSearch from './screens/UserSearch';
 import StudyTracker from './screens/StudyTracker';
+import AICoach from './screens/AICoach';
 import { AppProvider, useAppContext } from './context/AppContext';
 
 class ErrorBoundary extends React.Component {
@@ -76,6 +77,7 @@ function AppRoutes() {
         <Route path="explore" element={<Explore />} />
         <Route path="profile" element={<Profile />} />
         <Route path="study-tracker" element={<StudyTracker />} />
+        <Route path="ai-coach" element={<AICoach />} />
       </Route>
     </Routes>
   );
