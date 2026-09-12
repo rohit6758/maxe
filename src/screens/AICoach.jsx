@@ -1,7 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Bot, Sparkles, Send, User, FileText, Layers, BrainCircuit, Loader2, ArrowRight, BookOpen, AlertTriangle, Check } from 'lucide-react';
+import { Bot, Sparkles, Send, User, FileText, Layers, BrainCircuit, Loader2, ArrowRight, BookOpen, AlertTriangle, Check, Upload } from 'lucide-react';
+import * as pdfjsLib from 'pdfjs-dist';
 import { supabase } from '../lib/supabase';
 import { useAppContext } from '../context/AppContext';
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
 export default function AICoach() {
   const { session, userProfile } = useAppContext();
@@ -75,6 +78,39 @@ export default function AICoach() {
     }
   };
 
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    if (file.type !== 'application/pdf') {
+      setError('Please upload a valid PDF file.');
+      return;
+    }
+    
+    setLoading(true);
+    setError('');
+    
+    try {
+      const arrayBuffer = await file.arrayBuffer();
+      const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+      let fullText = '';
+      
+      for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(' ');
+        fullText += pageText + '\n\n';
+      }
+      
+      setNotesInput(fullText);
+    } catch (err) {
+      setError('Failed to extract text from PDF: ' + err.message);
+    } finally {
+      setLoading(false);
+      e.target.value = null;
+    }
+  };
+
   const handleGenerateMaterials = async () => {
     if (!notesInput.trim()) return setError('Please paste some text to process.');
     
@@ -100,7 +136,7 @@ export default function AICoach() {
   };
 
   return (
-    <div className="flex flex-col h-[calc(100vh-env(safe-area-inset-bottom))] pb-16 md:pb-0" style={{ background: 'var(--theme-bg)' }}>
+    <div className="flex flex-col absolute top-0 left-0 right-0 bottom-16 md:bottom-0" style={{ background: 'var(--theme-bg)' }}>
       <div className="shrink-0 px-4 py-4 border-b flex items-center justify-between" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 30%, transparent)' }}>
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-tr from-primary to-accent text-white shadow-sm">
@@ -193,6 +229,12 @@ export default function AICoach() {
                 <h2 className="font-bold text-base mb-4 flex items-center gap-2" style={{ color: 'var(--theme-header)' }}>
                   <FileText size={18} className="text-primary" /> Paste Notes or Text
                 </h2>
+                <div className="mb-4">
+                  <label className="btn-outline inline-flex items-center gap-2 cursor-pointer">
+                    <Upload size={14} /> Upload PDF
+                    <input type="file" accept=".pdf" className="hidden" onChange={handleFileUpload} disabled={loading} />
+                  </label>
+                </div>
                 <textarea
                   className="app-input w-full min-h-[150px] resize-y text-sm"
                   placeholder="Paste your study material here, and I'll process it for you..."
