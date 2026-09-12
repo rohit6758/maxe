@@ -53,8 +53,7 @@ export function ToastContainer() {
               {/* Right: Group Profile Pic & M Logo overlay */}
               <div className="w-10 h-10 rounded-xl shrink-0 bg-gray-100 overflow-hidden relative border border-gray-200">
                 {t.groupAvatar ? <img src={t.groupAvatar} className="w-full h-full object-cover" /> : <div className="w-full h-full bg-primary/10" />}
-                {/* Tiny Maxe M Logo indicator */}
-                <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-primary text-white text-[8px] font-black flex items-center justify-center rounded-tl-md">M</div>
+                
               </div>
               
               {/* Close Button overlay (appears on hover) */}

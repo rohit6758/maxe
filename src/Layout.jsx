@@ -19,7 +19,13 @@ export default function Layout() {
   useEffect(() => {
     if (!session?.user?.id) return;
     
+    // Request Native OS Notification permission
+    if ('Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission();
+    }
+    
     let activeChannel;
+    let isCancelled = false; // Fixes the async race condition that causes double notifications
     
     // First, fetch the communities the user is a part of to filter notifications
     const setupNotifications = async () => {
@@ -28,24 +34,28 @@ export default function Layout() {
         .select('community_id, communities(name)')
         .eq('user_id', session.user.id);
         
+      if (isCancelled) return;
+        
       const myCommunityIds = myMemberships ? myMemberships.map(m => m.community_id) : [];
       const communityNames = myMemberships ? Object.fromEntries(myMemberships.map(m => [m.community_id, m.communities?.name])) : {};
       
       activeChannel = supabase.channel('global_notifications')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages' }, async (payload) => {
           // If the message is from me, don't toast
+          let senderName = 'Someone';
           if (payload.new.user_id === session.user.id) { senderName = 'You'; }
           
           // Only toast if I am a member of this community
           if (myCommunityIds.includes(payload.new.community_id)) {
             // Get sender name
-            const { data: sender } = await supabase.from('profiles').select('name').eq('id', payload.new.user_id).single();
-            const senderName = sender?.name || 'Someone';
+            const { data: sender } = await supabase.from('profiles').select('name, avatar_url').eq('id', payload.new.user_id).single();
+            if (sender?.name) senderName = sender.name;
             const commName = communityNames[payload.new.community_id] || 'a community';
             
             // Get avatars
             const { data: comm } = await supabase.from('communities').select('avatar_url').eq('id', payload.new.community_id).single();
             
+            // 1. In-App Toast
             toast(
               `${commName}`, 
               `${senderName}: ${payload.new.text}`, 
@@ -55,6 +65,14 @@ export default function Layout() {
                 groupAvatar: comm?.avatar_url 
               }
             );
+            
+            // 2. Native OS Floating Web Notification (like WhatsApp Web/Insta)
+            if ('Notification' in window && Notification.permission === 'granted') {
+               new Notification(commName, {
+                 body: `${senderName}: ${payload.new.text}`,
+                 icon: comm?.avatar_url || '/icon-192x192.png'
+               });
+            }
           }
         })
         .subscribe();
@@ -63,6 +81,7 @@ export default function Layout() {
     setupNotifications();
     
     return () => {
+      isCancelled = true;
       if (activeChannel) supabase.removeChannel(activeChannel);
     };
   }, [session]);
