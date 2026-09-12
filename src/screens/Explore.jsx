@@ -12,10 +12,21 @@ export default function Explore() {
   const isAdmin = session?.user?.email === 'rohitnxtgengw@gmail.com';
 
   const [communities, setCommunities] = useState([]);
+  const [unreadCounts, setUnreadCounts] = useState({});
   const [selectedCommunity, setSelectedCommunity] = useState(null);
 
   useEffect(() => {
     window.activeChatCommunityId = selectedCommunity?.id || null;
+    if (selectedCommunity) {
+      setUnreadCounts(prev => ({ ...prev, [selectedCommunity.id]: 0 }));
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.ready.then(reg => {
+          reg.getNotifications({ tag: `chat-${selectedCommunity.id}` }).then(notifications => {
+            notifications.forEach(n => n.close());
+          });
+        });
+      }
+    }
     return () => { window.activeChatCommunityId = null; };
   }, [selectedCommunity]);
   const [isLoadingCommunities, setIsLoadingCommunities] = useState(true);

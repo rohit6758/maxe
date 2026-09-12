@@ -72,16 +72,7 @@ export default function Layout() {
             // Get avatars
             const { data: comm } = await supabase.from('communities').select('avatar_url').eq('id', payload.new.community_id).single();
             
-            // 1. In-App Toast
-            toast(
-              `${commName}`, 
-              `${senderName}: ${(payload.new.content || "Attachment")}`, 
-              { 
-                type: 'message', 
-                senderAvatar: sender?.avatar_url, 
-                groupAvatar: comm?.avatar_url 
-              }
-            );
+            
             
             // 2. Native OS Floating Web Notification (like WhatsApp Web/Insta)
             fireOSNotification(commName, {
