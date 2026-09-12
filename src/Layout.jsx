@@ -34,7 +34,7 @@ export default function Layout() {
       activeChannel = supabase.channel('global_notifications')
         .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'community_messages' }, async (payload) => {
           // If the message is from me, don't toast
-          if (payload.new.user_id === session.user.id) return;
+          if (payload.new.user_id === session.user.id) { senderName = 'You'; }
           
           // Only toast if I am a member of this community
           if (myCommunityIds.includes(payload.new.community_id)) {
@@ -43,7 +43,18 @@ export default function Layout() {
             const senderName = sender?.name || 'Someone';
             const commName = communityNames[payload.new.community_id] || 'a community';
             
-            toast(`New message in ${commName} from ${senderName}`);
+            // Get avatars
+            const { data: comm } = await supabase.from('communities').select('avatar_url').eq('id', payload.new.community_id).single();
+            
+            toast(
+              `${commName}`, 
+              `${senderName}: ${payload.new.text}`, 
+              { 
+                type: 'message', 
+                senderAvatar: sender?.avatar_url, 
+                groupAvatar: comm?.avatar_url 
+              }
+            );
           }
         })
         .subscribe();

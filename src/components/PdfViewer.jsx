@@ -16,7 +16,11 @@ export default function PdfViewer({ url, darkMode }) {
       try {
         setLoading(true);
         // Load PDF document
-        const loadingTask = pdfjsLib.getDocument(url);
+        // Fetch as arrayBuffer first to bypass Range header CORS issues with Supabase
+        const response = await fetch(url);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const arrayBuffer = await response.arrayBuffer();
+        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
         const loadedPdf = await loadingTask.promise;
         if (active) {
           setPdf(loadedPdf);
