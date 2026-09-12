@@ -81,9 +81,52 @@ export default function Layout() {
     
     setupNotifications();
     
+    let calendarTimeouts = [];
+    const setupCalendarNotifications = async () => {
+      const now = new Date();
+      // Adjust date to local YYYY-MM-DD reliably
+      const offset = now.getTimezoneOffset() * 60000;
+      const dateStr = new Date(now.getTime() - offset).toISOString().split('T')[0];
+      
+      const { data: events } = await supabase
+        .from('calendar_events')
+        .select('id, title, type, reminder_time')
+        .eq('user_id', session.user.id)
+        .eq('event_date', dateStr);
+        
+      if (isCancelled || !events) return;
+      
+      events.forEach(event => {
+        if (!event.reminder_time) return;
+        const [hours, mins] = event.reminder_time.split(':').map(Number);
+        const eventTime = new Date(now);
+        eventTime.setHours(hours, mins, 0, 0);
+        
+        const msUntil = eventTime.getTime() - now.getTime();
+        
+        // If event is in the future today, schedule the native notification
+        if (msUntil > 0) {
+          const timeoutId = setTimeout(() => {
+            if ('Notification' in window && Notification.permission === 'granted') {
+              new Notification(event.title, { 
+                body: `Your ${event.type} is starting now!`,
+                icon: '/icon-192x192.png'
+              });
+            }
+          }, msUntil);
+          calendarTimeouts.push(timeoutId);
+        }
+      });
+    };
+    
+    setupCalendarNotifications();
+    
     return () => {
       isCancelled = true;
       if (activeChannel) supabase.removeChannel(activeChannel);
+      if (typeof calendarTimeouts !== 'undefined') {
+        calendarTimeouts.forEach(id => clearTimeout(id));
+      }
     };
   }, [session]);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);

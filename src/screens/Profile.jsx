@@ -389,8 +389,6 @@ const loadFollowStats = async () => {
           
           <ul className="space-y-2 mb-5">
             <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Full Study Tracker Access</li>
-            <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Custom Profile Themes</li>
-            <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Advanced Analytics</li>
           </ul>
 
           <button className="w-full btn-primary py-3 flex justify-between items-center px-5 font-bold shadow-lg shadow-primary/20">

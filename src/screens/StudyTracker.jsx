@@ -3,6 +3,7 @@ import { BarChart3, Bell, BookOpen, BrainCircuit, CalendarDays, CheckCircle2, Cl
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
 import * as pdfjsLib from 'pdfjs-dist';
+import ProSettingsModal from '../components/ProSettingsModal';
 
 const formatMinutes = value => `${Math.floor(value / 60)}h ${value % 60}m`;
 
@@ -12,6 +13,7 @@ export default function StudyTracker() {
   const [goal, setGoal] = useState(() => Number(localStorage.getItem('maxe_daily_goal')) || 120);
   const [reminder, setReminder] = useState(() => localStorage.getItem('maxe_study_reminder') || '22:00');
   const [loading, setLoading] = useState(true);
+  const [showProModal, setShowProModal] = useState(false);
   const [activeTab, setActiveTab] = useState('overview');
   const [roadmap, setRoadmap] = useState(() => JSON.parse(localStorage.getItem('maxe_roadmap') || '[]'));
   const [newSubject, setNewSubject] = useState('');
@@ -171,22 +173,13 @@ export default function StudyTracker() {
   return (
     <div className="space-y-5 pb-24 relative">
       {!userProfile?.is_premium && (
-        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-2xl" />
-          <div className="relative card max-w-sm w-full p-8 text-center shadow-2xl shadow-primary/20 bg-white/90 border border-primary/20">
-            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
-              <LockKeyhole size={32} className="text-primary" />
-            </div>
-            <h1 className="text-2xl font-black text-header">Maxe Study Lab</h1>
-            <p className="text-sm text-body mt-2">A focused command centre for Pro students. Track your syllabus, race friends in Rival Mode, and use Audiobook mode.</p>
-            <button className="btn-primary w-full mt-6 py-3 font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
-               <Flame size={18} /> Upgrade to unlock
-            </button>
-            <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mt-4">₹50 / 4 months</p>
-          </div>
-        </div>
+        <div 
+          className="absolute inset-0 z-50 backdrop-blur-[3px] bg-[var(--theme-surface)]/20 rounded-2xl cursor-pointer"
+          onClick={() => setShowProModal(true)}
+        />
       )}
-      <div className={!userProfile?.is_premium ? "opacity-30 pointer-events-none select-none blur-[2px]" : ""}>
+      {showProModal && <ProSettingsModal isOpen={showProModal} onClose={() => setShowProModal(false)} />}
+      <div className={!userProfile?.is_premium ? "pointer-events-none select-none" : ""}>
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[.2em] font-bold text-primary">Maxe Pro</p>
