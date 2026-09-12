@@ -49,6 +49,12 @@ class ErrorBoundary extends React.Component {
 
 const ProtectedRoute = ({ children }) => {
   const { session, loading } = useAppContext();
+  
+  // If the user arrives via a password reset email, force them to the Auth screen to set a new password
+  if (window.location.hash.includes('type=recovery') || window.location.search.includes('type=recovery')) {
+    return <Navigate to="/auth?type=recovery" replace />;
+  }
+
   if (loading) return (
     <div className="h-screen w-full flex flex-col items-center justify-center gap-4 animate-pulse" style={{background: 'var(--theme-bg)'}}>
       <div className="w-16 h-16 rounded-full border-4 animate-spin" style={{borderColor: 'color-mix(in srgb, var(--theme-primary) 20%, transparent)', borderTopColor: 'var(--theme-primary)'}} />

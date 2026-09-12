@@ -78,25 +78,6 @@ export default function Auth() {
     try {
       let email = loginId.trim();
 
-      if (!email.includes('@')) {
-        const { data: profile, error: profErr } = await supabase
-          .from('profiles')
-          .select('id, email')
-          .eq('username', email.toLowerCase())
-          .maybeSingle();
-
-        if (profErr || !profile) {
-          setLoading(false);
-          return setErr('No account found with that username.');
-        }
-
-        if (!profile.email) {
-          setLoading(false);
-          return setErr('Could not find email for that username. Try signing in with your email instead.');
-        }
-        email = profile.email;
-      }
-
       const { error } = await supabase.auth.signInWithPassword({ email, password: loginPass });
       if (error) {
         if (error.message.includes('Invalid login')) {
@@ -231,10 +212,10 @@ export default function Auth() {
                     className="app-input w-full"
                     style={{ paddingLeft: '36px' }}
                     type="text"
-                    placeholder="Email or username"
+                    placeholder="Email address"
                     value={loginId}
                     onChange={e => setLoginId(e.target.value)}
-                    autoComplete="username"
+                    autoComplete="email"
                   />
                 </div>
                 <div>
