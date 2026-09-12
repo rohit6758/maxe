@@ -14,8 +14,8 @@ import SwitchAccountModal from './components/SwitchAccountModal';
 export default function Layout() {
   const location = useLocation();
 
-  
-  
+  const { userProfile, activeBranch, session } = useAppContext();
+
   useEffect(() => {
     if (!session?.user?.id) return;
     
@@ -55,8 +55,6 @@ export default function Layout() {
       if (activeChannel) supabase.removeChannel(activeChannel);
     };
   }, [session]);
-
-  const { userProfile, activeBranch, session } = useAppContext();
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [isTodoOpen, setIsTodoOpen] = useState(false);
   const [installPrompt, setInstallPrompt] = useState(null);
