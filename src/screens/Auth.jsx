@@ -15,12 +15,14 @@ export default function Auth() {
   const { session } = useAppContext();
   const navigate = useNavigate();
 
-  // If already logged in and NOT resetting password, redirect to app
-  // unless we are in the middle of adding a new account via the Switch Account menu
   const isAddingAccount = window.location.search.includes('mode=add_account');
-  if (session && tab !== 'update' && !isAddingAccount) {
-    return <Navigate to="/" replace />;
-  }
+
+  // Safe redirect in useEffect to avoid React ErrorBoundary render crashes
+  useEffect(() => {
+    if (session && tab !== 'update' && !isAddingAccount) {
+      navigate('/', { replace: true });
+    }
+  }, [session, tab, isAddingAccount, navigate]);
 
   const [loading, setLoading] = useState(false);
   const [msg, setMsg] = useState(null);
@@ -81,16 +83,35 @@ export default function Auth() {
     try {
       let email = loginId.trim();
 
+      // Safely check if it's a username (doesn't have @)
+      if (!email.includes('@')) {
+        const { data: profile, error: profErr } = await supabase
+          .from('profiles')
+          .select('email')
+          .eq('username', email.toLowerCase())
+          .maybeSingle();
+
+        if (profErr || !profile || !profile.email) {
+          setLoading(false);
+          return setErr('No account found for that username, or no email linked. Please log in with your Email address instead.');
+        }
+        email = profile.email;
+      }
+
       const { error } = await supabase.auth.signInWithPassword({ email, password: loginPass });
       if (error) {
         if (error.message.includes('Invalid login')) {
-          return setErr('Wrong email or password. Did you sign up with Google? Try "Continue with Google" instead.');
+          setLoading(false);
+          return setErr('Wrong password. Did you sign up with Google? Try "Continue with Google" instead.');
         }
         throw error;
       }
+      
+      // On success, redirect to main app immediately (important for add_account mode)
+      navigate('/', { replace: true });
+      
     } catch (err) {
       setErr(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -231,10 +252,10 @@ export default function Auth() {
                     className="app-input w-full"
                     style={{ paddingLeft: '36px' }}
                     type="text"
-                    placeholder="Email address"
+                    placeholder="Email or username"
                     value={loginId}
                     onChange={e => setLoginId(e.target.value)}
-                    autoComplete="email"
+                    autoComplete="username"
                   />
                 </div>
                 <div>
