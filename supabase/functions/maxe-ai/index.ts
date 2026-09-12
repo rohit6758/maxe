@@ -88,7 +88,7 @@ serve(async (req) => {
     }
 
     // Initialize the model
-    const model = genAI.getModel({ 
+    const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash",
       systemInstruction: systemInstruction,
       generationConfig: isJson ? { responseMimeType: "application/json" } : undefined
