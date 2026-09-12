@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.3";
+import { GoogleGenerativeAI } from "npm:@google/generative-ai";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -20,7 +21,8 @@ serve(async (req) => {
     );
 
     // 1. Verify User
-    const authHeader = req.headers.get('Authorization')!;
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) throw new Error('Missing Authorization header');
     const token = authHeader.replace('Bearer ', '');
     const { data: { user }, error: userError } = await supabaseClient.auth.getUser(token);
     
@@ -50,27 +52,30 @@ serve(async (req) => {
     // 3. Parse Request
     const { action, text, context, options } = await req.json();
     
-    // We will use Gemini API (requires GEMINI_API_KEY set in Supabase Secrets)
     const geminiKey = Deno.env.get('GEMINI_API_KEY');
     if (!geminiKey) {
-      throw new Error('GEMINI_API_KEY is not set');
+      throw new Error('GEMINI_API_KEY is not set in Supabase Secrets');
     }
+
+    const genAI = new GoogleGenerativeAI(geminiKey);
 
     let systemInstruction = "You are the Maxe AI Coach, a helpful academic tutor for college students.";
     let prompt = text;
+    let isJson = false;
 
     if (action === 'chat') {
-      systemInstruction += `\nStudent Context: ${JSON.stringify(context)}. Do not give exact exam questions, label them as practice priorities. Be concise.`;
+      systemInstruction += `\nStudent Context: ${JSON.stringify(context || {})}. Do not give exact exam questions, label them as practice priorities. Be concise.`;
     } else if (action === 'process_notes') {
       const mode = options?.mode || 'summary';
       if (mode === 'flashcards') {
         systemInstruction = "You are an AI that extracts study flashcards from text. Return ONLY a JSON array of objects with 'front' and 'back' properties.";
         prompt = `Generate flashcards from this text. Make it concise.\n\nText:\n${text}`;
+        isJson = true;
       } else if (mode === 'quiz') {
         systemInstruction = "You are an AI that generates multiple-choice quizzes. Return ONLY a JSON array of objects with 'question', 'options' (array of 4 strings), and 'answer' (exact string from options).";
         prompt = `Generate a quiz from this text.\n\nText:\n${text}`;
+        isJson = true;
       } else {
-        // default summary/notes
         systemInstruction = "You are an AI that generates highly structured revision notes. Format in Markdown.";
         const extraInstructions = [
           options?.shorter && "Make it very short and concise.",
@@ -82,41 +87,33 @@ serve(async (req) => {
       }
     }
 
-    // 4. Call Gemini API
-    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${geminiKey}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        systemInstruction: { role: "user", parts: [{ text: systemInstruction }] },
-        generationConfig: {
-           responseMimeType: (action === 'process_notes' && (options?.mode === 'flashcards' || options?.mode === 'quiz')) ? "application/json" : "text/plain"
-        }
-      })
+    // Initialize the model
+    const model = genAI.getModel({ 
+      model: "gemini-1.5-flash",
+      systemInstruction: systemInstruction,
+      generationConfig: isJson ? { responseMimeType: "application/json" } : undefined
     });
 
-    if (!response.ok) {
-      const err = await response.text();
-      throw new Error(`Gemini API Error: ${err}`);
-    }
+    // 4. Generate Content
+    const result = await model.generateContent(prompt);
+    const replyText = result.response.text();
 
-    const aiData = await response.json();
-    let replyText = aiData.candidates?.[0]?.content?.parts?.[0]?.text || "I'm sorry, I couldn't generate a response.";
-
-    // Parse JSON if needed
     let parsedContent = replyText;
-    if (action === 'process_notes' && (options?.mode === 'flashcards' || options?.mode === 'quiz')) {
+    if (isJson) {
       try {
          parsedContent = JSON.parse(replyText);
       } catch (e) {
-         // fallback if it didn't return pure JSON
          console.error("Failed to parse JSON from AI", replyText);
       }
     }
 
-    // 5. Increment Usage (if not premium)
+    // 5. Increment Usage
     if (!isPremium) {
-      await supabaseClient.from('ai_usage').update({ queries_used: queriesUsed + 1 }).eq('user_id', user.id);
+      const { error: updateError } = await supabaseClient.from('ai_usage').update({ queries_used: queriesUsed + 1 }).eq('user_id', user.id);
+      if (updateError && updateError.code === 'PGRST116') {
+         // Insert if not exists
+         await supabaseClient.from('ai_usage').insert({ user_id: user.id, queries_used: 1 });
+      }
     }
 
     return new Response(JSON.stringify({ 
