@@ -34,6 +34,7 @@ export default function Auth() {
   // Reset/Update fields
   const [resetEmail, setResetEmail] = useState('');
   const [newPass, setNewPass] = useState('');
+  const [confirmPass, setConfirmPass] = useState('');
 
   const setErr = (text) => setMsg({ type: 'error', text });
   const setOk  = (text) => setMsg({ type: 'success', text });
@@ -115,18 +116,24 @@ export default function Auth() {
   const handleUpdatePassword = async (e) => {
     e.preventDefault();
     if (!newPass) return setErr('Please enter a new password.');
+    if (newPass !== confirmPass) return setErr('Passwords do not match.');
+    
     setLoading(true);
     setMsg(null);
     try {
       const { error } = await supabase.auth.updateUser({ password: newPass });
       if (error) throw error;
-      setOk('Password updated successfully! You can now log in.');
-      setTab('login');
-      setLoginPass('');
-      window.history.replaceState(null, '', window.location.pathname); // clear the #access_token from URL
+      setOk('Password updated successfully! Redirecting...');
+      
+      // Clear URL and navigate manually to avoid React ErrorBoundary issues
+      window.history.replaceState(null, '', window.location.pathname);
+      
+      setTimeout(() => {
+        navigate('/', { replace: true });
+      }, 1500);
+      
     } catch (err) {
       setErr(err.message);
-    } finally {
       setLoading(false);
     }
   };
@@ -359,6 +366,19 @@ export default function Auth() {
                   >
                     {showPass ? <EyeOff size={16} /> : <Eye size={16} />}
                   </button>
+                </div>
+                <div className="relative">
+                  <Lock size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-body pointer-events-none" />
+                  <input
+                    className="app-input w-full"
+                    style={{ paddingLeft: '36px' }}
+                    type={showPass ? 'text' : 'password'}
+                    placeholder="Confirm New Password"
+                    value={confirmPass}
+                    onChange={e => setConfirmPass(e.target.value)}
+                    required
+                    minLength={6}
+                  />
                 </div>
                 <button type="submit" disabled={loading} className="btn-primary w-full py-3 font-bold text-sm">
                   {loading ? 'Updating…' : 'Update Password'}
