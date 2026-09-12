@@ -18,7 +18,22 @@ export default function Explore() {
   useEffect(() => {
     window.activeChatCommunityId = selectedCommunity?.id || null;
     if (selectedCommunity) {
-      setUnreadCounts(prev => ({ ...prev, [selectedCommunity.id]: 0 }));
+      setUnreadCounts(prev => {
+        const clearedCount = prev[selectedCommunity.id] || 0;
+        
+        // Update the OS App Badge safely
+        if (clearedCount > 0) {
+          window.globalUnreadCount = Math.max(0, (window.globalUnreadCount || 0) - clearedCount);
+          if ('setAppBadge' in navigator && window.globalUnreadCount > 0) {
+            navigator.setAppBadge(window.globalUnreadCount);
+          } else if ('clearAppBadge' in navigator) {
+            navigator.clearAppBadge();
+          }
+        }
+        
+        return { ...prev, [selectedCommunity.id]: 0 };
+      });
+      
       if ('serviceWorker' in navigator) {
         navigator.serviceWorker.ready.then(reg => {
           reg.getNotifications({ tag: `chat-${selectedCommunity.id}` }).then(notifications => {
