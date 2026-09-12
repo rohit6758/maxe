@@ -41,7 +41,7 @@ export default function StudyTracker() {
   }, [session, userProfile?.is_premium]);
 
   useEffect(() => {
-    if (!session || !userProfile?.is_premium) return;
+    if (!session) return;
     const checkStudyReminder = async () => {
       const now = new Date();
       const currentTime = now.toTimeString().slice(0, 5);
@@ -166,19 +166,27 @@ export default function StudyTracker() {
     }
   };
 
-  if (!userProfile?.is_premium) {
-    return (
-      <div className="card max-w-xl mx-auto p-8 text-center">
-        <LockKeyhole size={38} className="mx-auto text-primary mb-4" />
-        <h1 className="text-2xl font-black text-header">Maxe Study Lab</h1>
-        <p className="text-sm text-body mt-2">A focused study dashboard for Pro students. Track PDFs, AI revision, quizzes, streaks, and goals in one place.</p>
-        <button className="btn-primary mt-6">Upgrade to unlock</button>
-      </div>
-    );
-  }
+  
 
   return (
-    <div className="space-y-5 pb-24">
+    <div className="space-y-5 pb-24 relative">
+      {!userProfile?.is_premium && (
+        <div className="absolute inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-white/40 backdrop-blur-md rounded-2xl" />
+          <div className="relative card max-w-sm w-full p-8 text-center shadow-2xl shadow-primary/20 bg-white/90 border border-primary/20">
+            <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <LockKeyhole size={32} className="text-primary" />
+            </div>
+            <h1 className="text-2xl font-black text-header">Maxe Study Lab</h1>
+            <p className="text-sm text-body mt-2">A focused command centre for Pro students. Track your syllabus, race friends in Rival Mode, and use Audiobook mode.</p>
+            <button className="btn-primary w-full mt-6 py-3 font-bold text-sm shadow-lg shadow-primary/20 flex items-center justify-center gap-2">
+               <Flame size={18} /> Upgrade to unlock
+            </button>
+            <p className="text-[10px] uppercase tracking-widest font-bold text-gray-400 mt-4">₹50 / 4 months</p>
+          </div>
+        </div>
+      )}
+      <div className={!userProfile?.is_premium ? "opacity-30 pointer-events-none select-none blur-[2px]" : ""}>
       <header className="flex items-end justify-between gap-3">
         <div>
           <p className="text-xs uppercase tracking-[.2em] font-bold text-primary">Maxe Pro</p>
@@ -254,6 +262,7 @@ export default function StudyTracker() {
           <div className="rounded-xl bg-primary/5 p-3 text-xs text-body flex gap-2"><CalendarDays size={15} className="text-primary shrink-0" /> Use this goal for exam preparation, revision blocks, and weekly planning.</div>
         </div>
       </section>}
+          </div>
     </div>
   );
 }
