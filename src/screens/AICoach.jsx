@@ -8,7 +8,7 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs
 
 export default function AICoach() {
   const { session, userProfile } = useAppContext();
-  const [activeTab, setActiveTab] = useState('chat');
+  const [activeTab, setActiveTab] = useState('tools');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   
@@ -150,16 +150,16 @@ export default function AICoach() {
         
         <div className="flex bg-white/50 backdrop-blur-sm rounded-lg p-1 border" style={{ borderColor: 'color-mix(in srgb, var(--theme-ring) 30%, transparent)' }}>
           <button 
-            onClick={() => setActiveTab('chat')}
-            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex items-center gap-1.5 ${activeTab === 'chat' ? 'bg-white shadow-sm text-primary' : 'text-body opacity-70 hover:opacity-100'}`}
-          >
-            <Bot size={14} /> Chat
-          </button>
-          <button 
             onClick={() => setActiveTab('tools')}
             className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex items-center gap-1.5 ${activeTab === 'tools' ? 'bg-white shadow-sm text-primary' : 'text-body opacity-70 hover:opacity-100'}`}
           >
             <Layers size={14} /> Tools
+          </button>
+          <button 
+            onClick={() => setActiveTab('chat')}
+            className={`px-3 py-1.5 text-xs font-bold rounded-md transition-colors flex items-center gap-1.5 ${activeTab === 'chat' ? 'bg-white shadow-sm text-primary' : 'text-body opacity-70 hover:opacity-100'}`}
+          >
+            <Bot size={14} /> Chat
           </button>
         </div>
       </div>
