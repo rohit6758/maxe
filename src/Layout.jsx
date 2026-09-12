@@ -134,7 +134,7 @@ export default function Layout() {
 
   return (
     <div className="flex min-h-[100dvh]" style={{ background: 'var(--theme-bg)' }}>
-      {(!userProfile || !userProfile.username || !userProfile.branch || !userProfile.college) && <OnboardingPopup />}
+      {userProfile && (!userProfile.username || !userProfile.branch || !userProfile.college) && <OnboardingPopup />}
 
       {/* Desktop Sidebar */}
       <aside className="hidden md:block w-60 shrink-0 sticky top-0 h-screen" style={{ boxShadow: '1px 0 0 color-mix(in srgb, var(--theme-ring) 50%, transparent)' }}>

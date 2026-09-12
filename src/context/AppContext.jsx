@@ -148,7 +148,7 @@ export function AppProvider({ children }) {
         setActiveBranch(data.branch);
       }
     } else {
-      setUserProfile(null);
+      setUserProfile({});
     }
     setLoading(false);
   };
