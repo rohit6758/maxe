@@ -82,9 +82,7 @@ export default function Layout() {
             
             // 2. Native OS Floating Web Notification (like WhatsApp Web/Insta)
             fireOSNotification(commName, {
-                 body: `${senderName}: ${payload.new.text}`,
-                 icon: sender?.avatar_url || '/icon-192x192.png',
-                 badge: comm?.avatar_url || '/icon-192x192.png'
+                 body: `${senderName}: ${payload.new.text}`
                });
           }
         })
@@ -120,8 +118,7 @@ export default function Layout() {
         if (msUntil > 0) {
           const timeoutId = setTimeout(() => {
             fireOSNotification(event.title, { 
-                body: `Your ${event.type} is starting now!`,
-                icon: '/icon-192x192.png'
+                body: `Your ${event.type} is starting now!`
               });
           }, msUntil);
           calendarTimeouts.push(timeoutId);
