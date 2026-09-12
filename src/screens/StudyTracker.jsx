@@ -231,7 +231,7 @@ export default function StudyTracker() {
         <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary"><BarChart3 size={23} /></div>
       </header>
 
-      <nav className="card p-2 flex gap-2 overflow-x-auto no-scrollbar mx-[-1rem] md:mx-0 px-4 md:px-2 rounded-none md:rounded-2xl border-x-0 md:border-x">
+      <nav className="card p-2 flex gap-1 sm:gap-2 overflow-x-auto no-scrollbar">
         {[
           ['overview', 'Overview', BarChart3],
           ['roadmap', 'Semester roadmap', Target],
@@ -265,18 +265,18 @@ export default function StudyTracker() {
         <section className="card p-5 space-y-4"><div><h2 className="text-xl font-black text-header">Audiobook mode</h2><p className="text-sm text-body mt-1">Upload a PDF or paste notes and listen while commuting.</p></div><input type="file" accept="application/pdf" onChange={handleAudioPdf} className="app-input text-sm" /><textarea className="app-input min-h-48 resize-y" placeholder="Paste notes, PDF text, or copied AI chat here..." value={audioText} onChange={e => setAudioText(e.target.value)} /><div className="flex flex-wrap gap-2"><button onClick={speak} className="btn-primary flex items-center gap-2"><Play size={15} /> Read aloud</button>{audioState === 'playing' ? <button onClick={pauseAudio} className="btn-outline flex items-center gap-2"><Pause size={15} /> Pause</button> : audioState === 'paused' ? <button onClick={resumeAudio} className="btn-outline flex items-center gap-2"><Play size={15} /> Resume</button> : null}<button onClick={stopAudio} className="btn-outline flex items-center gap-2"><Square size={13} /> Stop</button></div><p className="text-xs text-body">PDF text is extracted locally in your browser.</p></section>
       )}
 
-      {activeTab === 'overview' && <><section className="card p-5 grid md:grid-cols-[1fr_auto] gap-5 items-center overflow-hidden relative">
+      {activeTab === 'overview' && <><section className="card p-4 sm:p-5 flex flex-col md:flex-row md:items-center justify-between gap-5 overflow-hidden relative">
         <div className="relative z-10">
           <p className="text-xs uppercase tracking-widest font-bold text-primary">Today’s focus</p>
-          <div className="flex items-end gap-2 mt-2"><span className="text-5xl font-black text-header">{formatMinutes(stats.today)}</span><span className="text-sm text-body mb-2">/ {formatMinutes(goal)}</span></div>
+          <div className="flex items-end gap-2 mt-2"><span className="text-4xl md:text-5xl font-black text-header">{formatMinutes(stats.today)}</span><span className="text-sm text-body mb-2">/ {formatMinutes(goal)}</span></div>
           <div className="h-2 rounded-full bg-primary/10 mt-4 max-w-md overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, (stats.today / goal) * 100)}%` }} /></div>
           <p className="text-xs text-body mt-2">{stats.today >= goal ? 'Daily goal complete. Protect the streak.' : `${formatMinutes(Math.max(0, goal - stats.today))} left to reach today’s goal.`}</p>
-          <div className="flex gap-2 mt-5">
+          <div className="flex flex-col sm:flex-row gap-2 mt-5">
             <select 
               value={activityType} 
               onChange={e => setActivityType(e.target.value)} 
               disabled={timerStatus === 'running'}
-              className="app-input w-32 text-xs font-bold bg-transparent border-primary/20"
+              className="app-input w-full sm:w-36 text-xs font-bold bg-transparent border-primary/20"
             >
               <option value="deep_work">Deep Work</option>
               <option value="pdf">PDF Study</option>
@@ -290,7 +290,7 @@ export default function StudyTracker() {
             </button>
           </div>
         </div>
-        <div className="w-28 h-28 rounded-full border-[10px] border-primary/10 flex items-center justify-center relative" style={{ borderTopColor: 'var(--theme-primary)', transform: `rotate(${Math.min(360, (stats.today / goal) * 360)}deg)` }}><Target size={28} className="text-primary" style={{ transform: `rotate(-${Math.min(360, (stats.today / goal) * 360)}deg)` }} /></div>
+        <div className="w-20 h-20 md:w-28 md:h-28 rounded-full border-[8px] md:border-[10px] border-primary/10 flex shrink-0 items-center justify-center relative self-end md:self-auto" style={{ borderTopColor: 'var(--theme-primary)', transform: `rotate(${Math.min(360, (stats.today / goal) * 360)}deg)` }}><Target size={24} className="md:w-7 md:h-7 text-primary" className="text-primary" style={{ transform: `rotate(-${Math.min(360, (stats.today / goal) * 360)}deg)` }} /></div>
       </section>
 
       <section className="grid grid-cols-2 lg:grid-cols-4 gap-3">
@@ -299,13 +299,13 @@ export default function StudyTracker() {
           [Clock3, 'Total focus', formatMinutes(stats.total), 'text-primary'],
           [BookOpen, 'PDF study', formatMinutes(stats.totals.pdf), 'text-sky-600'],
           [BrainCircuit, 'AI revision', formatMinutes(stats.totals.ai_chat), 'text-violet-600']
-        ].map(([Icon, label, value, color]) => <div className="card p-4" key={label}><Icon size={18} className={color} /><p className="text-[10px] uppercase tracking-wider font-bold text-body mt-3">{label}</p><p className="text-lg font-black text-header mt-1">{value}</p></div>)}
+        ].map(([Icon, label, value, color]) => <div className="card p-4" key={label}><Icon size={18} className={color} /><p className="text-[10px] uppercase tracking-wider font-bold text-body mt-3">{label}</p><p className="text-base sm:text-lg font-black text-header mt-1">{value}</p></div>)}
       </section></>}
 
       {activeTab === 'overview' && <section className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
         <div className="card p-5">
           <div className="flex justify-between items-center"><div><h2 className="font-black text-header">Consistency map</h2><p className="text-xs text-body mt-1">Your last 90 study days</p></div>{loading && <span className="text-xs text-primary">Syncing</span>}</div>
-          <div className="grid gap-1 mt-5" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>{Array.from({ length: 90 }, (_, index) => { const day = new Date(); day.setDate(day.getDate() - (89 - index)); const value = stats.days[day.toISOString().slice(0, 10)] || 0; return <span key={index} className="aspect-square rounded-[3px]" title={`${day.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}: ${value} minutes`} style={{ background: value ? `color-mix(in srgb, var(--theme-primary) ${Math.min(90, 20 + value / 3)}%, var(--theme-bg))` : 'var(--theme-bg)' }} />; })}</div>
+          <div className="overflow-x-auto no-scrollbar mt-5 -mx-1 px-1"><div className="grid gap-1 min-w-[380px]" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>{Array.from({ length: 90 }, (_, index) => { const day = new Date(); day.setDate(day.getDate() - (89 - index)); const value = stats.days[day.toISOString().slice(0, 10)] || 0; return <span key={index} className="aspect-square rounded-[3px]" title={`${day.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}: ${value} minutes`} style={{ background: value ? `color-mix(in srgb, var(--theme-primary) ${Math.min(90, 20 + value / 3)}%, var(--theme-bg))` : 'var(--theme-bg)' }} />; })}</div></div>
           <div className="flex gap-4 mt-4 text-xs text-body"><span className="flex items-center gap-1"><CheckCircle2 size={13} className="text-primary" /> Active study day</span><span className="flex items-center gap-1"><Trophy size={13} className="text-orange-500" /> Keep your best streak alive</span></div>
         </div>
         <div className="card p-5 space-y-4">
