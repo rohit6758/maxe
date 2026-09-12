@@ -378,26 +378,6 @@ const loadFollowStats = async () => {
 
 
       
-      {/* Maxe Pro Teaser */}
-      {!userProfile?.is_premium && (
-        <div className="card p-5 relative overflow-hidden group border border-primary/20 bg-gradient-to-br from-[var(--theme-surface)] to-[color-mix(in_srgb,var(--theme-primary)_10%,transparent)]">
-          <div className="absolute top-0 right-0 w-32 h-32 bg-primary/10 rounded-full blur-3xl -translate-y-10 translate-x-10" />
-          <h3 className="font-bold text-lg text-header flex items-center gap-2 mb-2">
-            <Sparkles size={20} className="text-primary animate-pulse" /> Maxe Pro
-          </h3>
-          <p className="text-xs text-body mb-4">Unlock the ultimate college companion experience.</p>
-          
-          <ul className="space-y-2 mb-5">
-            <li className="flex items-center gap-2 text-sm text-header font-medium"><CheckSquare size={16} className="text-primary"/> Full Study Tracker Access</li>
-          </ul>
-
-          <button className="w-full btn-primary py-3 flex justify-between items-center px-5 font-bold shadow-lg shadow-primary/20">
-            <span>Upgrade to Pro</span>
-            <span className="bg-black/20 px-2 py-1 rounded-md text-xs tracking-wider">₹50 / 4 mos</span>
-          </button>
-        </div>
-      )}
-
       {/* Account */}
       <div className="card p-4 space-y-3">
         <h3 className="font-bold" className="text-header">Account</h3>
