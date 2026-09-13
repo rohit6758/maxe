@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import * as pdfjsLib from 'pdfjs-dist';
 import { Loader2 } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.mjs`;
 
@@ -12,7 +13,15 @@ export default function PdfViewer({ url, darkMode }) {
 
   useEffect(() => {
     let active = true;
-    const loadPdf = async () => {
+    const { setActiveTrackingMode } = useAppContext();
+  useEffect(() => {
+    if (setActiveTrackingMode) {
+      setActiveTrackingMode('pdf');
+      return () => setActiveTrackingMode('deep_work');
+    }
+  }, [setActiveTrackingMode]);
+
+  const loadPdf = async () => {
       try {
         setLoading(true);
         // Load PDF document

@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { BarChart3, Bell, BookOpen, BrainCircuit, CalendarDays, CheckCircle2, Clock3, Flame, LockKeyhole, Target, Trophy, GitCompareArrows, Headphones, Plus, Trash2, Play, Pause, Square } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../lib/supabase';
@@ -62,6 +62,7 @@ export default function StudyTracker() {
   const [rivalStatus, setRivalStatus] = useState('');
   const [audioText, setAudioText] = useState('');
   const [audioState, setAudioState] = useState('idle');
+  const audioStateRef = useRef('idle');
   const [audioQueue, setAudioQueue] = useState([]);
   const [audioIndex, setAudioIndex] = useState(0);
 
@@ -165,28 +166,44 @@ export default function StudyTracker() {
     const chunks = audioText.trim().match(/[^.!?]+[.!?]+|[^.!?]+$/g) || [audioText.trim()];
     setAudioQueue(chunks);
     setAudioIndex(0);
-    speakChunk(chunks, 0);
     setAudioState('playing');
+    audioStateRef.current = 'playing';
+    speakChunk(chunks, 0);
   };
   const speakChunk = (chunks, index) => {
+    if (audioStateRef.current !== 'playing') return;
     const utterance = new SpeechSynthesisUtterance(chunks[index]);
-    utterance.rate = 0.95;
+    utterance.rate = 0.90; // Slightly slower for better comprehension
     utterance.onend = () => {
+      if (audioStateRef.current !== 'playing') return;
       if (index + 1 < chunks.length) {
         setAudioIndex(index + 1);
-        speakChunk(chunks, index + 1);
-      } else setAudioState('idle');
+        setTimeout(() => speakChunk(chunks, index + 1), 800); // 800ms gap for breathing space
+      } else {
+        setAudioState('idle');
+        audioStateRef.current = 'idle';
+      }
     };
     window.speechSynthesis.speak(utterance);
   };
-  const pauseAudio = () => { window.speechSynthesis.pause(); setAudioState('paused'); };
+  const pauseAudio = () => { 
+    audioStateRef.current = 'paused';
+    setAudioState('paused'); 
+    window.speechSynthesis.cancel(); 
+  };
   const resumeAudio = () => {
     if (!audioQueue.length) return;
-    if (window.speechSynthesis.paused) window.speechSynthesis.resume();
-    else speakChunk(audioQueue, audioIndex);
+    audioStateRef.current = 'playing';
     setAudioState('playing');
+    speakChunk(audioQueue, audioIndex);
   };
-  const stopAudio = () => { window.speechSynthesis.cancel(); setAudioQueue([]); setAudioIndex(0); setAudioState('idle'); };
+  const stopAudio = () => { 
+    audioStateRef.current = 'idle';
+    setAudioState('idle'); 
+    window.speechSynthesis.cancel(); 
+    setAudioQueue([]); 
+    setAudioIndex(0); 
+  };
   const handleAudioPdf = async event => {
     const file = event.target.files?.[0];
     if (!file) return;
@@ -271,24 +288,7 @@ export default function StudyTracker() {
           <div className="flex items-end gap-2 mt-2"><span className="text-5xl font-black text-header">{formatMinutes(stats.today)}</span><span className="text-sm text-body mb-2">/ {formatMinutes(goal)}</span></div>
           <div className="h-2 rounded-full bg-primary/10 mt-4 max-w-md overflow-hidden"><div className="h-full bg-primary rounded-full transition-all" style={{ width: `${Math.min(100, (stats.today / goal) * 100)}%` }} /></div>
           <p className="text-xs text-body mt-2">{stats.today >= goal ? 'Daily goal complete. Protect the streak.' : `${formatMinutes(Math.max(0, goal - stats.today))} left to reach today’s goal.`}</p>
-          <div className="flex gap-2 mt-5">
-            <select 
-              value={activityType} 
-              onChange={e => setActivityType(e.target.value)} 
-              disabled={timerStatus === 'running'}
-              className="app-input w-32 text-xs font-bold bg-transparent border-primary/20"
-            >
-              <option value="deep_work">Deep Work</option>
-              <option value="pdf">PDF Study</option>
-              <option value="video">Video Lecture</option>
-              <option value="ai_chat">AI Revision</option>
-              <option value="quiz">Quiz Practice</option>
-            </select>
-            <button onClick={toggleTimer} className={`flex-1 py-3 font-bold text-sm rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all ${timerStatus === 'running' ? 'bg-red-500 hover:bg-red-600 text-white shadow-red-500/20' : 'btn-primary shadow-primary/20'}`}>
-               {timerStatus === 'running' ? <Square size={16} /> : <Play size={16} />} 
-               {timerStatus === 'running' ? `Stop & Save (${Math.floor(timerSeconds / 60)}:${(timerSeconds % 60).toString().padStart(2, '0')})` : 'Start Focus Timer'}
-            </button>
-          </div>
+          
         </div>
         <div className="w-28 h-28 rounded-full border-[10px] border-primary/10 flex items-center justify-center relative" style={{ borderTopColor: 'var(--theme-primary)', transform: `rotate(${Math.min(360, (stats.today / goal) * 360)}deg)` }}><Target size={28} className="text-primary" style={{ transform: `rotate(-${Math.min(360, (stats.today / goal) * 360)}deg)` }} /></div>
       </section>
@@ -298,14 +298,14 @@ export default function StudyTracker() {
           [Flame, 'Current streak', `${stats.streak} days`, 'text-orange-500'],
           [Clock3, 'Total focus', formatMinutes(stats.total), 'text-primary'],
           [BookOpen, 'PDF study', formatMinutes(stats.totals.pdf), 'text-sky-600'],
-          [BrainCircuit, 'AI revision', formatMinutes(stats.totals.ai_chat), 'text-violet-600']
+          [BrainCircuit, 'Deep Work', formatMinutes(stats.totals.deep_work), 'text-violet-600']
         ].map(([Icon, label, value, color]) => <div className="card p-4" key={label}><Icon size={18} className={color} /><p className="text-[10px] uppercase tracking-wider font-bold text-body mt-3">{label}</p><p className="text-lg font-black text-header mt-1">{value}</p></div>)}
       </section></>}
 
       {activeTab === 'overview' && <section className="grid lg:grid-cols-[1.3fr_1fr] gap-5">
         <div className="card p-5">
           <div className="flex justify-between items-center"><div><h2 className="font-black text-header">Consistency map</h2><p className="text-xs text-body mt-1">Your last 90 study days</p></div>{loading && <span className="text-xs text-primary">Syncing</span>}</div>
-          <div className="grid gap-1 mt-5" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>{Array.from({ length: 90 }, (_, index) => { const day = new Date(); day.setDate(day.getDate() - (89 - index)); const value = stats.days[day.toISOString().slice(0, 10)] || 0; return <span key={index} className="aspect-square rounded-[3px]" title={`${day.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}: ${value} minutes`} style={{ background: value ? `color-mix(in srgb, var(--theme-primary) ${Math.min(90, 20 + value / 3)}%, var(--theme-bg))` : 'var(--theme-bg)' }} />; })}</div>
+          <div className="grid gap-1 mt-5" style={{ gridTemplateColumns: 'repeat(15, minmax(0, 1fr))' }}>{Array.from({ length: 90 }, (_, index) => { const day = new Date(); day.setDate(day.getDate() - (89 - index)); const value = stats.days[day.toISOString().slice(0, 10)] || 0; return <span key={index} className="aspect-square rounded-[3px]" title={`${day.toLocaleDateString(undefined, {month: 'short', day: 'numeric'})}: ${value} minutes`} style={{ background: value === 0 ? 'var(--theme-bg)' : value < 30 ? '#9be9a8' : value < 60 ? '#40c463' : value < 90 ? '#30a14e' : '#216e39' }} />; })}</div>
           <div className="flex gap-4 mt-4 text-xs text-body"><span className="flex items-center gap-1"><CheckCircle2 size={13} className="text-primary" /> Active study day</span><span className="flex items-center gap-1"><Trophy size={13} className="text-orange-500" /> Keep your best streak alive</span></div>
         </div>
         <div className="card p-5 space-y-4">

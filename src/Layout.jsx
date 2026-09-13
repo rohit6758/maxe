@@ -14,7 +14,22 @@ import SwitchAccountModal from './components/SwitchAccountModal';
 export default function Layout() {
   const location = useLocation();
 
-  const { userProfile, activeBranch, session } = useAppContext();
+  const { userProfile, activeBranch, session, activeTrackingMode } = useAppContext();
+
+  
+  useEffect(() => {
+    if (!session?.user?.id) return;
+    const interval = setInterval(async () => {
+      if (document.visibilityState === 'visible') {
+         await supabase.from('study_activity').insert([{
+           user_id: session.user.id,
+           activity_type: activeTrackingMode || 'deep_work',
+           duration_minutes: 1
+         }]);
+      }
+    }, 60000);
+    return () => clearInterval(interval);
+  }, [session?.user?.id, activeTrackingMode]);
 
   useEffect(() => {
     if (!session?.user?.id) return;

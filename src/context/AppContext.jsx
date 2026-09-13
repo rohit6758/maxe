@@ -12,6 +12,7 @@ export function AppProvider({ children }) {
   const [activeBranch, setActiveBranch] = useState('');
   const [activeSemester, setActiveSemester] = useState(null);
   const [activeSubject, setActiveSubject] = useState(null);
+  const [activeTrackingMode, setActiveTrackingMode] = useState('deep_work');
   const [theme, setThemeState] = useState('default');
   const [profileEffects, setProfileEffectsState] = useState({
     banner: 'none',
@@ -155,6 +156,7 @@ export function AppProvider({ children }) {
 
   return (
     <AppContext.Provider value={{
+        activeTrackingMode, setActiveTrackingMode,
       session,
       userProfile,
       loading,
