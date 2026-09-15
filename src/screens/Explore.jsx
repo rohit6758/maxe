@@ -651,13 +651,15 @@ export default function Explore() {
   const executeImport = async () => {
     if (!selectedSubjectId) return toast('Select a subject to import to');
     try {
-      const { error } = await supabase.from('resources').insert([{
+      const insertPayload = {
         subject_id: selectedSubjectId,
         title: importingPost.title,
         url: importingPost.url,
-        type: importingPost.type,
-        size: importingPost.size
-      }]);
+        type: importingPost.type
+      };
+      if (importingPost.size) insertPayload.size = importingPost.size;
+      
+      const { error } = await supabase.from('resources').insert([insertPayload]);
       if (error) throw error;
       toast('Imported successfully!');
       setShowImportModal(false);
