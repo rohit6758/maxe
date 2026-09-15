@@ -58,16 +58,22 @@ export function ToastContainer() {
         return (
           <div
             key={t.id}
-            className="animate-slide-down pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-xl border backdrop-blur-md"
+            className="animate-slide-down pointer-events-auto flex items-center justify-between p-4 rounded-xl shadow-xl border backdrop-blur-md mx-auto w-fit max-w-[90vw]"
             style={{
               backgroundColor: t.type === 'error' ? 'color-mix(in srgb, var(--theme-primary) 10%, #fee2e2)' : 'var(--theme-surface)',
               borderColor: t.type === 'error' ? '#f87171' : 'var(--theme-primary)',
               color: t.type === 'error' ? '#b91c1c' : 'var(--theme-header)'
             }}
           >
-            <div className="flex flex-col min-w-0 pr-2">
-              {t.title && <span className="text-xs font-bold opacity-70">{t.title}</span>}
-              <span className="text-sm font-bold truncate">{t.message}</span>
+            <div className="flex flex-col min-w-0 pr-2 text-center">
+              {t.title && !t.message ? (
+                 <span className="text-sm font-bold">{t.title}</span>
+              ) : (
+                 <>
+                   {t.title && <span className="text-xs font-bold opacity-70">{t.title}</span>}
+                   <span className="text-sm font-bold whitespace-normal">{t.message}</span>
+                 </>
+              )}
             </div>
             <button onClick={() => removeToast(t.id)} className="opacity-50 hover:opacity-100 p-1 shrink-0">
                <X size={16} /> 
