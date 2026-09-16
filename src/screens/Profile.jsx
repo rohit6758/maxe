@@ -16,6 +16,7 @@ export default function Profile() {
 
 
   const [name, setName] = useState('');
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
   const [username, setUsername] = useState('');
   const [bio, setBio] = useState('');
   const [branch, setBranch] = useState('');
@@ -290,7 +291,12 @@ const loadFollowStats = async () => {
           </div>
           {userProfile?.bio && (
             <div className="relative z-10 mt-2 px-4">
-              <p className="text-xs leading-relaxed whitespace-pre-wrap" style={{color:'var(--theme-body)'}}>{userProfile.bio}</p>
+              <p className={`text-xs leading-relaxed whitespace-pre-wrap ${!isBioExpanded ? 'line-clamp-3' : ''}`} style={{color:'var(--theme-body)'}}>{userProfile.bio}</p>
+              {userProfile.bio.length > 120 && (
+                <button onClick={() => setIsBioExpanded(!isBioExpanded)} className="text-[10px] font-bold mt-1 text-primary hover:underline">
+                  {isBioExpanded ? 'Show less' : 'Read more'}
+                </button>
+              )}
             </div>
           )}
           <div className="flex gap-2 mt-4 relative z-10 px-4 pb-4">
@@ -364,7 +370,7 @@ const loadFollowStats = async () => {
 
           <div>
             <label className="block text-xs font-semibold uppercase tracking-wider mb-1.5" className="text-body">Bio</label>
-            <textarea className="app-input resize-none" rows={3} placeholder="About yourself..." value={bio} onChange={e => setBio(e.target.value)} />
+            <textarea className="app-input resize-none" rows={3} maxLength={500} placeholder="About yourself... (max 500 chars)" value={bio} onChange={e => setBio(e.target.value)} />
           </div>
 
           <button type="button" onClick={handleSave} disabled={saving || uploading}

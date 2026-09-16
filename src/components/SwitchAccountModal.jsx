@@ -78,10 +78,9 @@ export default function SwitchAccountModal({ onClose }) {
       }
     }
 
-    // Fallback if token expired: sign out and go to auth
-    await supabase.auth.signOut();
+    // Fallback if token expired: do NOT sign out current user, just route to add_account
     const hint = account.username || account.email || '';
-    window.location.href = `${window.location.origin}/auth?hint=${encodeURIComponent(hint)}`;
+    window.location.href = `${window.location.origin}/auth?mode=add_account&hint=${encodeURIComponent(hint)}`;
   };
 
   const handleAddAccount = async () => {

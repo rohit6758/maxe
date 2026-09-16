@@ -7,6 +7,7 @@ import { useAppContext } from '../context/AppContext';
 export default function UserProfilePopup({ userId, onClose, currentUserId, onFollowChange }) {
   const { profileEffects } = useAppContext();
   const [profile, setProfile] = useState(null);
+  const [isBioExpanded, setIsBioExpanded] = useState(false);
   const [followerCount, setFollowerCount] = useState(0);
   const [followingCount, setFollowingCount] = useState(0);
   const [isFollowing, setIsFollowing] = useState(false);
@@ -227,7 +228,16 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
                 {profile?.is_premium && <VerifiedBadge />}
               </h2>
               {profile?.branch && <p className="text-sm font-bold text-primary">{profile.branch}</p>}
-              {profile?.bio && <p className="text-sm text-body whitespace-pre-wrap mt-3 leading-relaxed">{profile.bio}</p>}
+              {profile?.bio && (
+                <div className="mt-3">
+                  <p className={`text-sm text-body whitespace-pre-wrap leading-relaxed ${!isBioExpanded ? 'line-clamp-3' : ''}`}>{profile.bio}</p>
+                  {profile.bio.length > 120 && (
+                    <button onClick={() => setIsBioExpanded(!isBioExpanded)} className="text-[10px] font-bold mt-1 text-primary hover:underline">
+                      {isBioExpanded ? 'Show less' : 'Read more'}
+                    </button>
+                  )}
+                </div>
+              )}
             </div>
 
             {/* Bottom section: Action */}

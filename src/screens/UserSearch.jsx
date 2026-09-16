@@ -28,13 +28,10 @@ export default function UserSearch() {
       })
       .subscribe();
 
-    const refreshTimer = window.setInterval(() => {
-      if (document.visibilityState !== 'visible' || !searchQuery.trim()) return;
-      executeSearch(searchQuery);
-    }, 5000);
+    
 
     return () => {
-      window.clearInterval(refreshTimer);
+      
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
