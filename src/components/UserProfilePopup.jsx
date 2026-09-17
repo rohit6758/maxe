@@ -231,7 +231,7 @@ export default function UserProfilePopup({ userId, onClose, currentUserId, onFol
               {profile?.bio && (
                 <div className="mt-3">
                   <p className={`text-sm text-body whitespace-pre-wrap leading-relaxed ${!isBioExpanded ? 'line-clamp-3' : ''}`}>{profile.bio}</p>
-                  {profile.bio.length > 120 && (
+                  {(profile.bio.length > 80 || profile.bio.split('\n').length > 3) && (
                     <button onClick={() => setIsBioExpanded(!isBioExpanded)} className="text-[10px] font-bold mt-1 text-primary hover:underline">
                       {isBioExpanded ? 'Show less' : 'Read more'}
                     </button>

@@ -292,7 +292,7 @@ const loadFollowStats = async () => {
           {userProfile?.bio && (
             <div className="relative z-10 mt-2 px-4">
               <p className={`text-xs leading-relaxed whitespace-pre-wrap ${!isBioExpanded ? 'line-clamp-3' : ''}`} style={{color:'var(--theme-body)'}}>{userProfile.bio}</p>
-              {userProfile.bio.length > 120 && (
+              {(userProfile.bio.length > 80 || userProfile.bio.split('\n').length > 3) && (
                 <button onClick={() => setIsBioExpanded(!isBioExpanded)} className="text-[10px] font-bold mt-1 text-primary hover:underline">
                   {isBioExpanded ? 'Show less' : 'Read more'}
                 </button>
