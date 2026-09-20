@@ -106,9 +106,9 @@ export default function Aggregator() {
   const handleUpload = async (file, type) => {
     if (!file || !activeSubject) return;
     const filePath = `${session.user.id}/${Date.now()}-${file.name}`;
-    const { error } = await supabase.storage.from('uploads').upload(filePath, file);
+    const { error } = await supabase.storage.from('pdfs').upload(filePath, file);
     if (error) { toast('Upload failed: ' + error.message); return; }
-    const { data: urlData } = supabase.storage.from('uploads').getPublicUrl(filePath);
+    const { data: urlData } = supabase.storage.from('pdfs').getPublicUrl(filePath);
     const { data } = await supabase.from('resources').insert([{
       subject_id: activeSubject, title: file.name, url: urlData.publicUrl, type,
       size: (file.size / 1024 / 1024).toFixed(2) + ' MB'

@@ -1377,6 +1377,7 @@ export default function Explore() {
               <option value="pdf">PDF File</option>
               <option value="question_paper">Question Paper (PDF/Img)</option>
               <option value="chat">AI Chat Link</option>
+              <option value="diagram">Diagram / Mind Map</option>
             </select>
 
             {shareData.type === 'chat' ? (
